@@ -2,7 +2,7 @@ package AST;
 
 import Util.position;
 
-import Util.Type;
+import type.Type;
 
 public class constExprNode extends ExprNode {
     public int value;

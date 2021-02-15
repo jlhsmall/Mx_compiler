@@ -66,7 +66,7 @@ exprList:   expr (',' expr)*;
 constant: Logic | Integer | StringConst | NULL;
 
 funcType:   VOID | varType;
-varType:    naiveType | varType '[' ']';
+varType:    naiveType ('[' ']')*;
 naiveType:  BOOL | INT | STRING | Identifier;
 
 INT:     'int';

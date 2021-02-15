@@ -1,9 +1,9 @@
 import AST.RootNode;
 import Frontend.ASTBuilder;
 import Frontend.SemanticChecker;
-import Parser.YxLexer;
-import Parser.YxParser;
-import Util.YxErrorListener;
+import Parser.MxLexer;
+import Parser.MxParser;
+import Util.MxErrorListener;
 import Util.error.error;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -16,18 +16,18 @@ import java.io.InputStream;
 public class Main {
     public static void main(String[] args) throws Exception{
 
-        String name = "testcases\\wrong1 - int not match.yx";
+        String name = "testcases\\wrong1 - int not match.Mx";
         InputStream input = new FileInputStream(name);
 
         try {
             RootNode ASTRoot;
 
-            YxLexer lexer = new YxLexer(CharStreams.fromStream(input));
+            MxLexer lexer = new MxLexer(CharStreams.fromStream(input));
             lexer.removeErrorListeners();
-            lexer.addErrorListener(new YxErrorListener());
-            YxParser parser = new YxParser(new CommonTokenStream(lexer));
+            lexer.addErrorListener(new MxErrorListener());
+            MxParser parser = new MxParser(new CommonTokenStream(lexer));
             parser.removeErrorListeners();
-            parser.addErrorListener(new YxErrorListener());
+            parser.addErrorListener(new MxErrorListener());
             ParseTree parseTreeRoot = parser.program();
             ASTBuilder astBuilder = new ASTBuilder();
             ASTRoot = (RootNode)astBuilder.visit(parseTreeRoot);
