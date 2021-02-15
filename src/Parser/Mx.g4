@@ -1,16 +1,16 @@
 grammar Mx;
 
-program:    (naiveBlock | classDef)* 'int main()' suite EOF;
-naiveBlock: funcDef | varDef;
+program:    (funcDef | varDef | classDef)* mainBlock;
 funcDef:    funcType Identifier '(' paraList? ')' suite;
 paraList:   para (',' para)*;
 para:       varType Identifier;
 
 varDef:     varType (Identifier ('=' expr)? )+ ';';
 
-classDef:   CLASS Identifier '{' (naiveBlock | consFuncDef)* '}' ';';
+classDef:   CLASS Identifier '{' (funcDef | varDef | consFuncDef)* '}' ';';
 consFuncDef:Identifier '(' paraList ')' suite;
 
+mainBlock:  'int main()' suite EOF;
 suite:     '{' stmt* '}';
 
 stmt

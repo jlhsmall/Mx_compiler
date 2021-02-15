@@ -5,11 +5,12 @@ import Util.Scope;
 import Util.error.semanticError;
 
 public class SemanticChecker implements ASTVisitor {
+    static Scope globalScope;
     Scope currentScope;
 
     @Override
     public void visit(RootNode it) {
-        currentScope = new Scope(null);
+        globalScope = new Scope(null);
         for (StmtNode stmt : it.stmts) stmt.accept(this);
     }
 

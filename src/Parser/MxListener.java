@@ -18,16 +18,6 @@ public interface MxListener extends ParseTreeListener {
 	 */
 	void exitProgram(MxParser.ProgramContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link MxParser#naiveBlock}.
-	 * @param ctx the parse tree
-	 */
-	void enterNaiveBlock(MxParser.NaiveBlockContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link MxParser#naiveBlock}.
-	 * @param ctx the parse tree
-	 */
-	void exitNaiveBlock(MxParser.NaiveBlockContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link MxParser#funcDef}.
 	 * @param ctx the parse tree
 	 */
@@ -87,6 +77,16 @@ public interface MxListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitConsFuncDef(MxParser.ConsFuncDefContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link MxParser#mainBlock}.
+	 * @param ctx the parse tree
+	 */
+	void enterMainBlock(MxParser.MainBlockContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link MxParser#mainBlock}.
+	 * @param ctx the parse tree
+	 */
+	void exitMainBlock(MxParser.MainBlockContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link MxParser#suite}.
 	 * @param ctx the parse tree
