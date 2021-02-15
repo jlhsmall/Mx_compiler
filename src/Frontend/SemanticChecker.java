@@ -1,16 +1,19 @@
 package Frontend;
 
 import AST.*;
+import Util.Func;
 import Util.Scope;
 import Util.error.semanticError;
 
-public class SemanticChecker implements ASTVisitor {
-    static Scope globalScope;
-    Scope currentScope;
+import java.util.Map;
 
+public class SemanticChecker implements ASTVisitor {
+    public Scope globalScope,currentScope;
+    public Map<String, Func> funcMap;
     @Override
     public void visit(RootNode it) {
-        globalScope = new Scope(null);
+        currentScope = globalScope = new Scope(null);
+
         for (StmtNode stmt : it.stmts) stmt.accept(this);
     }
 

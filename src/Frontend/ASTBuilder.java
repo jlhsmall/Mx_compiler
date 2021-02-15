@@ -12,11 +12,11 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     @Override public ASTNode visitProgram(MxParser.ProgramContext ctx) {
 
         RootNode root = new RootNode(new position(ctx));
-
-        if (ctx.suite() != null) {
+        if (ctx.)
+        /*if (ctx.suite() != null) {
             for (ParserRuleContext stmt : ctx.suite().stmt())
                 root.stmts.add((StmtNode) visit(stmt));
-        }
+        }*/
         return root;
     }
 

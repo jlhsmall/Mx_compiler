@@ -4,11 +4,14 @@ import Util.position;
 import java.util.ArrayList;
 
 public class RootNode extends ASTNode {
-    public ArrayList<StmtNode> stmts;
+    public ArrayList<funcDefNode> funcDefs;
+    public ArrayList<varDefNode> varDefs;
+    public mainBlockNode mainBlock;
 
     public RootNode(position pos) {
         super(pos);
-        stmts = new ArrayList<>();
+        funcDef = new ArrayList<>();
+
     }
 
     @Override

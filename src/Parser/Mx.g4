@@ -1,13 +1,15 @@
 grammar Mx;
 
-program:    (funcDef | varDef | classDef)* mainBlock;
+program:    initBlock* mainBlock;
+initBlock:       funcDef | varDef | classDef;
 funcDef:    funcType Identifier '(' paraList? ')' suite;
 paraList:   para (',' para)*;
 para:       varType Identifier;
 
 varDef:     varType (Identifier ('=' expr)? )+ ';';
 
-classDef:   CLASS Identifier '{' (funcDef | varDef | consFuncDef)* '}' ';';
+classDef:   CLASS Identifier '{' classBlock* '}' ';';
+classBlock:  funcDef | varDef | consFuncDef;
 consFuncDef:Identifier '(' paraList ')' suite;
 
 mainBlock:  'int main()' suite EOF;
@@ -68,6 +70,40 @@ constant: Logic | Integer | StringConst | NULL;
 funcType:   VOID | varType;
 varType:    naiveType ('[' ']')*;
 naiveType:  BOOL | INT | STRING | Identifier;
+
+LeftParen : '(';
+RightParen : ')';
+LeftBracket : '[';
+RightBracket : ']';
+LeftBrace : '{';
+RightBrace : '}';
+
+Less : '<';
+LessEqual : '<=';
+Greater : '>';
+GreaterEqual : '>=';
+LeftShift : '<<';
+RightShift : '>>';
+
+Plus : '+';
+Minus : '-';
+
+And : '&';
+Or : '|';
+AndAnd : '&&';
+OrOr : '||';
+Caret : '^';
+Not : '!';
+Tilde : '~';
+
+Question : '?';
+Colon : ':';
+Semi : ';';
+Comma : ',';
+
+Assign : '=';
+Equal : '==';
+NotEqual : '!=';
 
 INT:     'int';
 BOOL:    'bool';
