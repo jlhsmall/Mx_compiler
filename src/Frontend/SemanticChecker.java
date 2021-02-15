@@ -13,7 +13,6 @@ public class SemanticChecker implements ASTVisitor {
     @Override
     public void visit(RootNode it) {
         currentScope = globalScope = new Scope(null);
-
         for (StmtNode stmt : it.stmts) stmt.accept(this);
     }
 
