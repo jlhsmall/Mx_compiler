@@ -366,26 +366,6 @@ public interface MxListener extends ParseTreeListener {
 	 */
 	void exitConstant(MxParser.ConstantContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link MxParser#stringConst}.
-	 * @param ctx the parse tree
-	 */
-	void enterStringConst(MxParser.StringConstContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link MxParser#stringConst}.
-	 * @param ctx the parse tree
-	 */
-	void exitStringConst(MxParser.StringConstContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link MxParser#logic}.
-	 * @param ctx the parse tree
-	 */
-	void enterLogic(MxParser.LogicContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link MxParser#logic}.
-	 * @param ctx the parse tree
-	 */
-	void exitLogic(MxParser.LogicContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link MxParser#funcType}.
 	 * @param ctx the parse tree
 	 */

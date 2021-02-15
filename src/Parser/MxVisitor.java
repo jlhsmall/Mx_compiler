@@ -222,18 +222,6 @@ public interface MxVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitConstant(MxParser.ConstantContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link MxParser#stringConst}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitStringConst(MxParser.StringConstContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link MxParser#logic}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitLogic(MxParser.LogicContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link MxParser#funcType}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

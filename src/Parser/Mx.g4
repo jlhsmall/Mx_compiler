@@ -63,9 +63,7 @@ atom
     ;
 func:       Identifier '(' exprList? ')';
 exprList:   expr (',' expr)*;
-constant: logic | Integer | stringConst | NULL;
-stringConst: '"' (EscapeChar|.)*? '"';
-logic: TRUE | FALSE;
+constant: Logic | Integer | StringConst | NULL;
 
 funcType:   VOID | varType;
 varType:    naiveType | varType '[' ']';
@@ -93,11 +91,16 @@ Identifier
     : [a-zA-Z] [a-zA-Z_0-9]*
     ;
 
+Logic: TRUE | FALSE;
+
 Integer
     : [1-9] [0-9]*
     | '0'
     ;
+
+StringConst: '"' (EscapeChar|.)*? '"';
 EscapeChar: '\\n' | '\\\\' | '\\"';
+
 Whitespace
     :   [ \t]+
         -> skip
