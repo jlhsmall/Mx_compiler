@@ -54,17 +54,18 @@ creator
     | naiveType ('[' expr ']')+ ('[' ']')+ ('[' expr ']')+  #falseArrayCreator
     ;
 atom
-    : '(' expr ')'
-    | Identifier
-    | Identifier '[' expr ']'
-    | atom '.' atom
-    | funcCall
-    | THIS
-    | constant
+    : '(' expr ')'                          #paronAtom
+    | Identifier                            #naiveAtom
+    | Identifier ('[' expr ']')+            #arrayAtom
+    | inst=atom '.' field=atom              #classAtom
+    | Identifier '(' exprList? ')'          #funcAtom
+    | THIS                                  #thisAtom
+    | Logic                                 #constAtom
+    | Integer                               #constAtom
+    | StringConst                           #constAtom
+    | NULL                                  #constAtom
     ;
-funcCall:       Identifier '(' exprList? ')';
 exprList:   expr (',' expr)*;
-constant: Logic | Integer | StringConst | NULL;
 
 funcType:   VOID | varType;
 varType:    naiveType ('[' ']')*;

@@ -336,25 +336,89 @@ public interface MxListener extends ParseTreeListener {
 	 */
 	void exitFalseArrayCreator(MxParser.FalseArrayCreatorContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link MxParser#atom}.
+	 * Enter a parse tree produced by the {@code paronAtom}
+	 * labeled alternative in {@link MxParser#atom}.
 	 * @param ctx the parse tree
 	 */
-	void enterAtom(MxParser.AtomContext ctx);
+	void enterParonAtom(MxParser.ParonAtomContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link MxParser#atom}.
+	 * Exit a parse tree produced by the {@code paronAtom}
+	 * labeled alternative in {@link MxParser#atom}.
 	 * @param ctx the parse tree
 	 */
-	void exitAtom(MxParser.AtomContext ctx);
+	void exitParonAtom(MxParser.ParonAtomContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link MxParser#funcCall}.
+	 * Enter a parse tree produced by the {@code arrayAtom}
+	 * labeled alternative in {@link MxParser#atom}.
 	 * @param ctx the parse tree
 	 */
-	void enterFuncCall(MxParser.FuncCallContext ctx);
+	void enterArrayAtom(MxParser.ArrayAtomContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link MxParser#funcCall}.
+	 * Exit a parse tree produced by the {@code arrayAtom}
+	 * labeled alternative in {@link MxParser#atom}.
 	 * @param ctx the parse tree
 	 */
-	void exitFuncCall(MxParser.FuncCallContext ctx);
+	void exitArrayAtom(MxParser.ArrayAtomContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code constAtom}
+	 * labeled alternative in {@link MxParser#atom}.
+	 * @param ctx the parse tree
+	 */
+	void enterConstAtom(MxParser.ConstAtomContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code constAtom}
+	 * labeled alternative in {@link MxParser#atom}.
+	 * @param ctx the parse tree
+	 */
+	void exitConstAtom(MxParser.ConstAtomContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code naiveAtom}
+	 * labeled alternative in {@link MxParser#atom}.
+	 * @param ctx the parse tree
+	 */
+	void enterNaiveAtom(MxParser.NaiveAtomContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code naiveAtom}
+	 * labeled alternative in {@link MxParser#atom}.
+	 * @param ctx the parse tree
+	 */
+	void exitNaiveAtom(MxParser.NaiveAtomContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code classAtom}
+	 * labeled alternative in {@link MxParser#atom}.
+	 * @param ctx the parse tree
+	 */
+	void enterClassAtom(MxParser.ClassAtomContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code classAtom}
+	 * labeled alternative in {@link MxParser#atom}.
+	 * @param ctx the parse tree
+	 */
+	void exitClassAtom(MxParser.ClassAtomContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code funcAtom}
+	 * labeled alternative in {@link MxParser#atom}.
+	 * @param ctx the parse tree
+	 */
+	void enterFuncAtom(MxParser.FuncAtomContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code funcAtom}
+	 * labeled alternative in {@link MxParser#atom}.
+	 * @param ctx the parse tree
+	 */
+	void exitFuncAtom(MxParser.FuncAtomContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code thisAtom}
+	 * labeled alternative in {@link MxParser#atom}.
+	 * @param ctx the parse tree
+	 */
+	void enterThisAtom(MxParser.ThisAtomContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code thisAtom}
+	 * labeled alternative in {@link MxParser#atom}.
+	 * @param ctx the parse tree
+	 */
+	void exitThisAtom(MxParser.ThisAtomContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link MxParser#exprList}.
 	 * @param ctx the parse tree
@@ -365,16 +429,6 @@ public interface MxListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitExprList(MxParser.ExprListContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link MxParser#constant}.
-	 * @param ctx the parse tree
-	 */
-	void enterConstant(MxParser.ConstantContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link MxParser#constant}.
-	 * @param ctx the parse tree
-	 */
-	void exitConstant(MxParser.ConstantContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link MxParser#funcType}.
 	 * @param ctx the parse tree

@@ -204,29 +204,60 @@ public interface MxVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFalseArrayCreator(MxParser.FalseArrayCreatorContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link MxParser#atom}.
+	 * Visit a parse tree produced by the {@code paronAtom}
+	 * labeled alternative in {@link MxParser#atom}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitAtom(MxParser.AtomContext ctx);
+	T visitParonAtom(MxParser.ParonAtomContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link MxParser#funcCall}.
+	 * Visit a parse tree produced by the {@code arrayAtom}
+	 * labeled alternative in {@link MxParser#atom}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitFuncCall(MxParser.FuncCallContext ctx);
+	T visitArrayAtom(MxParser.ArrayAtomContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code constAtom}
+	 * labeled alternative in {@link MxParser#atom}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitConstAtom(MxParser.ConstAtomContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code naiveAtom}
+	 * labeled alternative in {@link MxParser#atom}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNaiveAtom(MxParser.NaiveAtomContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code classAtom}
+	 * labeled alternative in {@link MxParser#atom}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitClassAtom(MxParser.ClassAtomContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code funcAtom}
+	 * labeled alternative in {@link MxParser#atom}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFuncAtom(MxParser.FuncAtomContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code thisAtom}
+	 * labeled alternative in {@link MxParser#atom}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitThisAtom(MxParser.ThisAtomContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link MxParser#exprList}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitExprList(MxParser.ExprListContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link MxParser#constant}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitConstant(MxParser.ConstantContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link MxParser#funcType}.
 	 * @param ctx the parse tree

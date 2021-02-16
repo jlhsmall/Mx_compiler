@@ -4,10 +4,10 @@ import type.Type;
 
 import java.util.ArrayList;
 
-public class constantNode extends ASTNode {
+public class constAtomNode extends AtomNode {
     public Type type;
     public String value;
-    public constantNode(Type tp, String val, position pos) {
+    public constAtomNode(Type tp, String val, position pos) {
         super(pos);
         value = val;
         type = tp;

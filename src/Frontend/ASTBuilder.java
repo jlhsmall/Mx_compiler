@@ -218,29 +218,52 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     }
 
     @Override
-    public ASTNode visitAtom(MxParser.AtomContext ctx) {
-        if (ctx.LeftParen() != null) return visit(ctx.expr());
-        if (ctx.constant() != null) return visit(ctx.constant());
+    public ASTNode visitArrayAtom(MxParser.ArrayAtomContext ctx) {
+        arrayAtomNode arrayAtom = new arrayAtomNode(new position(ctx));
+        arrayAtom.name = ctx.Identifier().getText();
+        for (var index : ctx.expr())
+            arrayAtom.indices.add((ExprNode)visit(index));
+        return arrayAtom;
     }
 
     @Override
-    public ASTNode visitFuncCall(MxParser.FuncCallContext ctx) {
-        funcCallNode funcCall = new funcCallNode(new position(ctx));
-        funcCall.name = ctx.Identifier().getText();
-        for(var para: ctx.exprList().expr())
-            funcCall.paras.add((ExprNode)visit(para));
-        return funcCall;
-    }
-
-    @Override
-    public ASTNode visitConstant(MxParser.ConstantContext ctx) {
+    public ASTNode visitConstAtom(MxParser.ConstAtomContext ctx) {
         if (ctx.Logic() != null)
-            return new constantNode(new BoolType(),ctx.Logic().getText(),new position(ctx));
+            return new constAtomNode(new BoolType(),ctx.Logic().getText(),new position(ctx));
         if (ctx.Integer() != null)
-            return new constantNode(new IntType(),ctx.Integer().getText(),new position(ctx));
+            return new constAtomNode(new IntType(),ctx.Integer().getText(),new position(ctx));
         if (ctx.StringConst() != null)
-            return new constantNode(new StringType(),ctx.StringConst().getText(),new position(ctx));
-        return new constantNode(new NullType(),"null",new position(ctx));
+            return new constAtomNode(new StringType(),ctx.StringConst().getText(),new position(ctx));
+        return new constAtomNode(new NullType(),"null",new position(ctx));
+    }
+
+    @Override
+    public ASTNode visitNaiveAtom(MxParser.NaiveAtomContext ctx) {
+        naiveAtomNode naiveAtom = new naiveAtomNode(new position(ctx));
+        naiveAtom.name = ctx.Identifier().getText();
+        return naiveAtom;
+    }
+
+    @Override
+    public ASTNode visitClassAtom(MxParser.ClassAtomContext ctx) {
+        classAtomNode classAtom = new classAtomNode(new position(ctx));
+        classAtom.inst = (AtomNode)visit(ctx.inst);
+        classAtom.field = (AtomNode)visit(ctx.field);
+        return classAtom;
+    }
+
+    @Override
+    public ASTNode visitFuncAtom(MxParser.FuncAtomContext ctx) {
+        funcAtomNode funcAtom = new funcAtomNode(new position(ctx));
+        funcAtom.name = ctx.Identifier().getText();
+        for(var para: ctx.exprList().expr())
+            funcAtom.paras.add((ExprNode)visit(para));
+        return funcAtom;
+    }
+
+    @Override
+    public ASTNode visitThisAtom(MxParser.ThisAtomContext ctx) {
+        return new thisAtomNode(new position(ctx));
     }
 
     @Override
