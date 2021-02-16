@@ -3,12 +3,12 @@ package AST;
 import Util.position;
 
 public class ifStmtNode extends StmtNode {
-    public ExprNode condition;
+    public ExprNode cond;
     public StmtNode thenStmt, elseStmt;
 
-    public ifStmtNode(ExprNode condition, StmtNode thenStmt, StmtNode elseStmt, position pos) {
+    public ifStmtNode(ExprNode cond, StmtNode thenStmt, StmtNode elseStmt, position pos) {
         super(pos);
-        this.condition = condition;
+        this.cond = cond;
         this.thenStmt = thenStmt;
         this.elseStmt = elseStmt;
     }

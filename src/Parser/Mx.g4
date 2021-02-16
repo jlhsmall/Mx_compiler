@@ -9,7 +9,7 @@ varDef:     varType (Identifier ('=' expr)? )+ ';';
 
 classDef:   CLASS Identifier '{' classBlock* '}' ';';
 classBlock: funcDef | varDef | consFuncDef;
-consFuncDef:Identifier '(' paraList? ')' suite;
+consFuncDef:Identifier '('  ')' suite;
 
 mainBlock:  'int main()' suite EOF;
 suite:     '{' stmt* '}';
@@ -44,7 +44,7 @@ expr
     | lhs=expr op='|' rhs=expr                                      #binaryExpr
     | lhs=expr op='&&' rhs=expr                                     #binaryExpr
     | lhs=expr op='||' rhs=expr                                     #binaryExpr
-    | <assoc=right> expr '=' expr                                   #assignExpr
+    | <assoc=right> lhs=expr '=' rhs=expr                           #assignExpr
     | atom                                                          #atomExpr
     ;
 
