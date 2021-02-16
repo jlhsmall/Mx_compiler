@@ -1,23 +1,22 @@
 grammar Mx;
 
 program:    initBlock* mainBlock;
-initBlock:       funcDef | varDef | classDef;
+initBlock:  funcDef | varDef | classDef;
 funcDef:    funcType Identifier '(' paraList? ')' suite;
-paraList:   para (',' para)*;
-para:       varType Identifier;
+paraList:   varDef (',' varDef)*;
 
 varDef:     varType (Identifier ('=' expr)? )+ ';';
 
 classDef:   CLASS Identifier '{' classBlock* '}' ';';
-classBlock:  funcDef | varDef | consFuncDef;
-consFuncDef:Identifier '(' paraList ')' suite;
+classBlock: funcDef | varDef | consFuncDef;
+consFuncDef:Identifier '(' paraList? ')' suite;
 
 mainBlock:  'int main()' suite EOF;
 suite:     '{' stmt* '}';
 
 stmt
-    : suite                                                 #block
-    | varDef                                                #vardefStmt
+    : suite                                                 #blockStmt
+    | varDef                                                #varDefStmt
     | IF '(' expr ')' trueStmt=stmt
         (ELSE falseStmt=stmt)?                              #ifStmt
     | WHILE '(' expr ')' stmt                               #whileStmt
@@ -59,11 +58,11 @@ atom
     | Identifier
     | Identifier '[' expr ']'
     | atom '.' atom
-    | func
+    | funcCall
     | THIS
     | constant
     ;
-func:       Identifier '(' exprList? ')';
+funcCall:       Identifier '(' exprList? ')';
 exprList:   expr (',' expr)*;
 constant: Logic | Integer | StringConst | NULL;
 

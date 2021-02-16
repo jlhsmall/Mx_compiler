@@ -4,10 +4,10 @@ import Util.position;
 
 import java.util.ArrayList;
 
-public class blockStmtNode extends StmtNode {
+public class suiteNode extends StmtNode {
     public ArrayList<StmtNode> stmts;
 
-    public blockStmtNode(position pos) {
+    public suiteNode(position pos) {
         super(pos);
         this.stmts = new ArrayList<>();
     }

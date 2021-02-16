@@ -48,16 +48,6 @@ public interface MxListener extends ParseTreeListener {
 	 */
 	void exitParaList(MxParser.ParaListContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link MxParser#para}.
-	 * @param ctx the parse tree
-	 */
-	void enterPara(MxParser.ParaContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link MxParser#para}.
-	 * @param ctx the parse tree
-	 */
-	void exitPara(MxParser.ParaContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link MxParser#varDef}.
 	 * @param ctx the parse tree
 	 */
@@ -118,29 +108,29 @@ public interface MxListener extends ParseTreeListener {
 	 */
 	void exitSuite(MxParser.SuiteContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code block}
+	 * Enter a parse tree produced by the {@code blockStmt}
 	 * labeled alternative in {@link MxParser#stmt}.
 	 * @param ctx the parse tree
 	 */
-	void enterBlock(MxParser.BlockContext ctx);
+	void enterBlockStmt(MxParser.BlockStmtContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code block}
+	 * Exit a parse tree produced by the {@code blockStmt}
 	 * labeled alternative in {@link MxParser#stmt}.
 	 * @param ctx the parse tree
 	 */
-	void exitBlock(MxParser.BlockContext ctx);
+	void exitBlockStmt(MxParser.BlockStmtContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code vardefStmt}
+	 * Enter a parse tree produced by the {@code varDefStmt}
 	 * labeled alternative in {@link MxParser#stmt}.
 	 * @param ctx the parse tree
 	 */
-	void enterVardefStmt(MxParser.VardefStmtContext ctx);
+	void enterVarDefStmt(MxParser.VarDefStmtContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code vardefStmt}
+	 * Exit a parse tree produced by the {@code varDefStmt}
 	 * labeled alternative in {@link MxParser#stmt}.
 	 * @param ctx the parse tree
 	 */
-	void exitVardefStmt(MxParser.VardefStmtContext ctx);
+	void exitVarDefStmt(MxParser.VarDefStmtContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code ifStmt}
 	 * labeled alternative in {@link MxParser#stmt}.
@@ -356,15 +346,15 @@ public interface MxListener extends ParseTreeListener {
 	 */
 	void exitAtom(MxParser.AtomContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link MxParser#func}.
+	 * Enter a parse tree produced by {@link MxParser#funcCall}.
 	 * @param ctx the parse tree
 	 */
-	void enterFunc(MxParser.FuncContext ctx);
+	void enterFuncCall(MxParser.FuncCallContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link MxParser#func}.
+	 * Exit a parse tree produced by {@link MxParser#funcCall}.
 	 * @param ctx the parse tree
 	 */
-	void exitFunc(MxParser.FuncContext ctx);
+	void exitFuncCall(MxParser.FuncCallContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link MxParser#exprList}.
 	 * @param ctx the parse tree

@@ -5,7 +5,7 @@ public interface ASTVisitor {
 
     void visit(varDefStmtNode it);
     void visit(returnStmtNode it);
-    void visit(blockStmtNode it);
+    void visit(suiteNode it);
     void visit(exprStmtNode it);
     void visit(ifStmtNode it);
 
