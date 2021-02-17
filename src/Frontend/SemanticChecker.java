@@ -1,30 +1,51 @@
 package Frontend;
 
 import AST.*;
-import Util.Func;
+import Util.item.funcItem;
 import Util.Scope;
+import Util.item.classItem;
 import Util.error.semanticError;
+import Util.item.varItem;
 
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.Stack;
 
 public class SemanticChecker implements ASTVisitor {
-    public Scope globalScope,currentScope;
-    public Map<String, Func> funcMap;
+    public Stack<Scope> scopes;
+    public Map<String, funcItem> funcMap;
+    public Map<String, classItem> classMap;
     @Override
     public void visit(RootNode it) {
-        currentScope = globalScope = new Scope(null);
-        for (StmtNode stmt : it.stmts) stmt.accept(this);
+        scopes.push(new Scope(null));
+        for (var def : it.defs)
+            def.accept(this);
     }
 
     @Override
-    public void visit(varDefStmtNode it) {
-        if (it.init != null) {
-            it.init.accept(this);
-            if (!it.init.type.isInt)
-                throw new semanticError("Semantic Error: type not match. It should be int",
-                                        it.init.pos);
-        }
-        currentScope.defineVariable(it.name, it.pos);
+    public void visit(funcDefNode it) {
+        if(funcMap.get(it.name) != null) throw new semanticError("Semantic Error: wrong funcDef", it.pos);
+        scopes.push(new Scope(scopes.peek()));
+        funcItem funcitem = (funcItem) it.toItem(this);
+        funcMap.put(it.name, funcitem);
+        it.suite.accept(this);
+        if(it.funcType.type != it.suite.type) throw new semanticError("Semantic Error: wrong funcDef", it.pos);
+        scopes.pop();
+    }
+
+    @Override
+    public void visit(varDefNode it) {
+        it.toItem(this);
+        it.expr.accept(this);
+        if(it.expr.type != it.varType.type) throw new semanticError("Semantic Error: wrong varDef", it.pos);
+    }
+
+    @Override
+    public void visit(classDefNode it) {
+        scopes.push(new Scope(scopes.peek()));
+        classItem classitem = (classItem) it.toItem(this);
+        classMap.put(it.name,classitem);
+        scopes.pop();
     }
 
     @Override

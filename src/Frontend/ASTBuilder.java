@@ -13,15 +13,15 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         RootNode root = new RootNode(new position(ctx));
         if (ctx.initBlock() != null) for (var block : ctx.initBlock()) {
             if (block.funcDef() != null) {
-                root.funcDefs.add((funcDefNode) visit(block.funcDef()));
+                root.defs.add((funcDefNode) visit(block.funcDef()));
                 root.order.add(RootNode.OrderType.FUNCDEF);
             }
             if (block.varDef() != null) {
-                root.varDefs.add((varDefNode) visit(block.varDef()));
+                root.defs.add((varDefNode) visit(block.varDef()));
                 root.order.add(RootNode.OrderType.VARDEF);
             }
             if (block.classDef() != null) {
-                root.classDefs.add((classDefNode) visit(block.classDef()));
+                root.defs.add((classDefNode) visit(block.classDef()));
                 root.order.add(RootNode.OrderType.CLASSDEF);
             }
         }
@@ -64,16 +64,13 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         classDef.name = ctx.Identifier().getText();
         if (ctx.classBlock() != null) for (var block : ctx.classBlock()) {
             if (block.funcDef() != null) {
-                classDef.funcDefs.add((funcDefNode) visit(block.funcDef()));
-                classDef.order.add(classDefNode.OrderType.FUNCDEF);
+                classDef.defs.add((funcDefNode) visit(block.funcDef()));
             }
             if (block.varDef() != null) {
-                classDef.varDefs.add((varDefNode) visit(block.varDef()));
-                classDef.order.add(classDefNode.OrderType.VARDEF);
+                classDef.defs.add((varDefNode) visit(block.varDef()));
             }
             if (block.consFuncDef() != null) {
-                classDef.consFuncDef = (funcDefNode) visit(block.consFuncDef());
-                classDef.order.add(classDefNode.OrderType.CONSFUNCDEF);
+                classDef.defs.add((funcDefNode) visit(block.consFuncDef()));
             }
         }
         return classDef;
