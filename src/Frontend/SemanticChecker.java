@@ -20,6 +20,7 @@ public class SemanticChecker implements ASTVisitor {
         scopes.push(new Scope(null));
         for (var def : it.defs)
             def.accept(this);
+
     }
 
     @Override
@@ -28,9 +29,14 @@ public class SemanticChecker implements ASTVisitor {
         scopes.push(new Scope(scopes.peek()));
         funcItem funcitem = (funcItem) it.toItem(this);
         funcMap.put(it.name, funcitem);
-        it.suite.accept(this);
-        if(it.funcType.type != it.suite.type) throw new semanticError("Semantic Error: wrong funcDef", it.pos);
+        it.funcBody.accept(this);
+        if(it.funcType.type != it.funcBody.type) throw new semanticError("Semantic Error: wrong funcDef", it.pos);
         scopes.pop();
+    }
+
+    @Override
+    public void visit(funcBodyNode it){
+        for (StmtNode stmt : it.stmts) stmt.accept(this);
     }
 
     @Override
@@ -49,37 +55,74 @@ public class SemanticChecker implements ASTVisitor {
     }
 
     @Override
-    public void visit(returnStmtNode it) {
-        if (it.value != null) {
-            it.value.accept(this);
-            if (!it.value.type.isInt)
-                throw new semanticError("Semantic Error: type not match. It should be int",
-                        it.value.pos);
-        }
+    public void visit(mainBlockNode it){
+        scopes.push(new Scope(scopes.peek()));
+        for (StmtNode stmt : it.stmts) stmt.accept(this);
+        scopes.pop();
     }
 
     @Override
     public void visit(suiteNode it) {
-        if (!it.stmts.isEmpty()) {
-            currentScope = new Scope(currentScope);
-            for (StmtNode stmt : it.stmts) stmt.accept(this);
-            currentScope = currentScope.parentScope();
+        scopes.push(new Scope(scopes.peek()));
+        for (StmtNode stmt : it.stmts) stmt.accept(this);
+        scopes.pop();
+    }
+
+    @Override
+    public void visit(ifStmtNode it) {
+        it.cond.accept(this);
+        if (it.cond.type.getName() != "bool")
+            throw new semanticError("Semantic Error: wrong ifStmt: type not match. It should be bool", it.cond.pos);
+        it.thenStmt.accept(this);
+        if (it.elseStmt != null) it.elseStmt.accept(this);
+    }
+
+    @Override
+    public void visit(whileStmtNode it) {
+        it.cond.accept(this);
+        if (it.cond.type.getName() != "bool")
+            throw new semanticError("Semantic Error: wrong whileStmt: type not match. It should be bool", it.cond.pos);
+        it.stmt.accept(this);
+    }
+
+    @Override
+    public void visit(forStmtNode it) {
+        it.init.accept(this);
+        it.cond.accept(this);
+        if (it.cond.type.getName() != "bool")
+            throw new semanticError("Semantic Error: wrong whileStmt: type not match. It should be bool", it.cond.pos);
+        it.stmt.accept(this);
+        it.incr.accept(this);
+    }
+
+    @Override
+    public void visit(returnStmtNode it) {
+        if (it.value != null) {
+            it.value.accept(this);
+            it.type = it.value.type;
         }
+    }
+
+    @Override
+    public void visit(breakStmtNode it) {
+
+    }
+
+    @Override
+    public void visit(continueStmtNode it) {
+
     }
 
     @Override
     public void visit(exprStmtNode it) {
         it.expr.accept(this);
+        it.type = it.expr.type;
     }
 
     @Override
-    public void visit(ifStmtNode it) {
-        it.condition.accept(this);
-        if (!it.condition.type.isBool)
-            throw new semanticError("Semantic Error: type not match. It should be bool",
-                    it.condition.pos);
-        it.thenStmt.accept(this);
-        if (it.elseStmt != null) it.elseStmt.accept(this);
+    public void visit(newExprNode it) {
+        it.creator.accept(this);
+        it.type = it.creator.type;
     }
 
     @Override
@@ -87,9 +130,9 @@ public class SemanticChecker implements ASTVisitor {
         it.rhs.accept(this);
         it.lhs.accept(this);
         if (it.rhs.type != it.lhs.type)
-            throw new semanticError("Semantic Error: type not match. ", it.pos);
-        if (!it.lhs.isAssignable())
-            throw new semanticError("Semantic Error: not assignable", it.lhs.pos);
+            throw new semanticError("Semantic Error: wrong assignExpr: type not match. ", it.pos);
+        if (!it.lhs.isAssignable()) // needs to be done.
+            throw new semanticError("Semantic Error: wrong assignExpr: not assignable", it.lhs.pos);
     }
 
     @Override

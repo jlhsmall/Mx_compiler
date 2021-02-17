@@ -2,17 +2,18 @@ grammar Mx;
 
 program:    initBlock* mainBlock;
 initBlock:  funcDef | varDef | classDef;
-funcDef:    funcType Identifier '(' paraList? ')' suite;
+funcDef:    funcType Identifier '(' paraList? ')' funcBody;
 paraList:   varDef (',' varDef)*;
 
 varDef:     varType (Identifier ('=' expr)? )+ ';';
 
 classDef:   CLASS Identifier '{' classBlock* '}' ';';
 classBlock: funcDef | varDef | consFuncDef;
-consFuncDef:Identifier '('  ')' suite;
+consFuncDef:Identifier '('  ')' funcBody;
 
 mainBlock:  'int main()' suite EOF;
-suite:     '{' stmt* '}';
+funcBody:   '{' stmt* '}';
+suite:      '{' stmt* '}';
 
 stmt
     : suite                                                 #blockStmt

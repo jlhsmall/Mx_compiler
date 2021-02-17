@@ -15,7 +15,7 @@ public class funcDefNode extends DefNode {
     public TypeNode funcType;
     public String name;
     public ArrayList<varDefNode> paras;
-    public suiteNode suite;
+    public funcBodyNode funcBody;
     public funcDefNode(position pos) {
         super(pos);
         defType = DefType.FUNC;

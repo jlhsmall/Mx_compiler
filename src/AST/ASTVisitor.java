@@ -3,6 +3,7 @@ package AST;
 public interface ASTVisitor {
     void visit(RootNode it);
     void visit(funcDefNode it);
+    void visit(funcBodyNode it);
     void visit(varDefNode it);
     void visit(classDefNode it);
     void visit(mainBlockNode it);

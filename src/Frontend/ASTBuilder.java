@@ -40,7 +40,7 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
                 funcDef.paras.add((varDefNode) visit(para));
             }
         }
-        funcDef.suite = (suiteNode) visit(ctx.suite());
+        funcDef.funcBody = (funcBodyNode) visit(ctx.funcBody());
         return funcDef;
     }
 
@@ -80,7 +80,7 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     public ASTNode visitConsFuncDef(MxParser.ConsFuncDefContext ctx) {
         funcDefNode consFuncDef = new funcDefNode(new position(ctx));
         consFuncDef.name = ctx.Identifier().getText();
-        consFuncDef.suite = (suiteNode) visit(ctx.suite());
+        consFuncDef.funcBody = (funcBodyNode) visit(ctx.funcBody());
         return consFuncDef;
     }
 
@@ -94,6 +94,18 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
             }
         }
         return mainBlock;
+    }
+
+    @Override
+    public ASTNode visitFuncBody(MxParser.FuncBodyContext ctx) {
+        suiteNode node = new suiteNode(new position(ctx));
+        if (!ctx.stmt().isEmpty()) {
+            for (ParserRuleContext stmt : ctx.stmt()) {
+                StmtNode tmp = (StmtNode) visit(stmt);
+                if (tmp != null) node.stmts.add(tmp);
+            }
+        }
+        return node;
     }
 
     @Override
