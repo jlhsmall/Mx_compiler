@@ -27,11 +27,12 @@ public class Scope {
         members.put(name, item);
     }
 
-    public boolean containsVariable(String name, boolean lookUpon) {
-        if (members.get(name) != null) return true;
-        else if (parentScope != null && lookUpon)
+    public varItem containsVariable(String name, boolean lookUpon) {
+        varItem ret = members.get(name);
+        if (ret != null) return ret;
+        if (parentScope != null && lookUpon)
             return parentScope.containsVariable(name, true);
-        else return false;
+        return null;
     }
 
     public void clear(){

@@ -5,7 +5,6 @@ import type.Type;
 import java.util.ArrayList;
 
 public class constAtomNode extends AtomNode {
-    public Type type;
     public String value;
     public constAtomNode(Type tp, String val, position pos) {
         super(pos);

@@ -6,6 +6,8 @@ import Util.Scope;
 import Util.item.classItem;
 import Util.error.semanticError;
 import Util.item.varItem;
+import type.ArrayType;
+import type.IntType;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -126,41 +128,120 @@ public class SemanticChecker implements ASTVisitor {
     }
 
     @Override
-    public void visit(assignExprNode it) {
-        it.rhs.accept(this);
-        it.lhs.accept(this);
-        if (it.rhs.type != it.lhs.type)
-            throw new semanticError("Semantic Error: wrong assignExpr: type not match. ", it.pos);
-        if (!it.lhs.isAssignable()) // needs to be done.
-            throw new semanticError("Semantic Error: wrong assignExpr: not assignable", it.lhs.pos);
+    public void visit(suffixExprNode it) {
+        it.expr.accept(this);
+        if(!it.expr.isAssignable() || !it.expr.type.getName().equals("int"))
+            throw new semanticError("Semantic Error: wrong suffixExpr. ", it.pos);
+        it.type = new IntType();
+    }
+
+    @Override
+    public void visit(prefixExprNode it) {
+        it.expr.accept(this);
+        switch (it.op){
+            case "++":
+            case "--":
+                if (!it.expr.isAssignable())
+                    throw new semanticError("Semantic Error: wrong prefixExpr. ", it.pos);
+            case "+":
+            case "-":
+            case "~":
+                if (!it.expr.type.getName().equals("int"))
+                    throw new semanticError("Semantic Error: wrong prefixExpr. ", it.pos);
+                break;
+            case "!":
+                if (!it.expr.type.getName().equals("bool"))
+                    throw new semanticError("Semantic Error: wrong prefixExpr. ", it.pos);
+        }
+        it.type = new IntType();
     }
 
     @Override
     public void visit(binaryExprNode it) {
         it.lhs.accept(this);
         it.rhs.accept(this);
-        if (!it.lhs.type.isInt)
-            throw new semanticError("Semantic error: type not match. It should be int",
-                    it.lhs.pos);
-        if (!it.rhs.type.isInt)
-            throw new semanticError("Semantic error: type not match. It should be int",
-                    it.rhs.pos);
+        String lhsTypeName = it.lhs.type.getName(),rhsTypeName = it.rhs.type.getName();
+        if(!lhsTypeName.equals(rhsTypeName))
+            throw new semanticError("Semantic Error: wrong binaryExpr. ", it.pos);
+        switch (it.op){
+            case "-":
+            case "*":
+            case "/":
+            case "%":
+            case "<<":
+            case ">>":
+            case "&":
+            case "|":
+            case "^":
+                if(!lhsTypeName.equals("int"))
+                    throw new semanticError("Semantic Error: wrong binaryExpr. ", it.pos);
+                break;
+            case "+":
+            case "<=":
+            case ">=":
+            case "<":
+            case ">":
+                if(!it.lhs.type.getName().equals("int") && !it.rhs.type.getName().equals("String"))
+                    throw new semanticError("Semantic Error: wrong binaryExpr. ", it.pos);
+                break;
+            case "&&":
+            case "||":
+                if(!lhsTypeName.equals("bool"))
+                    throw new semanticError("Semantic Error: wrong binaryExpr. ", it.pos);
+        }
+        it.type = it.lhs.type;
     }
 
     @Override
-    public void visit(constExprNode it) {}
-
-    @Override
-    public void visit(cmpExprNode it) {
-        it.lhs.accept(this);
+    public void visit(assignExprNode it) {
         it.rhs.accept(this);
+        it.lhs.accept(this);
         if (it.rhs.type != it.lhs.type)
-            throw new semanticError("Semantic Error: type not match. ", it.pos);
+            throw new semanticError("Semantic Error: wrong assignExpr: type not match. ", it.pos);
+        if (!it.lhs.isAssignable())
+            throw new semanticError("Semantic Error: wrong assignExpr: not assignable", it.lhs.pos);
+        it.type = it.lhs.type;
     }
 
     @Override
-    public void visit(varExprNode it) {
-        if (!currentScope.containsVariable(it.name, true))
-            throw new semanticError("Semantic Error: variable not defined. ", it.pos);
+    public void visit(CreatorNode it) {
+        if (!it.type.getName().equals("null"))
+            throw new semanticError("Semantic Error: wrong creator", it.pos);
+    }
+
+    @Override
+    public void visit(naiveAtomNode it) {
+        varItem varitem = scopes.peek().containsVariable(it.name,true);
+        if (varitem == null)
+            throw new semanticError("Semantic Error: wrong naiveAtom", it.pos);
+        it.type = varitem.type;
+    }
+
+    @Override
+    public void visit(arrayAtomNode it) {
+        varItem varitem = scopes.peek().containsVariable(it.name,true);
+        if (varitem == null)
+            throw new semanticError("Semantic Error: wrong arrayAtom", it.pos);
+        ArrayType arrayType = (ArrayType)varitem.type;
+        if (!arrayType.base.getName().equals(it.name) || arrayType.dim != it.indices.size())
+            throw new semanticError("Semantic Error: wrong arrayAtom", it.pos);
+        for (var index : it.indices) {
+            index.accept(this);
+            if (!index.type.getName().equals("int"))
+                throw new semanticError("Semantic Error: wrong arrayAtom", it.pos);
+        }
+        it.type = arrayType.base;
+    }
+
+    @Override
+    public void visit(classAtomNode it) {
+        it.inst.accept(this);
+        it.field.accept(this);
+        //need to be done
+    }
+
+    @Override
+    public void visit(constAtomNode it) {
+        //just nothing
     }
 }

@@ -5,8 +5,8 @@ package type;
  * @date 2021/2/15 16:00
  */
 public class ArrayType extends Type{
-    private Type base;
-    private int dim;
+    public Type base;
+    public int dim;
     @Override
     public String getName(){
         return dim+base.getName();

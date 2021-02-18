@@ -24,12 +24,12 @@ public interface ASTVisitor {
     void visit(assignExprNode it);
     void visit(CreatorNode it);
 
-    void visit(arrayAtomNode it);
-    void visit(constAtomNode it);
     void visit(naiveAtomNode it);
+    void visit(arrayAtomNode it);
     void visit(classAtomNode it);
     void visit(funcAtomNode it);
     void visit(thisAtomNode it);
+    void visit(constAtomNode it);
 
     void visit(TypeNode it);
 }
