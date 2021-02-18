@@ -16,10 +16,7 @@ public class ClassType extends Type{
     public ClassType(String nm){
         name = nm;
     }
-    static public boolean insertName(String nm) {
-        return nameSet.add(nm);
-    }
-    static public boolean findName(String nm) {
-        return nameSet.contains(nm);
+    public boolean isClassType(){
+        return true;
     }
 }

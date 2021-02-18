@@ -278,7 +278,7 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     @Override
     public ASTNode visitFuncType(MxParser.FuncTypeContext ctx) {
         if (ctx.varType() != null) return visit(ctx.varType());
-        return new TypeNode(new position(ctx), new VoidType());
+        return new TypeNode(new position(ctx), new NullType());
     }
 
     @Override

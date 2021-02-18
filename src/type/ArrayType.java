@@ -15,4 +15,7 @@ public class ArrayType extends Type{
         base = bas;
         dim = dm;
     }
+    public boolean isArrayType(){
+        return true;
+    }
 }

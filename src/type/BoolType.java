@@ -9,4 +9,7 @@ public class BoolType extends Type{
     public String getName(){
         return "bool";
     }
+    public boolean isBoolType(){
+        return true;
+    }
 }

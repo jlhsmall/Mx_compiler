@@ -9,4 +9,7 @@ public class StringType extends Type{
     public String getName(){
         return "string";
     }
+    public boolean isStringType(){
+        return true;
+    }
 }

@@ -9,4 +9,7 @@ public class IntType extends Type{
     public String getName() {
         return "int";
     }
+    public boolean isIntType(){
+        return true;
+    }
 }

@@ -9,4 +9,7 @@ public class NullType extends Type{
     public String getName(){
         return "null";
     }
+    public boolean isNullType(){
+        return true;
+    }
 }
