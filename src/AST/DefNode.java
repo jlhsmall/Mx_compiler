@@ -3,7 +3,7 @@ package AST;
 import Frontend.SemanticChecker;
 import Util.position;
 import Util.item.*;
-public abstract class DefNode extends ASTNode {
+public abstract class DefNode extends StmtNode {
     public enum DefType{
         VAR, CLASS, FUNC;
     };

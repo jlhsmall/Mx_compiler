@@ -48,7 +48,7 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     public ASTNode visitVarDef(MxParser.VarDefContext ctx) {
         varDefNode varDef = new varDefNode(new position(ctx));
         varDef.varType = (TypeNode) visit(ctx.varType());
-        if (ctx.expr() == null) {
+        if (ctx.expr().isEmpty()) {
             for (var nm : ctx.Identifier())
                 varDef.names.add(nm.getText());
         } else {
@@ -227,6 +227,13 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     }
 
     @Override
+    public ASTNode visitParonAtom(MxParser.ParonAtomContext ctx) {
+        paronAtomNode paronAtom = new paronAtomNode(new position(ctx));
+        paronAtom.expr = (ExprNode) visit(ctx.expr());
+        return paronAtom;
+    }
+
+    @Override
     public ASTNode visitArrayAtom(MxParser.ArrayAtomContext ctx) {
         arrayAtomNode arrayAtom = new arrayAtomNode(new position(ctx));
         arrayAtom.name = ctx.Identifier().getText();
@@ -284,7 +291,7 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     @Override
     public ASTNode visitVarType(MxParser.VarTypeContext ctx) {
         TypeNode naiveType = (TypeNode) visitNaiveType(ctx.naiveType());
-        if (ctx.LeftBracket() == null) return naiveType;
+        if (ctx.LeftBracket().isEmpty()) return naiveType;
         ArrayType tp = new ArrayType(naiveType.type, ctx.LeftBracket().size());
         return new TypeNode(new position(ctx), tp);
     }

@@ -24,6 +24,7 @@ public interface ASTVisitor {
     void visit(assignExprNode it);
     void visit(CreatorNode it);
 
+    void visit(paronAtomNode it);
     void visit(naiveAtomNode it);
     void visit(arrayAtomNode it);
     void visit(classAtomNode it);

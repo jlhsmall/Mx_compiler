@@ -6,23 +6,26 @@ import Util.Scope;
 import Util.item.classItem;
 import Util.error.semanticError;
 import Util.item.varItem;
-import type.ArrayType;
-import type.ClassType;
-import type.IntType;
-import type.NullType;
+import type.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
 public class SemanticChecker implements ASTVisitor {
     public Stack<Scope> scopes;
-    public Map<String, funcItem> funcMap;
-    public Map<String, classItem> classMap;
+    public HashMap<String, funcItem> funcMap;
+    public HashMap<String, classItem> classMap;
     public Stack<classItem> classItemStack;
     public Stack<ClassType> classTypeStack;
     @Override
     public void visit(RootNode it) {
+        scopes = new Stack<>();
+        funcMap = new HashMap<>();
+        classMap = new HashMap<>();
+        classItemStack = new Stack<>();
+        classTypeStack = new Stack<>();
         scopes.push(new Scope(null));
         for (var def : it.defs)
             def.accept(this);
@@ -153,12 +156,13 @@ public class SemanticChecker implements ASTVisitor {
             case "~":
                 if (!it.expr.type.isIntType())
                     throw new semanticError("Semantic Error: wrong prefixExpr. ", it.pos);
+                it.type = new IntType();
                 break;
             case "!":
                 if (!it.expr.type.isBoolType())
                     throw new semanticError("Semantic Error: wrong prefixExpr. ", it.pos);
+                it.type = new BoolType();
         }
-        it.type = new IntType();
     }
 
     @Override
@@ -179,21 +183,28 @@ public class SemanticChecker implements ASTVisitor {
             case "^":
                 if(!it.lhs.type.isIntType())
                     throw new semanticError("Semantic Error: wrong binaryExpr. ", it.pos);
+                it.type = new IntType();
                 break;
             case "+":
+                if(!it.lhs.type.isIntType() && !it.lhs.type.isStringType())
+                    throw new semanticError("Semantic Error: wrong binaryExpr. ", it.pos);
+                it.type = it.lhs.type;
+                break;
             case "<=":
             case ">=":
             case "<":
             case ">":
                 if(!it.lhs.type.isIntType() && !it.lhs.type.isStringType())
                     throw new semanticError("Semantic Error: wrong binaryExpr. ", it.pos);
+                it.type = new BoolType();
                 break;
             case "&&":
             case "||":
                 if(!it.lhs.type.isBoolType())
                     throw new semanticError("Semantic Error: wrong binaryExpr. ", it.pos);
+            default:
+                it.type = new BoolType();
         }
-        it.type = it.lhs.type;
     }
 
     @Override
@@ -211,6 +222,12 @@ public class SemanticChecker implements ASTVisitor {
     public void visit(CreatorNode it) {
         if (!it.type.isNullType())
             throw new semanticError("Semantic Error: wrong creator", it.pos);
+    }
+
+    @Override
+    public void visit(paronAtomNode it) {
+        it.expr.accept(this);
+        it.type = it.expr.type;
     }
 
     @Override

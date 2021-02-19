@@ -16,7 +16,7 @@ import java.io.InputStream;
 public class Main {
     public static void main(String[] args) throws Exception{
 
-        String name = "testcases\\wrong1 - int not match.Mx";
+        String name = "testcases\\" + "wrong4 - multi definition.mx";
         InputStream input = new FileInputStream(name);
 
         try {
