@@ -16,8 +16,8 @@ import java.io.InputStream;
 public class Main {
     public static void main(String[] args) throws Exception{
 
-        String name = "testcases\\" + "wrong4 - multi definition.mx";
-        InputStream input = new FileInputStream(name);
+        //String name = "testcases\\" + "correct.mx";
+        InputStream input = System.in;//new FileInputStream(name);
 
         try {
             RootNode ASTRoot;
