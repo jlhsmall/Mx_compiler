@@ -33,7 +33,8 @@ public class funcDefNode extends DefNode {
             String nm = para.names.get(0);
             varItem varitem = new varItem(para.varType.type);
             visitor.scopes.peek().defineVariable(nm,varitem,pos);//guarantee distinction of nm
-            funcitem.paras.put(nm,varitem);
+            funcitem.paraNames.add(nm);
+            funcitem.paraItems.add(varitem);
         }
         return funcitem;
     }

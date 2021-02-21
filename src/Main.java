@@ -16,7 +16,7 @@ import java.io.InputStream;
 public class Main {
     public static void main(String[] args) throws Exception{
 
-        String name = "testcases\\sema\\array-package\\array-1.mx";
+        String name = "testcases\\sema\\array-package\\array-7.mx";
         //InputStream input = new FileInputStream(name);
         InputStream input = System.in;
 

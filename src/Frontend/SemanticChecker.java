@@ -33,18 +33,31 @@ public class SemanticChecker implements ASTVisitor {
                 funcGetString = new funcItem(),
                 funcGetInt = new funcItem(),
                 funcToString =new funcItem();
+
         funcPrint.type = new NullType();
-        funcPrint.paras.put("str",new varItem(new StringType()));
+        funcPrint.paraNames.add("str");
+        funcPrint.paraItems.add(new varItem(new StringType()));
+
         funcPrintln.type = new NullType();
-        funcPrintln.paras.put("str",new varItem(new StringType()));
+        funcPrintln.paraNames.add("str");
+        funcPrintln.paraItems.add(new varItem(new StringType()));
+
         funcPrintInt.type = new NullType();
-        funcPrintInt.paras.put("n",new varItem(new IntType()));
+        funcPrintInt.paraNames.add("n");
+        funcPrintInt.paraItems.add(new varItem(new IntType()));
+
         funcPrintlnInt.type = new NullType();
-        funcPrintlnInt.paras.put("n",new varItem(new IntType()));
+        funcPrintlnInt.paraNames.add("n");
+        funcPrintlnInt.paraItems.add(new varItem(new IntType()));
+
         funcGetString.type = new StringType();
+
         funcGetInt.type = new IntType();
+
         funcToString.type = new StringType();
-        funcToString.paras.put("i",new varItem(new IntType()));
+        funcToString.paraNames.add("i");
+        funcToString.paraItems.add(new varItem(new IntType()));
+
         funcMap.put("print",funcPrint);
         funcMap.put("println",funcPrintln);
         funcMap.put("printInt",funcPrintInt);
@@ -53,6 +66,7 @@ public class SemanticChecker implements ASTVisitor {
         funcMap.put("getInt",funcGetInt);
         funcMap.put("toString",funcToString);
         scopes.push(new Scope(null));
+
         for (var def : it.defs)
             def.accept(this);
         it.mainBlock.accept(this);
@@ -279,15 +293,18 @@ public class SemanticChecker implements ASTVisitor {
                 : classItemStack.peek().varMembers.get(it.name);
         if (varitem == null)
             throw new semanticError("Semantic Error: wrong arrayAtom", it.pos);
-        ArrayType arrayType = (ArrayType)varitem.type;
-        if (arrayType.dim != it.indices.size())
-            throw new semanticError("Semantic Error: wrong arrayAtom", it.pos);
         for (var index : it.indices) {
             index.accept(this);
             if (!index.type.isIntType())
                 throw new semanticError("Semantic Error: wrong arrayAtom", it.pos);
         }
-        it.type = arrayType.base;
+        ArrayType arrayType = (ArrayType)varitem.type;
+        if (arrayType.dim > it.indices.size())
+            it.type = new ArrayType(arrayType.base,arrayType.dim-it.indices.size());
+        else if (arrayType.dim == it.indices.size())
+            it.type = arrayType.base;
+        else
+            throw new semanticError("Semantic Error: wrong arrayAtom", it.pos);
     }
 
 
@@ -308,11 +325,11 @@ public class SemanticChecker implements ASTVisitor {
         funcItem funcitem = classItemStack.empty()
                 ? funcMap.get(it.name)
                 : classItemStack.peek().funcMembers.get(it.name);
-        if (it.paras.size() != funcitem.paras.size())
+        if (it.paras.size() != funcitem.paraNames.size())
             throw new semanticError("Semantic Error: wrong funcAtom", it.pos);
         for (int i = 0; i < it.paras.size(); ++i){
             it.paras.get(i).accept(this);
-            if (!it.paras.get(i).type.equals(funcitem.paras.get(i).type))
+            if (!it.paras.get(i).type.equals(funcitem.paraItems.get(i).type))
                 throw new semanticError("Semantic Error: wrong funcAtom", it.pos);
         }
         it.type = funcitem.type;

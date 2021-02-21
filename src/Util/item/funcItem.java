@@ -10,9 +10,11 @@ import java.util.HashMap;
  */
 public class funcItem extends Item {
     public Type type;
-    public HashMap<String,varItem> paras;
+    public ArrayList<String> paraNames;
+    public ArrayList<varItem> paraItems;
     public funcItem(){
         itemType = ItemType.FUNC;
-        paras = new HashMap<>();
+        paraNames = new ArrayList<>();
+        paraItems = new ArrayList<>();
     }
 }
