@@ -12,4 +12,7 @@ public class NullType extends Type{
     public boolean isNullType(){
         return true;
     }
+    public boolean equals(Type rhs) {
+        return !rhs.isBoolType() && !rhs.isIntType();
+    }
 }

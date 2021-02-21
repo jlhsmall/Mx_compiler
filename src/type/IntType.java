@@ -12,4 +12,7 @@ public class IntType extends Type{
     public boolean isIntType(){
         return true;
     }
+    public boolean equals(Type rhs) {
+        return rhs.isIntType();
+    }
 }

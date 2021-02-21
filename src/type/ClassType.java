@@ -19,4 +19,7 @@ public class ClassType extends Type{
     public boolean isClassType(){
         return true;
     }
+    public boolean equals(Type rhs) {
+        return rhs.isNullType() || rhs.getName().equals(name);
+    }
 }

@@ -18,4 +18,7 @@ public class ArrayType extends Type{
     public boolean isArrayType(){
         return true;
     }
+    public boolean equals(Type rhs) {
+        return rhs.isNullType() || rhs.getName().equals(getName());
+    }
 }

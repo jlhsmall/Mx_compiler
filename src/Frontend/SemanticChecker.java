@@ -19,6 +19,7 @@ public class SemanticChecker implements ASTVisitor {
     public HashMap<String, classItem> classMap;
     public Stack<classItem> classItemStack;
     public Stack<ClassType> classTypeStack;
+    public int loopCnt = 0;
     @Override
     public void visit(RootNode it) {
         scopes = new Stack<>();
@@ -37,36 +38,61 @@ public class SemanticChecker implements ASTVisitor {
         funcPrint.type = new NullType();
         funcPrint.paraNames.add("str");
         funcPrint.paraItems.add(new varItem(new StringType()));
+        funcMap.put("print",funcPrint);
 
         funcPrintln.type = new NullType();
         funcPrintln.paraNames.add("str");
         funcPrintln.paraItems.add(new varItem(new StringType()));
+        funcMap.put("println",funcPrintln);
 
         funcPrintInt.type = new NullType();
         funcPrintInt.paraNames.add("n");
         funcPrintInt.paraItems.add(new varItem(new IntType()));
+        funcMap.put("printInt",funcPrintInt);
 
         funcPrintlnInt.type = new NullType();
         funcPrintlnInt.paraNames.add("n");
         funcPrintlnInt.paraItems.add(new varItem(new IntType()));
+        funcMap.put("printlnInt",funcPrintlnInt);
 
         funcGetString.type = new StringType();
+        funcMap.put("getString",funcGetString);
 
         funcGetInt.type = new IntType();
+        funcMap.put("getInt",funcGetInt);
 
         funcToString.type = new StringType();
         funcToString.paraNames.add("i");
         funcToString.paraItems.add(new varItem(new IntType()));
-
-        funcMap.put("print",funcPrint);
-        funcMap.put("println",funcPrintln);
-        funcMap.put("printInt",funcPrintInt);
-        funcMap.put("printlnInt",funcPrintlnInt);
-        funcMap.put("getString",funcGetString);
-        funcMap.put("getInt",funcGetInt);
         funcMap.put("toString",funcToString);
-        scopes.push(new Scope(null));
 
+        classItem classString = new classItem();
+        funcItem funcLength = new funcItem(),
+                funcSubstring = new funcItem(),
+                funcParseInt = new funcItem(),
+                funcOrd = new funcItem();
+
+        funcLength.type = new IntType();
+        classString.funcMembers.put("length", funcLength);
+
+        funcSubstring.type = new StringType();
+        funcSubstring.paraNames.add("left");
+        funcSubstring.paraItems.add(new varItem(new IntType()));
+        funcSubstring.paraNames.add("right");
+        funcSubstring.paraItems.add(new varItem(new IntType()));
+        classString.funcMembers.put("substring", funcSubstring);
+
+        funcParseInt.type = new IntType();
+        classString.funcMembers.put("parseInt", funcParseInt);
+
+        funcOrd.type = new IntType();
+        funcOrd.paraNames.add("pos");
+        funcOrd.paraItems.add(new varItem(new IntType()));
+        classString.funcMembers.put("Ord", funcParseInt);
+
+        classMap.put("string", classString);
+
+        scopes.push(new Scope(null));
         for (var def : it.defs)
             def.accept(this);
         it.mainBlock.accept(this);
@@ -133,7 +159,9 @@ public class SemanticChecker implements ASTVisitor {
         it.cond.accept(this);
         if (!it.cond.type.isBoolType())
             throw new semanticError("Semantic Error: wrong whileStmt: type not match. It should be bool", it.cond.pos);
+        ++loopCnt;
         it.stmt.accept(this);
+        --loopCnt;
     }
 
     @Override
@@ -145,7 +173,9 @@ public class SemanticChecker implements ASTVisitor {
             if (!it.cond.type.isBoolType())
                 throw new semanticError("Semantic Error: wrong whileStmt: type not match. It should be bool", it.cond.pos);
         }
+        ++loopCnt;
         it.stmt.accept(this);
+        --loopCnt;
         if(it.incr != null)
             it.incr.accept(this);
     }
@@ -161,12 +191,14 @@ public class SemanticChecker implements ASTVisitor {
 
     @Override
     public void visit(breakStmtNode it) {
-
+        if (loopCnt == 0)
+            throw new semanticError("Semantic Error: wrong breakStmt", it.pos);
     }
 
     @Override
     public void visit(continueStmtNode it) {
-
+        if (loopCnt == 0)
+            throw new semanticError("Semantic Error: wrong continueStmt", it.pos);
     }
 
     @Override

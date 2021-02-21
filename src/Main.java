@@ -16,9 +16,9 @@ import java.io.InputStream;
 public class Main {
     public static void main(String[] args) throws Exception{
 
-        String name = "testcases\\sema\\array-package\\array-7.mx";
-        //InputStream input = new FileInputStream(name);
-        InputStream input = System.in;
+        String name = "testcases\\sema\\class-package\\class-1.mx";
+        InputStream input = new FileInputStream(name);
+        //InputStream input = System.in;
 
         try {
             RootNode ASTRoot;

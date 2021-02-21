@@ -12,4 +12,7 @@ public class BoolType extends Type{
     public boolean isBoolType(){
         return true;
     }
+    public boolean equals(Type rhs) {
+        return rhs.isBoolType();
+    }
 }

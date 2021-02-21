@@ -21,7 +21,8 @@ public abstract class Type {
         return false;
     }
 
-    public boolean equals(Type rhs) {
-        return getName().equals(rhs.getName());
+    public abstract boolean equals(Type rhs);
+    public boolean isAssignable(Type rhs){
+        return equals(rhs);
     }
 }
