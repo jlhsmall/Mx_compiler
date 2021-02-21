@@ -141,7 +141,7 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         ExprNode init = ctx.init != null ? (ExprNode) visit(ctx.init) : null;
         ExprNode cond = ctx.cond != null ? (ExprNode) visit(ctx.cond) : null;
         ExprNode incr = ctx.incr != null ? (ExprNode) visit(ctx.incr) : null;
-        return new forStmtNode(init, cond, incr, new position(ctx));
+        return new forStmtNode(init, cond, stmt, incr, new position(ctx));
     }
 
     @Override

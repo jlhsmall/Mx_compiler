@@ -51,8 +51,10 @@ public class SemanticChecker implements ASTVisitor {
     @Override
     public void visit(varDefNode it) {
         it.toItem(this);
-        it.expr.accept(this);
-        if(!it.expr.type.equals(it.varType.type)) throw new semanticError("Semantic Error: wrong varDef", it.pos);
+        if (it.expr != null){
+            it.expr.accept(this);
+            if(!it.expr.type.equals(it.varType.type)) throw new semanticError("Semantic Error: wrong varDef", it.pos);
+        }
     }
 
     @Override
@@ -96,12 +98,16 @@ public class SemanticChecker implements ASTVisitor {
 
     @Override
     public void visit(forStmtNode it) {
-        it.init.accept(this);
-        it.cond.accept(this);
-        if (!it.cond.type.isBoolType())
-            throw new semanticError("Semantic Error: wrong whileStmt: type not match. It should be bool", it.cond.pos);
+        if(it.init != null)
+            it.init.accept(this);
+        if (it.cond != null) {
+            it.cond.accept(this);
+            if (!it.cond.type.isBoolType())
+                throw new semanticError("Semantic Error: wrong whileStmt: type not match. It should be bool", it.cond.pos);
+        }
         it.stmt.accept(this);
-        it.incr.accept(this);
+        if(it.incr != null)
+            it.incr.accept(this);
     }
 
     @Override
@@ -220,7 +226,7 @@ public class SemanticChecker implements ASTVisitor {
 
     @Override
     public void visit(CreatorNode it) {
-        if (!it.type.isNullType())
+        if (it.type.isNullType())
             throw new semanticError("Semantic Error: wrong creator", it.pos);
     }
 
@@ -248,7 +254,7 @@ public class SemanticChecker implements ASTVisitor {
         if (varitem == null)
             throw new semanticError("Semantic Error: wrong arrayAtom", it.pos);
         ArrayType arrayType = (ArrayType)varitem.type;
-        if (!arrayType.base.getName().equals(it.name) || arrayType.dim != it.indices.size())
+        if (arrayType.dim != it.indices.size())
             throw new semanticError("Semantic Error: wrong arrayAtom", it.pos);
         for (var index : it.indices) {
             index.accept(this);
