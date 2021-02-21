@@ -272,8 +272,10 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     public ASTNode visitFuncAtom(MxParser.FuncAtomContext ctx) {
         funcAtomNode funcAtom = new funcAtomNode(new position(ctx));
         funcAtom.name = ctx.Identifier().getText();
-        for(var para: ctx.exprList().expr())
-            funcAtom.paras.add((ExprNode)visit(para));
+        if (ctx.exprList() != null) {
+            for (var para : ctx.exprList().expr())
+                funcAtom.paras.add((ExprNode)visit(para));
+        }
         return funcAtom;
     }
 
