@@ -13,5 +13,6 @@ public class funcItem extends Item {
     public HashMap<String,varItem> paras;
     public funcItem(){
         itemType = ItemType.FUNC;
+        paras = new HashMap<>();
     }
 }

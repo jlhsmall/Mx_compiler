@@ -15,5 +15,7 @@ public class classItem extends Item {
     public HashMap<String,varItem> varMembers;
     public classItem(){
         itemType = ItemType.CLASS;
+        funcMembers = new HashMap<>();
+        varMembers = new HashMap<>();
     }
 }

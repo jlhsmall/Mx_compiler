@@ -26,6 +26,32 @@ public class SemanticChecker implements ASTVisitor {
         classMap = new HashMap<>();
         classItemStack = new Stack<>();
         classTypeStack = new Stack<>();
+        funcItem funcPrint = new funcItem(),
+                funcPrintln = new funcItem(),
+                funcPrintInt = new funcItem(),
+                funcPrintlnInt = new funcItem(),
+                funcGetString = new funcItem(),
+                funcGetInt = new funcItem(),
+                funcToString =new funcItem();
+        funcPrint.type = new NullType();
+        funcPrint.paras.put("str",new varItem(new StringType()));
+        funcPrintln.type = new NullType();
+        funcPrintln.paras.put("str",new varItem(new StringType()));
+        funcPrintInt.type = new NullType();
+        funcPrintInt.paras.put("n",new varItem(new IntType()));
+        funcPrintlnInt.type = new NullType();
+        funcPrintlnInt.paras.put("n",new varItem(new IntType()));
+        funcGetString.type = new StringType();
+        funcGetInt.type = new IntType();
+        funcToString.type = new StringType();
+        funcToString.paras.put("i",new varItem(new IntType()));
+        funcMap.put("print",funcPrint);
+        funcMap.put("println",funcPrintln);
+        funcMap.put("printInt",funcPrintInt);
+        funcMap.put("printlnInt",funcPrintlnInt);
+        funcMap.put("getString",funcGetString);
+        funcMap.put("getInt",funcGetInt);
+        funcMap.put("toString",funcToString);
         scopes.push(new Scope(null));
         for (var def : it.defs)
             def.accept(this);
