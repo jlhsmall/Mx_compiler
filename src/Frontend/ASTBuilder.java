@@ -84,7 +84,7 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
 
     @Override
     public ASTNode visitFuncBody(MxParser.FuncBodyContext ctx) {
-        suiteNode node = new suiteNode(new position(ctx));
+        funcBodyNode node = new funcBodyNode(new position(ctx));
         if (!ctx.stmt().isEmpty()) {
             for (ParserRuleContext stmt : ctx.stmt()) {
                 StmtNode tmp = (StmtNode) visit(stmt);
@@ -247,11 +247,11 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     }
 
     @Override
-    public ASTNode visitClassAtom(MxParser.ClassAtomContext ctx) {
-        classAtomNode classAtom = new classAtomNode(new position(ctx));
-        classAtom.inst = (AtomNode)visit(ctx.inst);
-        classAtom.field = (AtomNode)visit(ctx.field);
-        return classAtom;
+    public ASTNode visitClassExpr(MxParser.ClassExprContext ctx) {
+        classExprNode classExpr = new classExprNode(new position(ctx));
+        classExpr.inst = (ExprNode)visit(ctx.inst);
+        classExpr.field = (AtomNode)visit(ctx.field);
+        return classExpr;
     }
 
     @Override

@@ -44,6 +44,7 @@ expr
     | lhs=expr op='&&' rhs=expr                                     #binaryExpr
     | lhs=expr op='||' rhs=expr                                     #binaryExpr
     | <assoc=right> lhs=expr '=' rhs=expr                           #assignExpr
+    | inst=expr '.' field=atom                                      #classExpr
     | atom                                                          #atomExpr
     ;
 
@@ -56,7 +57,6 @@ atom
     : '(' expr ')'                          #paronAtom
     | Identifier                            #naiveAtom
     | Identifier ('[' expr ']')+            #arrayAtom
-    | inst=atom '.' field=atom              #classAtom
     | Identifier '(' exprList? ')'          #funcAtom
     | THIS                                  #thisAtom
     | Logic                                 #constAtom

@@ -254,6 +254,18 @@ public interface MxListener extends ParseTreeListener {
 	 */
 	void exitSuffixExpr(MxParser.SuffixExprContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code classExpr}
+	 * labeled alternative in {@link MxParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterClassExpr(MxParser.ClassExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code classExpr}
+	 * labeled alternative in {@link MxParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitClassExpr(MxParser.ClassExprContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code atomExpr}
 	 * labeled alternative in {@link MxParser#expr}.
 	 * @param ctx the parse tree
@@ -338,30 +350,6 @@ public interface MxListener extends ParseTreeListener {
 	 */
 	void exitParonAtom(MxParser.ParonAtomContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code arrayAtom}
-	 * labeled alternative in {@link MxParser#atom}.
-	 * @param ctx the parse tree
-	 */
-	void enterArrayAtom(MxParser.ArrayAtomContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code arrayAtom}
-	 * labeled alternative in {@link MxParser#atom}.
-	 * @param ctx the parse tree
-	 */
-	void exitArrayAtom(MxParser.ArrayAtomContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code constAtom}
-	 * labeled alternative in {@link MxParser#atom}.
-	 * @param ctx the parse tree
-	 */
-	void enterConstAtom(MxParser.ConstAtomContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code constAtom}
-	 * labeled alternative in {@link MxParser#atom}.
-	 * @param ctx the parse tree
-	 */
-	void exitConstAtom(MxParser.ConstAtomContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code naiveAtom}
 	 * labeled alternative in {@link MxParser#atom}.
 	 * @param ctx the parse tree
@@ -374,17 +362,17 @@ public interface MxListener extends ParseTreeListener {
 	 */
 	void exitNaiveAtom(MxParser.NaiveAtomContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code classAtom}
+	 * Enter a parse tree produced by the {@code arrayAtom}
 	 * labeled alternative in {@link MxParser#atom}.
 	 * @param ctx the parse tree
 	 */
-	void enterClassAtom(MxParser.ClassAtomContext ctx);
+	void enterArrayAtom(MxParser.ArrayAtomContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code classAtom}
+	 * Exit a parse tree produced by the {@code arrayAtom}
 	 * labeled alternative in {@link MxParser#atom}.
 	 * @param ctx the parse tree
 	 */
-	void exitClassAtom(MxParser.ClassAtomContext ctx);
+	void exitArrayAtom(MxParser.ArrayAtomContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code funcAtom}
 	 * labeled alternative in {@link MxParser#atom}.
@@ -409,6 +397,18 @@ public interface MxListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitThisAtom(MxParser.ThisAtomContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code constAtom}
+	 * labeled alternative in {@link MxParser#atom}.
+	 * @param ctx the parse tree
+	 */
+	void enterConstAtom(MxParser.ConstAtomContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code constAtom}
+	 * labeled alternative in {@link MxParser#atom}.
+	 * @param ctx the parse tree
+	 */
+	void exitConstAtom(MxParser.ConstAtomContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link MxParser#exprList}.
 	 * @param ctx the parse tree

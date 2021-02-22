@@ -30,16 +30,20 @@ public class funcDefNode extends DefNode {
             throw new semanticError("Semantic Error: wrong funcDef", pos);
         funcItem funcitem = new funcItem();
         funcitem.type = funcType.type;
+        for (var para : paras) {
+            if (para.names.size() != 1) throw new semanticError("Semantic Error: wrong funcDef", pos);
+            String nm = para.names.get(0);
+            funcitem.paraNames.add(nm);
+            varItem varitem = new varItem(para.varType.type);
+            funcitem.paraItems.add(varitem);
+        }
         return funcitem;
     }
     public void makeItem(SemanticChecker visitor, funcItem funcitem) {
         for (var para : paras){
-            if (para.names.size() != 1) throw new semanticError("Semantic Error: wrong funcDef", pos);
             String nm = para.names.get(0);
             varItem varitem = new varItem(para.varType.type);
             visitor.scopes.peek().defineVariable(nm,varitem,pos);//guarantee distinction of nm
-            funcitem.paraNames.add(nm);
-            funcitem.paraItems.add(varitem);
         }
     }
 }

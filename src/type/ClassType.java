@@ -7,7 +7,6 @@ import java.util.HashSet;
  * @date 2021/2/15 16:00
  */
 public class ClassType extends Type{
-    static private HashSet<String> nameSet=new HashSet<>();
     private String name;
     @Override
     public String getName(){

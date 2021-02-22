@@ -59,7 +59,9 @@ public class classDefNode extends DefNode {
     }
     public void makeItem(SemanticChecker visitor,classItem classitem) {
         for (var funcDef : funcDefs){
-            funcDef.makeItem(visitor,visitor.funcMap.get(funcDef.name));
+            visitor.scopes.push(new Scope(visitor.scopes.peek()));
+            funcDef.makeItem(visitor,classitem.funcMembers.get(funcDef.name));
+            visitor.scopes.pop();
         }
     }
 }

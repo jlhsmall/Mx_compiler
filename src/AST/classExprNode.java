@@ -2,9 +2,10 @@ package AST;
 
 import Util.position;
 
-public class classAtomNode extends AtomNode {
-    public AtomNode inst,field;
-    public classAtomNode(position pos) {
+public class classExprNode extends ExprNode {
+    public ExprNode inst;
+    public AtomNode field;
+    public classExprNode(position pos) {
         super(pos);
     }
 

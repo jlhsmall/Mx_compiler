@@ -8,25 +8,21 @@ import Util.error.semanticError;
 import Util.item.varItem;
 import type.*;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Stack;
 
 public class SemanticChecker implements ASTVisitor {
     public Stack<Scope> scopes;
     public HashMap<String, funcItem> funcMap;
     public HashMap<String, classItem> classMap;
-    public Stack<classItem> classItemStack;
-    public Stack<ClassType> classTypeStack;
+    public ClassType currentClass;
+    public classItem currentInst;
     public int loopCnt = 0;
     @Override
     public void visit(RootNode it) {
         scopes = new Stack<>();
         funcMap = new HashMap<>();
         classMap = new HashMap<>();
-        classItemStack = new Stack<>();
-        classTypeStack = new Stack<>();
         funcItem funcPrint = new funcItem(),
                 funcPrintln = new funcItem(),
                 funcPrintInt = new funcItem(),
@@ -99,6 +95,7 @@ public class SemanticChecker implements ASTVisitor {
         }
         for (var funcDef : it.funcDefs){
             funcItem funcitem = (funcItem) funcDef.toItem(this);
+
             funcMap.put(funcDef.name,funcitem);
         }
         for (var varDef : it.varDefs)
@@ -135,9 +132,11 @@ public class SemanticChecker implements ASTVisitor {
 
     @Override
     public void visit(classDefNode it) {
+        currentClass = new ClassType(it.name);
         scopes.push(new Scope(scopes.peek()));
         it.makeItem(this,classMap.get(it.name));
         scopes.pop();
+        currentClass = null;
     }
 
     @Override
@@ -319,9 +318,13 @@ public class SemanticChecker implements ASTVisitor {
 
     @Override
     public void visit(naiveAtomNode it) {
-        varItem varitem = classItemStack.empty()
-                ? scopes.peek().containsVariable(it.name, true)
-                : classItemStack.peek().varMembers.get(it.name);
+        varItem varitem;
+        if (currentInst == null)
+            varitem = scopes.peek().containsVariable(it.name, true);
+        else {
+            varitem = currentInst.varMembers.get(it.name);
+            currentInst = null;
+        }
         if (varitem == null)
             throw new semanticError("Semantic Error: wrong naiveAtom", it.pos);
         it.type = varitem.type;
@@ -329,9 +332,13 @@ public class SemanticChecker implements ASTVisitor {
 
     @Override
     public void visit(arrayAtomNode it) {
-        varItem varitem = classItemStack.empty()
-                ? scopes.peek().containsVariable(it.name, true)
-                : classItemStack.peek().varMembers.get(it.name);
+        varItem varitem;
+        if (currentInst == null)
+            varitem = scopes.peek().containsVariable(it.name, true);
+        else {
+            varitem = currentInst.varMembers.get(it.name);
+            currentInst = null;
+        }
         if (varitem == null)
             throw new semanticError("Semantic Error: wrong arrayAtom", it.pos);
         for (var index : it.indices) {
@@ -350,22 +357,24 @@ public class SemanticChecker implements ASTVisitor {
 
 
     @Override
-    public void visit(classAtomNode it) {
+    public void visit(classExprNode it) {
         it.inst.accept(this);
         if (!it.inst.type.isClassType())
             throw new semanticError("Semantic Error: wrong classAtom", it.pos);
-        classTypeStack.push((ClassType)it.inst.type);
-        classItemStack.push(classMap.get(it.inst.type.getName()));
+        currentInst = classMap.get(it.inst.type.getName());
         it.field.accept(this);
-        classItemStack.pop();
         it.type = it.field.type;
     }
 
     @Override
     public void visit(funcAtomNode it) {
-        funcItem funcitem = classItemStack.empty()
-                ? funcMap.get(it.name)
-                : classItemStack.peek().funcMembers.get(it.name);
+        funcItem funcitem;
+        if (currentInst == null)
+            funcitem = funcMap.get(it.name);
+        else {
+            funcitem = currentInst.funcMembers.get(it.name);
+            currentInst = null;
+        }
         if (it.paras.size() != funcitem.paraNames.size())
             throw new semanticError("Semantic Error: wrong funcAtom", it.pos);
         for (int i = 0; i < it.paras.size(); ++i){
@@ -378,9 +387,9 @@ public class SemanticChecker implements ASTVisitor {
 
     @Override
     public void visit(thisAtomNode it) {
-        if (classTypeStack.empty())
+        if (currentClass == null)
             throw new semanticError("Semantic Error: wrong thisAtom", it.pos);
-        it.type = classTypeStack.peek();
+        it.type = currentClass;
     }
 
     @Override
