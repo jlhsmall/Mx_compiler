@@ -93,17 +93,27 @@ public class SemanticChecker implements ASTVisitor {
         classMap.put("string", classString);
 
         scopes.push(new Scope(null));
-        for (var def : it.defs)
-            def.accept(this);
+        for (var classDef : it.classDefs){
+            classItem classitem = (classItem) classDef.toItem(this);
+            classMap.put(classDef.name,classitem);
+        }
+        for (var funcDef : it.funcDefs){
+            funcItem funcitem = (funcItem) funcDef.toItem(this);
+            funcMap.put(funcDef.name,funcitem);
+        }
+        for (var varDef : it.varDefs)
+            varDef.accept(this);
+        for (var funcDef : it.funcDefs)
+            funcDef.accept(this);
+        for (var classDef : it.classDefs)
+            classDef.accept(this);
         it.mainBlock.accept(this);
     }
 
     @Override
     public void visit(funcDefNode it) {
-        if(funcMap.get(it.name) != null) throw new semanticError("Semantic Error: wrong funcDef", it.pos);
         scopes.push(new Scope(scopes.peek()));
-        funcItem funcitem = (funcItem) it.toItem(this);
-        funcMap.put(it.name, funcitem);
+        it.makeItem(this,funcMap.get(it.name));
         it.funcBody.accept(this);
         if(!it.funcType.type.equals(it.funcBody.type)) throw new semanticError("Semantic Error: wrong funcDef", it.pos);
         scopes.pop();
@@ -126,8 +136,7 @@ public class SemanticChecker implements ASTVisitor {
     @Override
     public void visit(classDefNode it) {
         scopes.push(new Scope(scopes.peek()));
-        classItem classitem = (classItem) it.toItem(this);
-        classMap.put(it.name,classitem);
+        it.makeItem(this,classMap.get(it.name));
         scopes.pop();
     }
 

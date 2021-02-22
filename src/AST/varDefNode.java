@@ -15,7 +15,6 @@ public class varDefNode extends DefNode {
     public ExprNode expr;
     public varDefNode(position pos) {
         super(pos);
-        defType = DefType.VAR;
         names = new ArrayList<>();
     }
     @Override

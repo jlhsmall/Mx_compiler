@@ -18,12 +18,14 @@ import java.util.ArrayList;
  */
 public class classDefNode extends DefNode {
     public String name;
-    public ArrayList<DefNode> defs;
+    public ArrayList<funcDefNode> funcDefs;
+    public ArrayList<varDefNode> varDefs;
+    public funcDefNode consFuncDef;
 
     public classDefNode(position pos) {
         super(pos);
-        defType = DefType.CLASS;
-        defs = new ArrayList<>();
+        funcDefs = new ArrayList<>();
+        varDefs = new ArrayList<>();
     }
 
     @Override
@@ -33,28 +35,31 @@ public class classDefNode extends DefNode {
 
     @Override
     public Item toItem(SemanticChecker visitor) {
-        if (visitor.classMap.get(name) != null) throw new semanticError("Semantic Error: wrong classDef", pos);
+        if (visitor.classMap.get(name) != null)
+            throw new semanticError("Semantic Error: wrong classDef", pos);
         classItem classitem = new classItem();
-        for (var def : defs) {
-            if (def.defType == DefType.FUNC) {
-                funcDefNode funcDef = (funcDefNode) def;
-                funcItem funcitem = (funcItem) def.toItem(visitor);
-                if (funcDef.funcType == null) {
-                    if (!funcDef.name.equals(name)) throw new semanticError("Semantic Error: wrong classDef", pos);
-                    funcitem.type = new ClassType(name);
-                } else {
-                    if (funcDef.name.equals(name)) throw new semanticError("Semantic Error: wrong classDef", pos);
-                }
-                classitem.funcMembers.put(funcDef.name, funcitem);
+        for (var funcDef : funcDefs){
+            funcItem funcitem = (funcItem) funcDef.toItem(visitor);
+            if (funcDef.funcType == null) {
+                if (!funcDef.name.equals(name)) throw new semanticError("Semantic Error: wrong classDef", pos);
+                funcitem.type = new ClassType(name);
             } else {
-                varDefNode varDef = (varDefNode) def;
-                for (var nm : varDef.names) {
-                    varItem varitem = new varItem(varDef.varType.type);
-                    visitor.scopes.peek().defineVariable(nm, varitem, pos);
-                    classitem.varMembers.put(nm, varitem);
-                }
+                if (funcDef.name.equals(name)) throw new semanticError("Semantic Error: wrong classDef", pos);
+            }
+            classitem.funcMembers.put(funcDef.name, funcitem);
+        }
+        for (var varDef : varDefs){
+            for (var nm : varDef.names) {
+                varItem varitem = new varItem(varDef.varType.type);
+                visitor.scopes.peek().defineVariable(nm, varitem, pos);
+                classitem.varMembers.put(nm, varitem);
             }
         }
         return classitem;
+    }
+    public void makeItem(SemanticChecker visitor,classItem classitem) {
+        for (var funcDef : funcDefs){
+            funcDef.makeItem(visitor,visitor.funcMap.get(funcDef.name));
+        }
     }
 }

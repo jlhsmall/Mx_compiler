@@ -18,7 +18,6 @@ public class funcDefNode extends DefNode {
     public funcBodyNode funcBody;
     public funcDefNode(position pos) {
         super(pos);
-        defType = DefType.FUNC;
         paras = new ArrayList<>();
     }
     @Override
@@ -27,7 +26,13 @@ public class funcDefNode extends DefNode {
     }
     @Override
     public Item toItem(SemanticChecker visitor) {
+        if(visitor.funcMap.get(name) != null)
+            throw new semanticError("Semantic Error: wrong funcDef", pos);
         funcItem funcitem = new funcItem();
+        funcitem.type = funcType.type;
+        return funcitem;
+    }
+    public void makeItem(SemanticChecker visitor, funcItem funcitem) {
         for (var para : paras){
             if (para.names.size() != 1) throw new semanticError("Semantic Error: wrong funcDef", pos);
             String nm = para.names.get(0);
@@ -36,6 +41,5 @@ public class funcDefNode extends DefNode {
             funcitem.paraNames.add(nm);
             funcitem.paraItems.add(varitem);
         }
-        return funcitem;
     }
 }

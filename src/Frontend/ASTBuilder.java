@@ -11,22 +11,13 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     @Override
     public ASTNode visitProgram(MxParser.ProgramContext ctx) {
         RootNode root = new RootNode(new position(ctx));
-        if (ctx.initBlock() != null) for (var block : ctx.initBlock()) {
-            if (block.funcDef() != null) {
-                root.defs.add((funcDefNode) visit(block.funcDef()));
-                root.order.add(RootNode.OrderType.FUNCDEF);
-            }
-            if (block.varDef() != null) {
-                root.defs.add((varDefNode) visit(block.varDef()));
-                root.order.add(RootNode.OrderType.VARDEF);
-            }
-            if (block.classDef() != null) {
-                root.defs.add((classDefNode) visit(block.classDef()));
-                root.order.add(RootNode.OrderType.CLASSDEF);
-            }
-        }
+        for (var block : ctx.varDef())
+            root.varDefs.add((varDefNode) visit(block));
+        for (var block : ctx.funcDef())
+            root.funcDefs.add((funcDefNode) visit(block));
+        for (var block : ctx.classDef())
+            root.classDefs.add((classDefNode) visit(block));
         root.mainBlock = (mainBlockNode) visit(ctx.mainBlock());
-
         return root;
     }
 
@@ -62,17 +53,12 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     public ASTNode visitClassDef(MxParser.ClassDefContext ctx) {
         classDefNode classDef = new classDefNode(new position(ctx));
         classDef.name = ctx.Identifier().getText();
-        if (ctx.classBlock() != null) for (var block : ctx.classBlock()) {
-            if (block.funcDef() != null) {
-                classDef.defs.add((funcDefNode) visit(block.funcDef()));
-            }
-            if (block.varDef() != null) {
-                classDef.defs.add((varDefNode) visit(block.varDef()));
-            }
-            if (block.consFuncDef() != null) {
-                classDef.defs.add((funcDefNode) visit(block.consFuncDef()));
-            }
-        }
+        for (var block : ctx.funcDef())
+            classDef.funcDefs.add((funcDefNode) visit(block));
+        for (var block : ctx.varDef())
+            classDef.varDefs.add((varDefNode) visit(block));
+        if (ctx.consFuncDef() != null)
+            classDef.consFuncDef = (funcDefNode) visit(ctx.consFuncDef());
         return classDef;
     }
 

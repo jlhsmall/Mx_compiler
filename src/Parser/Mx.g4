@@ -1,23 +1,21 @@
 grammar Mx;
 
-program:    initBlock* mainBlock;
-initBlock:  funcDef | varDef | classDef;
+program:    (funcDef | (varDef + ';') | classDef)* mainBlock (funcDef | (varDef + ';') | classDef)* EOF;
 funcDef:    funcType Identifier '(' paraList? ')' funcBody;
 paraList:   varDef (',' varDef)*;
 
-varDef:     varType (Identifier ('=' expr)? )+ ';';
+varDef:     varType (Identifier ('=' expr)? )*;
 
-classDef:   CLASS Identifier '{' classBlock* '}' ';';
-classBlock: funcDef | varDef | consFuncDef;
+classDef:   CLASS Identifier '{' (funcDef | (varDef + ';'))* consFuncDef? (funcDef | (varDef + ';'))* '}' ';';
 consFuncDef:Identifier '('  ')' funcBody;
 
-mainBlock:  'int main()' suite EOF;
+mainBlock:  'int main()' suite;
 funcBody:   '{' stmt* '}';
 suite:      '{' stmt* '}';
 
 stmt
     : suite                                                 #blockStmt
-    | varDef                                                #varDefStmt
+    | (varDef + ';')                                        #varDefStmt
     | IF '(' expr ')' trueStmt=stmt
         (ELSE falseStmt=stmt)?                              #ifStmt
     | WHILE '(' expr ')' stmt                               #whileStmt

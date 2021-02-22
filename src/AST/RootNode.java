@@ -4,16 +4,15 @@ import Util.position;
 import java.util.ArrayList;
 
 public class RootNode extends ASTNode {
-    public ArrayList<DefNode> defs;
+    public ArrayList<classDefNode> classDefs;
+    public ArrayList<funcDefNode> funcDefs;
+    public ArrayList<varDefNode> varDefs;
     public mainBlockNode mainBlock;
-    public enum OrderType{
-        FUNCDEF, VARDEF, CLASSDEF
-    };
-    public ArrayList<OrderType> order;
     public RootNode(position pos) {
         super(pos);
-        defs = new ArrayList<>();
-        order = new ArrayList<>();
+        classDefs = new ArrayList<>();
+        funcDefs = new ArrayList<>();
+        varDefs = new ArrayList<>();
     }
 
     @Override
