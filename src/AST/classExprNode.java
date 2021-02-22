@@ -7,6 +7,7 @@ public class classExprNode extends ExprNode {
     public AtomNode field;
     public classExprNode(position pos) {
         super(pos);
+        isAssignable = true;
     }
 
     @Override
@@ -14,6 +15,4 @@ public class classExprNode extends ExprNode {
         visitor.visit(this);
     }
 
-    @Override
-    public boolean isAssignable(){ return true; }
 }

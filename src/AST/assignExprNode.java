@@ -9,6 +9,7 @@ public class assignExprNode extends ExprNode{
         super(pos);
         this.lhs = lhs;
         this.rhs = rhs;
+        isAssignable = true;
     }
 
     @Override
@@ -16,6 +17,4 @@ public class assignExprNode extends ExprNode{
         visitor.visit(this);
     }
 
-    @Override
-    public boolean isAssignable(){ return true; }
 }

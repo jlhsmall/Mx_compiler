@@ -1,6 +1,7 @@
 package Frontend;
 
 import AST.*;
+import Parser.MxParser;
 import Util.item.funcItem;
 import Util.Scope;
 import Util.item.classItem;
@@ -84,7 +85,7 @@ public class SemanticChecker implements ASTVisitor {
         funcOrd.type = new IntType();
         funcOrd.paraNames.add("pos");
         funcOrd.paraItems.add(new varItem(new IntType()));
-        classString.funcMembers.put("Ord", funcParseInt);
+        classString.funcMembers.put("ord", funcOrd);
 
         classMap.put("string", classString);
 
@@ -224,7 +225,7 @@ public class SemanticChecker implements ASTVisitor {
     @Override
     public void visit(suffixExprNode it) {
         it.expr.accept(this);
-        if(!it.expr.isAssignable() || !it.expr.type.isIntType())
+        if(!it.expr.isAssignable || !it.expr.type.isIntType())
             throw new semanticError("Semantic Error: wrong suffixExpr. ", it.pos);
         it.type = new IntType();
     }
@@ -235,7 +236,7 @@ public class SemanticChecker implements ASTVisitor {
         switch (it.op){
             case "++":
             case "--":
-                if (!it.expr.isAssignable())
+                if (!it.expr.isAssignable)
                     throw new semanticError("Semantic Error: wrong prefixExpr. ", it.pos);
             case "+":
             case "-":
@@ -299,7 +300,7 @@ public class SemanticChecker implements ASTVisitor {
         it.lhs.accept(this);
         if (!it.lhs.type.equals(it.rhs.type))
             throw new semanticError("Semantic Error: wrong assignExpr: type not match. ", it.pos);
-        if (!it.lhs.isAssignable())
+        if (!it.lhs.isAssignable)
             throw new semanticError("Semantic Error: wrong assignExpr: not assignable", it.lhs.pos);
         it.type = it.lhs.type;
     }

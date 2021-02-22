@@ -9,15 +9,11 @@ public class prefixExprNode extends ExprNode {
         super(pos);
         this.expr = expr;
         this.op = op;
+        isAssignable = op.equals("++") || op.equals("--");
     }
 
     @Override
     public void accept(ASTVisitor visitor) {
         visitor.visit(this);
-    }
-
-    @Override
-    public boolean isAssignable(){
-        return op == "++" || op == "--";
     }
 }

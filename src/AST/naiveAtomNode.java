@@ -8,6 +8,7 @@ public class naiveAtomNode extends AtomNode {
     public String name;
     public naiveAtomNode(position pos) {
         super(pos);
+        isAssignable = true;
     }
 
     @Override
@@ -15,6 +16,4 @@ public class naiveAtomNode extends AtomNode {
         visitor.visit(this);
     }
 
-    @Override
-    public boolean isAssignable(){ return true; }
 }

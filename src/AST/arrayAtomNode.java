@@ -10,6 +10,7 @@ public class arrayAtomNode extends AtomNode {
     public arrayAtomNode(position pos) {
         super(pos);
         indices = new ArrayList<>();
+        isAssignable = true;
     }
 
     @Override
@@ -17,6 +18,4 @@ public class arrayAtomNode extends AtomNode {
         visitor.visit(this);
     }
 
-    @Override
-    public boolean isAssignable(){ return true; }
 }

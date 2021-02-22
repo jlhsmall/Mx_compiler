@@ -184,12 +184,12 @@ public interface MxVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitAssignExpr(MxParser.AssignExprContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code nonArrayCreator}
+	 * Visit a parse tree produced by the {@code falseArrayCreator}
 	 * labeled alternative in {@link MxParser#creator}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitNonArrayCreator(MxParser.NonArrayCreatorContext ctx);
+	T visitFalseArrayCreator(MxParser.FalseArrayCreatorContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code trueArrayCreator}
 	 * labeled alternative in {@link MxParser#creator}.
@@ -198,12 +198,12 @@ public interface MxVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitTrueArrayCreator(MxParser.TrueArrayCreatorContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code falseArrayCreator}
+	 * Visit a parse tree produced by the {@code nonArrayCreator}
 	 * labeled alternative in {@link MxParser#creator}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitFalseArrayCreator(MxParser.FalseArrayCreatorContext ctx);
+	T visitNonArrayCreator(MxParser.NonArrayCreatorContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code paronAtom}
 	 * labeled alternative in {@link MxParser#atom}.
@@ -212,12 +212,19 @@ public interface MxVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitParonAtom(MxParser.ParonAtomContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code naiveAtom}
+	 * Visit a parse tree produced by the {@code constAtom}
 	 * labeled alternative in {@link MxParser#atom}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitNaiveAtom(MxParser.NaiveAtomContext ctx);
+	T visitConstAtom(MxParser.ConstAtomContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code thisAtom}
+	 * labeled alternative in {@link MxParser#atom}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitThisAtom(MxParser.ThisAtomContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code arrayAtom}
 	 * labeled alternative in {@link MxParser#atom}.
@@ -233,19 +240,12 @@ public interface MxVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFuncAtom(MxParser.FuncAtomContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code thisAtom}
+	 * Visit a parse tree produced by the {@code naiveAtom}
 	 * labeled alternative in {@link MxParser#atom}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitThisAtom(MxParser.ThisAtomContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code constAtom}
-	 * labeled alternative in {@link MxParser#atom}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitConstAtom(MxParser.ConstAtomContext ctx);
+	T visitNaiveAtom(MxParser.NaiveAtomContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link MxParser#exprList}.
 	 * @param ctx the parse tree

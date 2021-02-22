@@ -4,7 +4,7 @@ program:    (funcDef | (varDef + ';') | classDef)* mainBlock (funcDef | (varDef 
 funcDef:    funcType Identifier '(' paraList? ')' funcBody;
 paraList:   varDef (',' varDef)*;
 
-varDef:     varType (Identifier ('=' expr)? )*;
+varDef:     varType (Identifier ('=' expr)? )+;
 
 classDef:   CLASS Identifier '{' (funcDef | (varDef + ';'))* consFuncDef? (funcDef | (varDef + ';'))* '}' ';';
 consFuncDef:Identifier '('  ')' funcBody;
@@ -15,7 +15,7 @@ suite:      '{' stmt* '}';
 
 stmt
     : suite                                                 #blockStmt
-    | (varDef + ';')                                        #varDefStmt
+    | varDef ';'                                            #varDefStmt
     | IF '(' expr ')' trueStmt=stmt
         (ELSE falseStmt=stmt)?                              #ifStmt
     | WHILE '(' expr ')' stmt                               #whileStmt
@@ -30,7 +30,9 @@ stmt
     ;
 
 expr
-    : expr op=('++'|'--')                                           #suffixExpr
+    : inst=expr '.' field=atom                                      #classExpr
+    | atom                                                          #atomExpr
+    | expr op=('++'|'--')                                           #suffixExpr
     | 'new' creator                                                 #newExpr
     | <assoc=right> op=('!' | '~' | '++' | '--' | '+' | '-') expr   #prefixExpr
     | lhs=expr op=('*' | '/' | '%') rhs=expr                        #binaryExpr
@@ -44,25 +46,23 @@ expr
     | lhs=expr op='&&' rhs=expr                                     #binaryExpr
     | lhs=expr op='||' rhs=expr                                     #binaryExpr
     | <assoc=right> lhs=expr '=' rhs=expr                           #assignExpr
-    | inst=expr '.' field=atom                                      #classExpr
-    | atom                                                          #atomExpr
     ;
 
 creator
-    : naiveType ('(' ')')?                                  #nonArrayCreator
+    : naiveType ('[' expr ']')+ ('[' ']')+ ('[' expr ']')+  #falseArrayCreator
     | naiveType ('[' expr ']')+ ('[' ']')*                  #trueArrayCreator
-    | naiveType ('[' expr ']')+ ('[' ']')+ ('[' expr ']')+  #falseArrayCreator
+    | naiveType ('(' ')')?                                  #nonArrayCreator
     ;
 atom
     : '(' expr ')'                          #paronAtom
-    | Identifier                            #naiveAtom
-    | Identifier ('[' expr ']')+            #arrayAtom
-    | Identifier '(' exprList? ')'          #funcAtom
-    | THIS                                  #thisAtom
     | Logic                                 #constAtom
     | Integer                               #constAtom
     | StringConst                           #constAtom
     | NULL                                  #constAtom
+    | THIS                                  #thisAtom
+    | Identifier ('[' expr ']')+            #arrayAtom
+    | Identifier '(' exprList? ')'          #funcAtom
+    | Identifier                            #naiveAtom
     ;
 exprList:   expr (',' expr)*;
 

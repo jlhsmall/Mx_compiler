@@ -71,6 +71,15 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     }
 
     @Override
+    public ASTNode visitBlockStmt(MxParser.BlockStmtContext ctx) {
+        return visit(ctx.suite());
+    }
+
+    @Override
+    public ASTNode visitVarDefStmt(MxParser.VarDefStmtContext ctx) {
+        return visit(ctx.varDef());
+    }
+    @Override
     public ASTNode visitMainBlock(MxParser.MainBlockContext ctx) {
         mainBlockNode mainBlock = new mainBlockNode(new position(ctx));
         if (ctx.suite() != null) {

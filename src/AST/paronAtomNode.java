@@ -13,6 +13,4 @@ public class paronAtomNode extends AtomNode {
         visitor.visit(this);
     }
 
-    @Override
-    public boolean isAssignable(){ return true; }
 }
