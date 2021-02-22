@@ -51,14 +51,20 @@ public class classDefNode extends DefNode {
         for (var varDef : varDefs){
             for (var nm : varDef.names) {
                 varItem varitem = new varItem(varDef.varType.type);
-                visitor.scopes.peek().defineVariable(nm, varitem, pos);
                 classitem.varMembers.put(nm, varitem);
             }
         }
         return classitem;
     }
     public void makeItem(SemanticChecker visitor,classItem classitem) {
+        for (var varDef : varDefs){
+            for (var nm : varDef.names) {
+                varItem varitem = new varItem(varDef.varType.type);
+                visitor.scopes.peek().defineVariable(nm, varitem, pos);
+            }
+        }
         for (var funcDef : funcDefs){
+            visitor.currentFuncType = funcDef.funcType.type;
             visitor.scopes.push(new Scope(visitor.scopes.peek()));
             funcDef.makeItem(visitor,classitem.funcMembers.get(funcDef.name));
             visitor.scopes.pop();

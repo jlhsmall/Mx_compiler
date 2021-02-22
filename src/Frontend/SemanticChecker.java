@@ -19,6 +19,7 @@ public class SemanticChecker implements ASTVisitor {
     public ClassType currentClass;
     public classItem currentInst;
     public int loopCnt = 0;
+    public Type currentFuncType;
     @Override
     public void visit(RootNode it) {
         scopes = new Stack<>();
@@ -96,15 +97,17 @@ public class SemanticChecker implements ASTVisitor {
         }
         for (var funcDef : it.funcDefs){
             funcItem funcitem = (funcItem) funcDef.toItem(this);
-
             funcMap.put(funcDef.name,funcitem);
         }
         for (var varDef : it.varDefs)
             varDef.accept(this);
-        for (var funcDef : it.funcDefs)
+        for (var funcDef : it.funcDefs){
+            currentFuncType = funcDef.funcType.type;
             funcDef.accept(this);
+        }
         for (var classDef : it.classDefs)
             classDef.accept(this);
+        currentFuncType = new IntType();
         it.mainBlock.accept(this);
     }
 
@@ -113,7 +116,6 @@ public class SemanticChecker implements ASTVisitor {
         scopes.push(new Scope(scopes.peek()));
         it.makeItem(this,funcMap.get(it.name));
         it.funcBody.accept(this);
-        if(!it.funcType.type.equals(it.funcBody.type)) throw new semanticError("Semantic Error: wrong funcDef", it.pos);
         scopes.pop();
     }
 
@@ -193,9 +195,11 @@ public class SemanticChecker implements ASTVisitor {
     public void visit(returnStmtNode it) {
         if (it.value != null) {
             it.value.accept(this);
-            it.type = it.value.type;
+            if (!currentFuncType.equals(it.value.type))
+                throw new semanticError("Semantic Error: wrong returnStmt", it.pos);
         }
-        else it.type = new NullType();
+        else if (!currentFuncType.isNullType())
+            throw new semanticError("Semantic Error: wrong returnStmt", it.pos);
     }
 
     @Override
@@ -213,7 +217,6 @@ public class SemanticChecker implements ASTVisitor {
     @Override
     public void visit(exprStmtNode it) {
         it.expr.accept(this);
-        it.type = it.expr.type;
     }
 
     @Override

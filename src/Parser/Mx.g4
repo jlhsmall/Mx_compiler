@@ -70,6 +70,16 @@ funcType:   VOID | varType;
 varType:    naiveType ('[' ']')*;
 naiveType:  BOOL | INT | STRING | Identifier;
 
+Logic: TRUE | FALSE;
+
+Integer
+    : [1-9] [0-9]*
+    | '0'
+    ;
+
+StringConst: '"' (EscapeChar|.)*? '"';
+EscapeChar: '\\n' | '\\\\' | '\\"';
+
 LeftParen : '(';
 RightParen : ')';
 LeftBracket : '[';
@@ -125,16 +135,6 @@ THIS:    'this';
 Identifier
     : [a-zA-Z] [a-zA-Z_0-9]*
     ;
-
-Logic: TRUE | FALSE;
-
-Integer
-    : [1-9] [0-9]*
-    | '0'
-    ;
-
-StringConst: '"' (EscapeChar|.)*? '"';
-EscapeChar: '\\n' | '\\\\' | '\\"';
 
 Whitespace
     :   [ \t]+
