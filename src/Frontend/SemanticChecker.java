@@ -97,10 +97,14 @@ public class SemanticChecker implements ASTVisitor {
         scopes.push(new Scope(null));
         for (var classDef : it.classDefs){
             classItem classitem = (classItem) classDef.toItem(this);
+            if(classMap.get(classDef.name)!= null)
+                throw new semanticError("Semantic Error: wrong classDef", classDef.pos);
             classMap.put(classDef.name,classitem);
         }
         for (var funcDef : it.funcDefs){
             funcItem funcitem = (funcItem) funcDef.toItem(this);
+            if(funcMap.get(funcDef.name) != null || classMap.get(funcDef.name)!= null)
+                throw new semanticError("Semantic Error: wrong funcDef", funcDef.pos);
             funcMap.put(funcDef.name,funcitem);
         }
         for (var varDef : it.varDefs)

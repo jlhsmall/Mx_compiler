@@ -54,6 +54,8 @@ public class classDefNode extends DefNode {
             if (funcDef.name.equals(name))
                 throw new semanticError("Semantic Error: wrong classDef", pos);
             funcItem funcitem = (funcItem) funcDef.toItem(visitor);
+            if(classitem.funcMembers.get(funcDef.name) != null)
+                throw new semanticError("Semantic Error: wrong classDef :funcName crash", pos);
             classitem.funcMembers.put(funcDef.name, funcitem);
         }
         for (var varDef : varDefs) {

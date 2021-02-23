@@ -26,8 +26,6 @@ public class funcDefNode extends DefNode {
     }
     @Override
     public Item toItem(SemanticChecker visitor) {
-        if(visitor.funcMap.get(name) != null)
-            throw new semanticError("Semantic Error: wrong funcDef", pos);
         funcItem funcitem = new funcItem();
         if(funcType != null) funcitem.type = funcType.type;
         for (var para : paras) {

@@ -9,7 +9,7 @@ varDef:     varType (Identifier ('=' expr)? )+;
 classDef:   CLASS Identifier '{' (funcDef | (varDef + ';') | consFuncDef)* '}' ';';
 consFuncDef:Identifier '('  ')' funcBody;
 
-mainBlock:  'int main()' suite;
+mainBlock:  'int' 'main' '(' ')' suite;
 funcBody:   '{' stmt* '}';
 suite:      '{' stmt* '}';
 
