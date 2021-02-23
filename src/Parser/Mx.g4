@@ -6,7 +6,7 @@ paraList:   varDef (',' varDef)*;
 
 varDef:     varType (Identifier ('=' expr)? )+;
 
-classDef:   CLASS Identifier '{' (funcDef | (varDef + ';'))* consFuncDef? (funcDef | (varDef + ';'))* '}' ';';
+classDef:   CLASS Identifier '{' (funcDef | (varDef + ';') | consFuncDef)* '}' ';';
 consFuncDef:Identifier '('  ')' funcBody;
 
 mainBlock:  'int main()' suite;

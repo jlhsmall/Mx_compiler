@@ -100,7 +100,7 @@ public class SemanticChecker implements ASTVisitor {
         }
         for (var varDef : it.varDefs)
             varDef.accept(this);
-        for (var funcDef : it.funcDefs){
+        for (var funcDef : it.funcDefs) {
             currentFuncType = funcDef.funcType.type;
             funcDef.accept(this);
         }
@@ -160,7 +160,7 @@ public class SemanticChecker implements ASTVisitor {
         it.cond.accept(this);
         if (!it.cond.type.isBoolType())
             throw new semanticError("Semantic Error: wrong ifStmt: type not match. It should be bool", it.cond.pos);
-        it.thenStmt.accept(this);
+        if (it.thenStmt != null) it.thenStmt.accept(this);
         if (it.elseStmt != null) it.elseStmt.accept(this);
     }
 
@@ -170,7 +170,7 @@ public class SemanticChecker implements ASTVisitor {
         if (!it.cond.type.isBoolType())
             throw new semanticError("Semantic Error: wrong whileStmt: type not match. It should be bool", it.cond.pos);
         ++loopCnt;
-        it.stmt.accept(this);
+        if (it.stmt != null)it.stmt.accept(this);
         --loopCnt;
     }
 
@@ -184,7 +184,7 @@ public class SemanticChecker implements ASTVisitor {
                 throw new semanticError("Semantic Error: wrong whileStmt: type not match. It should be bool", it.cond.pos);
         }
         ++loopCnt;
-        it.stmt.accept(this);
+        if (it.stmt!=null) it.stmt.accept(this);
         --loopCnt;
         if(it.incr != null)
             it.incr.accept(this);
@@ -194,7 +194,7 @@ public class SemanticChecker implements ASTVisitor {
     public void visit(returnStmtNode it) {
         if (it.value != null) {
             it.value.accept(this);
-            if (!currentFuncType.equals(it.value.type))
+            if (!currentFuncType.equals(it.value.type) || currentFuncType.isNullType())
                 throw new semanticError("Semantic Error: wrong returnStmt", it.pos);
         }
         else if (!currentFuncType.isNullType())
@@ -311,6 +311,11 @@ public class SemanticChecker implements ASTVisitor {
     public void visit(CreatorNode it) {
         if (it.type.isNullType())
             throw new semanticError("Semantic Error: wrong creator", it.pos);
+        for (var siz : it.arraySizes){
+            siz.accept(this);
+            if (!siz.type.isIntType())
+                throw new semanticError("Semantic Error: wrong creator", it.pos);
+        }
     }
 
     @Override

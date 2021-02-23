@@ -29,7 +29,7 @@ public class funcDefNode extends DefNode {
         if(visitor.funcMap.get(name) != null)
             throw new semanticError("Semantic Error: wrong funcDef", pos);
         funcItem funcitem = new funcItem();
-        funcitem.type = funcType.type;
+        if(funcType != null) funcitem.type = funcType.type;
         for (var para : paras) {
             if (para.names.size() != 1) throw new semanticError("Semantic Error: wrong funcDef", pos);
             String nm = para.names.get(0);

@@ -3,6 +3,7 @@ package Frontend;
 import AST.*;
 import Parser.MxBaseVisitor;
 import Parser.MxParser;
+import Util.error.semanticError;
 import Util.position;
 import type.*;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -57,8 +58,8 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
             classDef.funcDefs.add((funcDefNode) visit(block));
         for (var block : ctx.varDef())
             classDef.varDefs.add((varDefNode) visit(block));
-        if (ctx.consFuncDef() != null)
-            classDef.consFuncDef = (funcDefNode) visit(ctx.consFuncDef());
+        for (var block : ctx.consFuncDef())
+            classDef.consFuncDefs.add((funcDefNode)visit(block));
         return classDef;
     }
 
@@ -213,7 +214,11 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     public ASTNode visitTrueArrayCreator(MxParser.TrueArrayCreatorContext ctx) {
         TypeNode naiveType = (TypeNode) visit(ctx.naiveType());
         ArrayType type = new ArrayType(naiveType.type, ctx.LeftBracket().size());
-        return new CreatorNode(type, new position(ctx));
+        CreatorNode creator = new CreatorNode(type, new position(ctx));
+        for (var siz : ctx.expr()) {
+            creator.arraySizes.add((ExprNode) visit(siz));
+        }
+        return creator;
     }
 
     @Override

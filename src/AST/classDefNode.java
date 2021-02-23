@@ -9,6 +9,7 @@ import Util.item.funcItem;
 import Util.item.varItem;
 import Util.position;
 import type.ClassType;
+import type.NullType;
 
 import java.util.ArrayList;
 
@@ -20,12 +21,13 @@ public class classDefNode extends DefNode {
     public String name;
     public ArrayList<funcDefNode> funcDefs;
     public ArrayList<varDefNode> varDefs;
-    public funcDefNode consFuncDef;
+    public ArrayList<funcDefNode> consFuncDefs;
 
     public classDefNode(position pos) {
         super(pos);
         funcDefs = new ArrayList<>();
         varDefs = new ArrayList<>();
+        consFuncDefs = new ArrayList<>();
     }
 
     @Override
@@ -38,17 +40,18 @@ public class classDefNode extends DefNode {
         if (visitor.classMap.get(name) != null)
             throw new semanticError("Semantic Error: wrong classDef", pos);
         classItem classitem = new classItem();
-        for (var funcDef : funcDefs){
+        if (consFuncDefs.size() > 1)
+            throw new semanticError("Semantic Error: wrong classDef", pos);
+        else if (consFuncDefs.size() == 1) {
+            funcItem funcitem = (funcItem) consFuncDefs.get(0).toItem(visitor);
+            funcitem.type = new ClassType(name);
+            classitem.funcMembers.put(name, funcitem);
+        }
+        for (var funcDef : funcDefs) {
             funcItem funcitem = (funcItem) funcDef.toItem(visitor);
-            if (funcDef.funcType == null) {
-                if (!funcDef.name.equals(name)) throw new semanticError("Semantic Error: wrong classDef", pos);
-                funcitem.type = new ClassType(name);
-            } else {
-                if (funcDef.name.equals(name)) throw new semanticError("Semantic Error: wrong classDef", pos);
-            }
             classitem.funcMembers.put(funcDef.name, funcitem);
         }
-        for (var varDef : varDefs){
+        for (var varDef : varDefs) {
             for (var nm : varDef.names) {
                 varItem varitem = new varItem(varDef.varType.type);
                 classitem.varMembers.put(nm, varitem);
@@ -56,17 +59,27 @@ public class classDefNode extends DefNode {
         }
         return classitem;
     }
-    public void makeItem(SemanticChecker visitor,classItem classitem) {
-        for (var varDef : varDefs){
+
+    public void makeItem(SemanticChecker visitor, classItem classitem) {
+        for (var varDef : varDefs) {
             for (var nm : varDef.names) {
                 varItem varitem = new varItem(varDef.varType.type);
                 visitor.scopes.peek().defineVariable(nm, varitem, pos);
             }
         }
-        for (var funcDef : funcDefs){
+        for (var funcDef : funcDefs) {
             visitor.currentFuncType = funcDef.funcType.type;
             visitor.scopes.push(new Scope(visitor.scopes.peek()));
-            funcDef.makeItem(visitor,classitem.funcMembers.get(funcDef.name));
+            funcDef.makeItem(visitor, classitem.funcMembers.get(funcDef.name));
+            funcDef.funcBody.accept(visitor);
+            visitor.scopes.pop();
+        }
+        if (consFuncDefs.size() == 1) {
+            visitor.currentFuncType = new NullType();
+            visitor.scopes.push(new Scope(visitor.scopes.peek()));
+            funcDefNode consFuncDef = consFuncDefs.get(0);
+            consFuncDef.makeItem(visitor, classitem.funcMembers.get(name));
+            consFuncDef.funcBody.accept(visitor);
             visitor.scopes.pop();
         }
     }
