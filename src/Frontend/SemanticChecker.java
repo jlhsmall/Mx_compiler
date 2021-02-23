@@ -16,7 +16,7 @@ public class SemanticChecker implements ASTVisitor {
     public HashMap<String, funcItem> funcMap;
     public HashMap<String, classItem> classMap;
     public ClassType currentClass;
-    public classItem currentInst;
+    public classItem currentInst,arrayItem;
     public int loopCnt = 0;
     public Type currentFuncType;
     @Override
@@ -88,6 +88,11 @@ public class SemanticChecker implements ASTVisitor {
         classString.funcMembers.put("ord", funcOrd);
 
         classMap.put("string", classString);
+
+        arrayItem = new classItem();
+        funcItem funcSize = new funcItem();
+        funcSize.type = new IntType();
+        arrayItem.funcMembers.put("size",funcSize);
 
         scopes.push(new Scope(null));
         for (var classDef : it.classDefs){
@@ -379,13 +384,15 @@ public class SemanticChecker implements ASTVisitor {
             throw new semanticError("Semantic Error: wrong arrayAtom", it.pos);
     }
 
-
     @Override
     public void visit(classExprNode it) {
         it.inst.accept(this);
-        if (!it.inst.type.isClassType())
+        if (it.inst.type.isClassType())
+            currentInst = classMap.get(it.inst.type.getName());
+        else if(it.inst.type.isArrayType())
+            currentInst = arrayItem;
+        else
             throw new semanticError("Semantic Error: wrong classAtom", it.pos);
-        currentInst = classMap.get(it.inst.type.getName());
         it.field.accept(this);
         it.type = it.field.type;
     }

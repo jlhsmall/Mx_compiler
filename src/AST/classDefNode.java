@@ -43,11 +43,16 @@ public class classDefNode extends DefNode {
         if (consFuncDefs.size() > 1)
             throw new semanticError("Semantic Error: wrong classDef", pos);
         else if (consFuncDefs.size() == 1) {
-            funcItem funcitem = (funcItem) consFuncDefs.get(0).toItem(visitor);
+            funcDefNode consFuncDef = consFuncDefs.get(0);
+            if (!consFuncDef.name.equals(name))
+                throw new semanticError("Semantic Error: wrong classDef", pos);
+            funcItem funcitem = (funcItem) consFuncDef.toItem(visitor);
             funcitem.type = new ClassType(name);
             classitem.funcMembers.put(name, funcitem);
         }
         for (var funcDef : funcDefs) {
+            if (funcDef.name.equals(name))
+                throw new semanticError("Semantic Error: wrong classDef", pos);
             funcItem funcitem = (funcItem) funcDef.toItem(visitor);
             classitem.funcMembers.put(funcDef.name, funcitem);
         }
