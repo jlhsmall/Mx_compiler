@@ -38,4 +38,5 @@ public class Scope {
     public void clear(){
         members.clear();
     }
+    public boolean empty() {return members.isEmpty();}
 }

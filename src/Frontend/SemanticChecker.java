@@ -152,9 +152,13 @@ public class SemanticChecker implements ASTVisitor {
 
     @Override
     public void visit(suiteNode it) {
-        scopes.push(new Scope(scopes.peek()));
-        for (StmtNode stmt : it.stmts) stmt.accept(this);
-        scopes.pop();
+        if (scopes.peek().empty()) {
+            for (StmtNode stmt : it.stmts) stmt.accept(this);
+        } else {
+            scopes.push(new Scope(scopes.peek()));
+            for (StmtNode stmt : it.stmts) stmt.accept(this);
+            scopes.pop();
+        }
     }
 
     @Override
@@ -162,8 +166,16 @@ public class SemanticChecker implements ASTVisitor {
         it.cond.accept(this);
         if (!it.cond.type.isBoolType())
             throw new semanticError("Semantic Error: wrong ifStmt: type not match. It should be bool", it.cond.pos);
-        if (it.thenStmt != null) it.thenStmt.accept(this);
-        if (it.elseStmt != null) it.elseStmt.accept(this);
+        if (it.thenStmt != null) {
+            scopes.push(new Scope(scopes.peek()));
+            it.thenStmt.accept(this);
+            scopes.pop();
+        }
+        if (it.elseStmt != null) {
+            scopes.push(new Scope(scopes.peek()));
+            it.elseStmt.accept(this);
+            scopes.pop();
+        }
     }
 
     @Override
@@ -172,7 +184,11 @@ public class SemanticChecker implements ASTVisitor {
         if (!it.cond.type.isBoolType())
             throw new semanticError("Semantic Error: wrong whileStmt: type not match. It should be bool", it.cond.pos);
         ++loopCnt;
-        if (it.stmt != null)it.stmt.accept(this);
+        if (it.stmt != null){
+            scopes.push(new Scope(scopes.peek()));
+            it.stmt.accept(this);
+            scopes.pop();
+        }
         --loopCnt;
     }
 
@@ -186,7 +202,11 @@ public class SemanticChecker implements ASTVisitor {
                 throw new semanticError("Semantic Error: wrong whileStmt: type not match. It should be bool", it.cond.pos);
         }
         ++loopCnt;
-        if (it.stmt!=null) it.stmt.accept(this);
+        if (it.stmt!=null) {
+            scopes.push(new Scope(scopes.peek()));
+            it.stmt.accept(this);
+            scopes.pop();
+        }
         --loopCnt;
         if(it.incr != null)
             it.incr.accept(this);
@@ -372,9 +392,13 @@ public class SemanticChecker implements ASTVisitor {
 
     @Override
     public void visit(funcAtomNode it) {
-        funcItem funcitem;
-        if (currentInst == null)
-            funcitem = funcMap.get(it.name);
+        funcItem funcitem = null;
+        if (currentInst == null) {
+            if (currentClass != null)
+                funcitem = classMap.get(currentClass.getName()).funcMembers.get(it.name);
+            if (funcitem == null)
+                funcitem = funcMap.get(it.name);
+        }
         else {
             funcitem = currentInst.funcMembers.get(it.name);
             currentInst = null;
