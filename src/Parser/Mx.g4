@@ -31,6 +31,7 @@ stmt
 
 expr
     : inst=expr '.' field=atom                                      #classExpr
+    | expr ('[' expr ']')+                                          #arrayExpr
     | atom                                                          #atomExpr
     | expr op=('++'|'--')                                           #suffixExpr
     | 'new' creator                                                 #newExpr
@@ -60,7 +61,6 @@ atom
     | StringConst                           #constAtom
     | NULL                                  #constAtom
     | THIS                                  #thisAtom
-    | Identifier ('[' expr ']')+            #arrayAtom
     | Identifier '(' exprList? ')'          #funcAtom
     | Identifier                            #naiveAtom
     ;

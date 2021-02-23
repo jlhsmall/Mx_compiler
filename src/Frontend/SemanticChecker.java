@@ -1,7 +1,6 @@
 package Frontend;
 
 import AST.*;
-import Parser.MxParser;
 import Util.item.funcItem;
 import Util.Scope;
 import Util.item.classItem;
@@ -335,22 +334,16 @@ public class SemanticChecker implements ASTVisitor {
     }
 
     @Override
-    public void visit(arrayAtomNode it) {
-        varItem varitem;
-        if (currentInst == null)
-            varitem = scopes.peek().containsVariable(it.name, true);
-        else {
-            varitem = currentInst.varMembers.get(it.name);
-            currentInst = null;
-        }
-        if (varitem == null)
+    public void visit(arrayExprNode it) {
+        it.base.accept(this);
+        if (!it.base.type.isArrayType())
             throw new semanticError("Semantic Error: wrong arrayAtom", it.pos);
         for (var index : it.indices) {
             index.accept(this);
             if (!index.type.isIntType())
                 throw new semanticError("Semantic Error: wrong arrayAtom", it.pos);
         }
-        ArrayType arrayType = (ArrayType)varitem.type;
+        ArrayType arrayType = (ArrayType)it.base.type;
         if (arrayType.dim > it.indices.size())
             it.type = new ArrayType(arrayType.base,arrayType.dim-it.indices.size());
         else if (arrayType.dim == it.indices.size())

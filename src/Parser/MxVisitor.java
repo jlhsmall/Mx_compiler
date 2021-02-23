@@ -149,6 +149,13 @@ public interface MxVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitPrefixExpr(MxParser.PrefixExprContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code arrayExpr}
+	 * labeled alternative in {@link MxParser#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitArrayExpr(MxParser.ArrayExprContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code suffixExpr}
 	 * labeled alternative in {@link MxParser#expr}.
 	 * @param ctx the parse tree
@@ -225,13 +232,6 @@ public interface MxVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitThisAtom(MxParser.ThisAtomContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code arrayAtom}
-	 * labeled alternative in {@link MxParser#atom}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitArrayAtom(MxParser.ArrayAtomContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code funcAtom}
 	 * labeled alternative in {@link MxParser#atom}.

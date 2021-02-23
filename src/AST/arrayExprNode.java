@@ -4,10 +4,10 @@ import Util.position;
 
 import java.util.ArrayList;
 
-public class arrayAtomNode extends AtomNode {
-    public String name;
+public class arrayExprNode extends ExprNode {
+    public ExprNode base;
     public ArrayList<ExprNode> indices;
-    public arrayAtomNode(position pos) {
+    public arrayExprNode(position pos) {
         super(pos);
         indices = new ArrayList<>();
         isAssignable = true;

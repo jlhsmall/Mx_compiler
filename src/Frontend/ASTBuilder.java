@@ -229,11 +229,11 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     }
 
     @Override
-    public ASTNode visitArrayAtom(MxParser.ArrayAtomContext ctx) {
-        arrayAtomNode arrayAtom = new arrayAtomNode(new position(ctx));
-        arrayAtom.name = ctx.Identifier().getText();
-        for (var index : ctx.expr())
-            arrayAtom.indices.add((ExprNode)visit(index));
+    public ASTNode visitArrayExpr(MxParser.ArrayExprContext ctx) {
+        arrayExprNode arrayAtom = new arrayExprNode(new position(ctx));
+        arrayAtom.base = (ExprNode)visit(ctx.expr(0));
+        for (int i=1;i<ctx.expr().size();++i)
+            arrayAtom.indices.add((ExprNode)visit(ctx.expr(i)));
         return arrayAtom;
     }
 
