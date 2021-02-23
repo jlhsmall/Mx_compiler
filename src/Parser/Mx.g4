@@ -5,7 +5,7 @@ block:  mainBlock | funcDef | (varDef + ';') | classDef;
 funcDef:    funcType Identifier '(' paraList? ')' funcBody;
 paraList:   varDef (',' varDef)*;
 
-varDef:     varType (Identifier ('=' expr)? )+;
+varDef:     varType Identifier ('=' expr)? (',' Identifier)*;
 
 classDef:   CLASS Identifier '{' (funcDef | (varDef + ';') | consFuncDef)* '}' ';';
 consFuncDef:Identifier '('  ')' funcBody;

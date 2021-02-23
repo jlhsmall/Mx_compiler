@@ -51,12 +51,12 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     public ASTNode visitVarDef(MxParser.VarDefContext ctx) {
         varDefNode varDef = new varDefNode(new position(ctx));
         varDef.varType = (TypeNode) visit(ctx.varType());
-        if (ctx.expr().isEmpty()) {
+        if (ctx.expr() == null) {
             for (var nm : ctx.Identifier())
                 varDef.names.add(nm.getText());
         } else {
+            varDef.expr = (ExprNode) visit(ctx.expr());
             varDef.names.add(ctx.Identifier(0).getText());
-            varDef.expr = (ExprNode) visit(ctx.expr(0));
         }
         return varDef;
     }
