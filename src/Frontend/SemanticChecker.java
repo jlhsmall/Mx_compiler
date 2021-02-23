@@ -107,16 +107,27 @@ public class SemanticChecker implements ASTVisitor {
                 throw new semanticError("Semantic Error: wrong funcDef", funcDef.pos);
             funcMap.put(funcDef.name,funcitem);
         }
-        for (var varDef : it.varDefs)
-            varDef.accept(this);
-        for (var funcDef : it.funcDefs) {
-            currentFuncType = funcDef.funcType.type;
-            funcDef.accept(this);
+        for (RootNode.OrderType o : it.order){
+            switch (o) {
+                case CLASS:
+                    for (var classDef : it.classDefs)
+                        classDef.accept(this);
+                    break;
+                case FUNC:
+                    for (var funcDef : it.funcDefs) {
+                        currentFuncType = funcDef.funcType.type;
+                        funcDef.accept(this);
+                    }
+                    break;
+                case VAR:
+                    for (var varDef : it.varDefs)
+                        varDef.accept(this);
+                    break;
+                case MAIN:
+                    currentFuncType = new IntType();
+                    it.mainBlock.accept(this);
+            }
         }
-        for (var classDef : it.classDefs)
-            classDef.accept(this);
-        currentFuncType = new IntType();
-        it.mainBlock.accept(this);
     }
 
     @Override
@@ -136,11 +147,11 @@ public class SemanticChecker implements ASTVisitor {
     @Override
     public void visit(varDefNode it) {
         it.varType.accept(this);
-        it.toItem(this);
         if (it.expr != null){
             it.expr.accept(this);
             if(!it.expr.type.equals(it.varType.type)) throw new semanticError("Semantic Error: wrong varDef", it.pos);
         }
+        it.toItem(this);
     }
 
     @Override
@@ -353,6 +364,7 @@ public class SemanticChecker implements ASTVisitor {
     public void visit(paronAtomNode it) {
         it.expr.accept(this);
         it.type = it.expr.type;
+        it.isAssignable = it.expr.isAssignable;
     }
 
     @Override

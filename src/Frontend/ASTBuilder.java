@@ -12,13 +12,24 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     @Override
     public ASTNode visitProgram(MxParser.ProgramContext ctx) {
         RootNode root = new RootNode(new position(ctx));
-        for (var block : ctx.varDef())
-            root.varDefs.add((varDefNode) visit(block));
-        for (var block : ctx.funcDef())
-            root.funcDefs.add((funcDefNode) visit(block));
-        for (var block : ctx.classDef())
-            root.classDefs.add((classDefNode) visit(block));
-        root.mainBlock = (mainBlockNode) visit(ctx.mainBlock());
+        for (var block : ctx.block()) {
+            if(block.mainBlock() != null) {
+                root.order.add(RootNode.OrderType.MAIN);
+                root.mainBlock = (mainBlockNode) visit(block.mainBlock());
+            }
+            else if (block.funcDef() != null) {
+                root.order.add(RootNode.OrderType.FUNC);
+                root.funcDefs.add((funcDefNode) visit(block.funcDef()));
+            }
+            else if (block.classDef() != null) {
+                root.order.add(RootNode.OrderType.CLASS);
+                root.classDefs.add((classDefNode) visit(block.classDef()));
+            }
+            else {
+                root.order.add(RootNode.OrderType.VAR);
+                root.varDefs.add((varDefNode) visit(block.varDef(0)));
+            }
+        }
         return root;
     }
 

@@ -1,6 +1,7 @@
 grammar Mx;
 
-program:    (funcDef | (varDef + ';') | classDef)* mainBlock (funcDef | (varDef + ';') | classDef)* EOF;
+program:    block* EOF;
+block:  mainBlock | funcDef | (varDef + ';') | classDef;
 funcDef:    funcType Identifier '(' paraList? ')' funcBody;
 paraList:   varDef (',' varDef)*;
 
