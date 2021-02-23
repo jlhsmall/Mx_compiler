@@ -17,8 +17,8 @@ public class Main {
     public static void main(String[] args) throws Exception{
 
         String name = "testcases\\sema\\basic-package\\basic-9.mx";
-        InputStream input = new FileInputStream(name);
-        //InputStream input = System.in;
+        //InputStream input = new FileInputStream(name);
+        InputStream input = System.in;
 
         try {
             RootNode ASTRoot;
