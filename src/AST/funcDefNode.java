@@ -42,6 +42,7 @@ public class funcDefNode extends DefNode {
     public void makeItem(SemanticChecker visitor, funcItem funcitem) {
         for (var para : paras){
             String nm = para.names.get(0);
+            para.varType.accept(visitor);
             varItem varitem = new varItem(para.varType.type);
             visitor.scopes.peek().defineVariable(nm,varitem,pos);//guarantee distinction of nm
         }

@@ -1,6 +1,7 @@
 package type;
 
 import AST.ExprNode;
+import Frontend.SemanticChecker;
 
 import java.util.ArrayList;
 
@@ -22,7 +23,10 @@ public class ArrayType extends Type{
     public boolean isArrayType(){
         return true;
     }
+    @Override
     public boolean equals(Type rhs) {
         return rhs.isNullType() || rhs.getName().equals(getName());
     }
+    @Override
+    public boolean illegal(SemanticChecker visitor){ return base.illegal(visitor);}
 }

@@ -1,5 +1,7 @@
 package type;
 
+import Frontend.SemanticChecker;
+
 public abstract class Type {
     public abstract String getName() ;
     public boolean isArrayType(){
@@ -25,4 +27,5 @@ public abstract class Type {
     public boolean isAssignable(Type rhs){
         return equals(rhs);
     }
+    public boolean illegal(SemanticChecker visitor){return false;}
 }

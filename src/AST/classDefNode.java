@@ -63,11 +63,13 @@ public class classDefNode extends DefNode {
     public void makeItem(SemanticChecker visitor, classItem classitem) {
         for (var varDef : varDefs) {
             for (var nm : varDef.names) {
+                varDef.varType.accept(visitor);
                 varItem varitem = new varItem(varDef.varType.type);
                 visitor.scopes.peek().defineVariable(nm, varitem, pos);
             }
         }
         for (var funcDef : funcDefs) {
+            funcDef.funcType.accept(visitor);
             visitor.currentFuncType = funcDef.funcType.type;
             visitor.scopes.push(new Scope(visitor.scopes.peek()));
             funcDef.makeItem(visitor, classitem.funcMembers.get(funcDef.name));

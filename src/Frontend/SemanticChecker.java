@@ -112,6 +112,7 @@ public class SemanticChecker implements ASTVisitor {
 
     @Override
     public void visit(funcDefNode it) {
+        it.funcType.accept(this);
         scopes.push(new Scope(scopes.peek()));
         it.makeItem(this,funcMap.get(it.name));
         it.funcBody.accept(this);
@@ -125,6 +126,7 @@ public class SemanticChecker implements ASTVisitor {
 
     @Override
     public void visit(varDefNode it) {
+        it.varType.accept(this);
         it.toItem(this);
         if (it.expr != null){
             it.expr.accept(this);
@@ -401,6 +403,7 @@ public class SemanticChecker implements ASTVisitor {
 
     @Override
     public void visit(TypeNode it) {
-
+        if(it.type.illegal(this))
+            throw new semanticError("Semantic Error: wrong type", it.pos);
     }
 }

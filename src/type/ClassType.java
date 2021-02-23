@@ -1,5 +1,7 @@
 package type;
 
+import Frontend.SemanticChecker;
+
 import java.util.HashSet;
 
 /**
@@ -18,7 +20,10 @@ public class ClassType extends Type{
     public boolean isClassType(){
         return true;
     }
+    @Override
     public boolean equals(Type rhs) {
         return rhs.isNullType() || rhs.getName().equals(name);
     }
+    @Override
+    public boolean illegal(SemanticChecker visitor){ return visitor.classMap.get(name) == null;}
 }
