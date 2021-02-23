@@ -16,7 +16,7 @@ import java.io.InputStream;
 public class Main {
     public static void main(String[] args) throws Exception{
 
-        String name = "testcases\\sema\\codeforces-package\\1A.mx";
+        String name = "testcases\\sema\\loop-package\\loop-2.mx";
         //InputStream input = new FileInputStream(name);
         InputStream input = System.in;
 

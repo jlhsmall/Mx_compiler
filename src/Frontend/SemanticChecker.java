@@ -16,7 +16,7 @@ public class SemanticChecker implements ASTVisitor {
     public HashMap<String, funcItem> funcMap;
     public HashMap<String, classItem> classMap;
     public ClassType currentClass;
-    public classItem currentInst,arrayItem;
+    public classItem currentInst, arrayItem;
     public int loopCnt = 0;
     public Type currentFuncType;
     @Override
@@ -107,25 +107,27 @@ public class SemanticChecker implements ASTVisitor {
                 throw new semanticError("Semantic Error: wrong funcDef", funcDef.pos);
             funcMap.put(funcDef.name,funcitem);
         }
+        int classId = 0, funcId = 0, varId = 0;
         for (RootNode.OrderType o : it.order){
             switch (o) {
                 case CLASS:
-                    for (var classDef : it.classDefs)
-                        classDef.accept(this);
+                    it.classDefs.get(classId).accept(this);
+                    ++classId;
                     break;
                 case FUNC:
-                    for (var funcDef : it.funcDefs) {
-                        currentFuncType = funcDef.funcType.type;
-                        funcDef.accept(this);
-                    }
+                    currentFuncType = it.funcDefs.get(funcId).funcType.type;
+                    it.funcDefs.get(funcId).accept(this);
+                    currentFuncType = null;
+                    ++funcId;
                     break;
                 case VAR:
-                    for (var varDef : it.varDefs)
-                        varDef.accept(this);
+                    it.varDefs.get(varId).accept(this);
+                    ++varId;
                     break;
                 case MAIN:
                     currentFuncType = new IntType();
                     it.mainBlock.accept(this);
+                    currentFuncType = null;
             }
         }
     }
