@@ -30,6 +30,8 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
                 root.varDefs.add((varDefNode) visit(block.varDef(0)));
             }
         }
+        if (root.mainBlock == null)
+            throw(new semanticError("Semantic Error: no main function", new position(ctx)));
         return root;
     }
 
