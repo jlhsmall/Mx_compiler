@@ -1,6 +1,7 @@
 package type;
 
 import Frontend.SemanticChecker;
+import IR.IRType.IRType;
 
 public abstract class Type {
     public abstract String getName() ;
@@ -28,4 +29,6 @@ public abstract class Type {
         return equals(rhs);
     }
     public boolean illegal(SemanticChecker visitor){return false;}
+
+    abstract public IRType toIRType();
 }

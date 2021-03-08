@@ -9,8 +9,8 @@ public class RootNode extends ASTNode {
     public ArrayList<varDefNode> varDefs;
     public mainBlockNode mainBlock;
     public enum OrderType {
-        CLASS, FUNC, VAR, MAIN;
-    };
+        CLASS, FUNC, VAR, MAIN
+    }
     public ArrayList<OrderType> order;
     public RootNode(position pos) {
         super(pos);

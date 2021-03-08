@@ -6,6 +6,9 @@ package IR.IRType;
  */
 public class IRPointerType extends IRType{
     public IRType base;
+    public IRPointerType(IRType bas){
+        base = bas;
+    }
     @Override
     public String toString(){
         return base.toString()+"*";

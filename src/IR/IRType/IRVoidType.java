@@ -6,7 +6,7 @@ package IR.IRType;
  */
 public class IRVoidType extends IRType{
     @Override
-    public String getName(){
+    public String toString(){
         return "void";
     }
 }
