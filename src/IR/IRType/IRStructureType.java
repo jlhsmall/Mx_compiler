@@ -8,11 +8,11 @@ import java.util.ArrayList;
  */
 public class IRStructureType extends IRType {
     public String name;
-    public ArrayList<IRType> members;
+    //public ArrayList<IRType> members;
 
     public IRStructureType(String nm) {
         name = nm;
-        members = new ArrayList<>();
+        //members = new ArrayList<>();
     }
 
     @Override
