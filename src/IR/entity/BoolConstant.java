@@ -1,4 +1,4 @@
-package IR.operand;
+package IR.entity;
 
 import IR.IRType.IRI1Type;
 

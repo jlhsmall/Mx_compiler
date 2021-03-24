@@ -4,10 +4,7 @@ import AST.*;
 import Frontend.SemanticChecker;
 import IR.IRType.IRStructureType;
 import IR.IRType.IRType;
-import IR.operand.Argument;
-import IR.operand.GlobalVariable;
-import Util.item.varItem;
-
+import IR.entity.*;
 /**
  * @author Jlhsmall
  * @date 2021/3/7 19:31

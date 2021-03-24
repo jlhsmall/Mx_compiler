@@ -1,4 +1,4 @@
-package IR.operand;
+package IR.entity;
 
 import IR.IRType.IRType;
 
@@ -6,10 +6,10 @@ import IR.IRType.IRType;
  * @author Jlhsmall
  * @date 2021/3/8 19:23
  */
-public class GlobalVariable extends Operand {
+public class GlobalVariable extends Entity {
     public String name;
-    public Operand init;
-    public GlobalVariable(IRType tp, String nm, Operand ini) {
+    public Entity init;
+    public GlobalVariable(IRType tp, String nm, Entity ini) {
         super(tp);
         name = nm;
         init = ini;

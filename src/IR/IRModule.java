@@ -1,7 +1,7 @@
 package IR;
 
 import IR.IRType.IRStructureType;
-import IR.operand.GlobalVariable;
+import IR.entity.GlobalVariable;
 
 import java.util.HashMap;
 

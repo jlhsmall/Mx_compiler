@@ -10,13 +10,13 @@ import java.util.HashMap;
  * @date 2021/3/21 15:38
  */
 public class IRStructure {
-    public IRModule module;
+    public IRModule parent;
     public String name;
     public ArrayList<IRType> typeList;
     public ArrayList<String> nameList;
 
     public IRStructure(IRModule mod) {
-        module = mod;
+        parent = mod;
         typeList = new ArrayList<>();
         nameList = new ArrayList<>();
     }
