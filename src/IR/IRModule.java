@@ -12,9 +12,10 @@ import java.util.HashMap;
 public class IRModule {
     public HashMap<String, GlobalVariable> GlobalVariableMap;
     public HashMap<String, IRFunction> FunctionMap;
-    public HashMap<String, IRStructureType> StructureType;
+    public HashMap<String, IRStructure> StructureMap;
     public IRModule() {
         GlobalVariableMap = new HashMap<>();
         FunctionMap = new HashMap<>();
+        StructureMap = new HashMap<>();
     }
 }

@@ -27,6 +27,7 @@ public class callInst extends Inst{
         if(result != null)
             ret.append(result.toString()).append(" = ");
         ret.append("call ").append(func.type.toString()).append(func.toString());
+
         return ret.toString();
     }
 }
