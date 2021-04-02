@@ -1,4 +1,4 @@
-package IR.entity;
+package IR.entity.constant;
 
 import IR.IRType.IRArrayType;
 import IR.IRType.IRI8Type;

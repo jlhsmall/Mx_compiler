@@ -1,6 +1,7 @@
-package IR.entity;
+package IR.entity.constant;
 
 import IR.IRType.IRType;
+import IR.entity.Entity;
 
 /**
  * @author Jlhsmall

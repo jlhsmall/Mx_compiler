@@ -1,5 +1,7 @@
 package Util;
 
+import IR.entity.Entity;
+import IR.entity.Register;
 import Util.error.semanticError;
 import Util.item.varItem;
 
@@ -7,18 +9,15 @@ import java.util.HashMap;
 
 public class Scope {
 
-    private HashMap<String, varItem> members;
-    private Scope parentScope;
-
+    public HashMap<String, varItem> members;
+    public Scope parentScope;
+    public HashMap<String, Entity> varEntities;
     public Scope(Scope parentScope) {
         members = new HashMap<>();
         if(parentScope != null){
             this.parentScope = parentScope;
         }
-    }
-
-    public Scope parentScope() {
-        return parentScope;
+        varEntities = new HashMap<>();
     }
 
     public void defineVariable(String name, varItem item, position pos) {
@@ -35,8 +34,11 @@ public class Scope {
         return null;
     }
 
-    public void clear(){
-        members.clear();
+    public Entity getVarEntity(String name, boolean lookUpon){
+        Entity ret = varEntities.get(name);
+        if (ret != null) return ret;
+        if (parentScope != null && lookUpon)
+            return parentScope.getVarEntity(name, true);
+        return null;
     }
-    public boolean empty() {return members.isEmpty();}
 }

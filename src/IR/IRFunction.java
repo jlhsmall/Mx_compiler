@@ -18,10 +18,13 @@ public class IRFunction {
     public IRType retType;
     public HashMap<String,Integer> registerNameMap;
     public HashMap<String, Register> registerMap;
-    //todo: body blocks
+    public ArrayList<IRBasicBlock> blocks;
     public IRFunction(IRModule mod) {
         parent = mod;
         arguments = new ArrayList<>();
+        registerNameMap = new HashMap<>();
+        registerMap = new HashMap<>();
+        blocks = new ArrayList<>();
     }
     public String getNameForRegister(String bas){
         Integer ptr = registerNameMap.get(bas);

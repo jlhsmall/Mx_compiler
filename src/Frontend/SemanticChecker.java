@@ -174,7 +174,7 @@ public class SemanticChecker implements ASTVisitor {
 
     @Override
     public void visit(suiteNode it) {
-        if (scopes.peek().empty()) {
+        if (scopes.peek().members.isEmpty()) {
             for (StmtNode stmt : it.stmts) stmt.accept(this);
         } else {
             scopes.push(new Scope(scopes.peek()));

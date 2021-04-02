@@ -1,4 +1,4 @@
-package IR.entity;
+package IR.entity.constant;
 
 import IR.IRType.IRVoidType;
 

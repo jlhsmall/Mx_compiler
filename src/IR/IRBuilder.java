@@ -2,14 +2,21 @@ package IR;
 
 import AST.*;
 import Frontend.SemanticChecker;
+import IR.IRType.IRI1Type;
 import IR.IRType.IRI32Type;
 import IR.IRType.IRStructureType;
 import IR.IRType.IRType;
 import IR.entity.*;
+import IR.entity.constant.BoolConstant;
+import IR.entity.constant.IntegerConstant;
+import IR.entity.constant.NullConstant;
+import IR.entity.constant.StringConstant;
 import IR.instruction.*;
+import Util.Scope;
 import type.ClassType;
 
 import java.util.ArrayList;
+import java.util.Stack;
 
 /**
  * @author Jlhsmall
@@ -21,14 +28,31 @@ public class IRBuilder implements ASTVisitor {
     IRBasicBlock curBlock;
     IRStructure curStruct;
     Entity curInstPtr;
-
+    Stack<Scope> scopes;
     public IRBuilder(SemanticChecker semanticChecker) {
         module = new IRModule();
+        scopes = new Stack<>();
     }
 
     @Override
     public void visit(RootNode it) {
+        scopes.push(new Scope(null));
+        for (var varDef : it.varDefs) {
+            IRType tp = varDef.varType.type.toIRType();
+            if (varDef.expr != null) {
+                varDef.expr.accept(this);
+                String nm = varDef.names.get(0);
+                module.GlobalVariableMap.put(nm, new GlobalVariable(tp, nm, varDef.expr.entity));
+                scopes.peek().varEntities.put(nm,varDef.expr.entity);
+            } else {
+                for (var nm : varDef.names) {
+                    module.GlobalVariableMap.put(nm, new GlobalVariable(tp, nm, null));
+                    scopes.peek().varEntities.put(nm,null);
+                }
+            }
+        }
         for (var classDef : it.classDefs) {
+            //todo: something about scope
             IRStructure irStruct = new IRStructure(module);
             irStruct.name = classDef.name;
             for (var varDef : classDef.varDefs) {
@@ -46,7 +70,9 @@ public class IRBuilder implements ASTVisitor {
                         Argument arg = new Argument(para.varType.type.toIRType(), para.names.get(0));
                         irFunc.arguments.add(arg);
                     }
-                    //todo: body blocks
+                    curBlock = new IRBasicBlock(module, "entry");
+                    irFunc.blocks.add(curBlock);
+                    funcDef.funcBody.accept(this);
                     module.FunctionMap.put(irFunc.name, irFunc);
                 }
                 IRFunction irConsFunc = new IRFunction(module);
@@ -57,7 +83,9 @@ public class IRBuilder implements ASTVisitor {
                     Argument arg = new Argument(para.varType.type.toIRType(), para.names.get(0));
                     irConsFunc.arguments.add(arg);
                 }
-                //todo: body blocks
+                curBlock = new IRBasicBlock(module, "entry");
+                irConsFunc.blocks.add(curBlock);
+                consFuncDef.funcBody.accept(this);
                 module.FunctionMap.put(irConsFunc.name, irConsFunc);
             }
             module.StructureMap.put(irStruct.name, irStruct);
@@ -66,25 +94,219 @@ public class IRBuilder implements ASTVisitor {
             IRFunction irFunc = new IRFunction(module);
             irFunc.name = funcDef.name;
             irFunc.retType = funcDef.funcType.type.toIRType();
+            scopes.push(new Scope(scopes.peek()));
             for (var para : funcDef.paras) {
                 Argument arg = new Argument(para.varType.type.toIRType(), para.names.get(0));
                 irFunc.arguments.add(arg);
+                scopes.peek().varEntities.put(arg.name, arg);
             }
-            //todo: body blocks
+            curBlock = new IRBasicBlock(module, "entry");
+            irFunc.blocks.add(curBlock);
+            funcDef.funcBody.accept(this);
+            scopes.pop();
             module.FunctionMap.put(funcDef.name, irFunc);
         }
-        for (var varDef : it.varDefs) {
-            IRType tp = varDef.varType.type.toIRType();
-            if (varDef.expr != null) {
-                varDef.expr.accept(this);
-                String nm = varDef.names.get(0);
-                module.GlobalVariableMap.put(nm, new GlobalVariable(tp, nm, varDef.expr.entity));
-            } else {
-                for (var nm : varDef.names)
-                    module.GlobalVariableMap.put(nm, new GlobalVariable(tp, nm, null));
-            }
+        it.mainBlock.accept(this);
+    }
+    @Override
+    public void visit(mainBlockNode it){
+        IRFunction ma = new IRFunction(module);
+        curFunction = ma;
+        ma.name = "main";
+        ma.retType = new IRI32Type();
+        scopes.push(new Scope(scopes.peek()));
+        curBlock = new IRBasicBlock(module, "entry");
+        ma.blocks.add(curBlock);
+        for(var stmt : it.stmts)
+            stmt.accept(this);
+        scopes.pop();
+        module.FunctionMap.put(ma.name, ma);
+    }
+    @Override
+    public void visit(suiteNode it) {
+        if (scopes.peek().varEntities.isEmpty()) {
+            for (StmtNode stmt : it.stmts) stmt.accept(this);
+        } else {
+            scopes.push(new Scope(scopes.peek()));
+            for (StmtNode stmt : it.stmts) stmt.accept(this);
+            scopes.pop();
         }
+    }
+    @Override
+    public void visit(exprStmtNode it){
+        it.expr.accept(this);
+    }
+    @Override
+    public void visit(newExprNode it){
+        //todo
+    }
+    @Override
+    public void visit(suffixExprNode it) {
+        it.expr.accept(this);
+        Register result;
+        Inst inst1, inst2;
+        if(it.op.equals("++")){
+            result = new Register(new IRI32Type(),curFunction.getNameForRegister("addReg"));
+            inst1 = new binaryInst(curBlock, result, it.expr.entity, new IntegerConstant(new IRI32Type(), 1), binaryInst.opType.add);
+        }
+        else{
+            result = new Register(new IRI32Type(),curFunction.getNameForRegister("subReg"));
+            inst1 = new binaryInst(curBlock, result, it.expr.entity, new IntegerConstant(new IRI32Type(), 1), binaryInst.opType.sub);
+        }
+        curBlock.addInst(inst1);
+        inst2 = new storeInst(curBlock, result, it.expr.entity);
+        curBlock.addInst(inst2);
+        it.entity = it.expr.entity;
+    }
 
+    @Override
+    public void visit(prefixExprNode it) {
+        it.expr.accept(this);
+        Register result;
+        Inst inst1, inst2;
+        switch (it.op) {
+            case "++":
+                result = new Register(new IRI32Type(), curFunction.getNameForRegister("addReg"));
+                inst1 = new binaryInst(curBlock, result, it.expr.entity, new IntegerConstant(new IRI32Type(), 1), binaryInst.opType.add);
+                curBlock.addInst(inst1);
+                inst2 = new storeInst(curBlock, result, it.expr.entity);
+                curBlock.addInst(inst2);
+                it.entity = result;
+                break;
+            case "--":
+                result = new Register(new IRI32Type(), curFunction.getNameForRegister("subReg"));
+                inst1 = new binaryInst(curBlock, result, it.expr.entity, new IntegerConstant(new IRI32Type(), 1), binaryInst.opType.sub);
+                curBlock.addInst(inst1);
+                inst2 = new storeInst(curBlock, result, it.expr.entity);
+                curBlock.addInst(inst2);
+                it.entity = result;
+                break;
+            case "+":
+                it.entity = it.expr.entity;
+            case "-":
+                result = new Register(new IRI32Type(), curFunction.getNameForRegister("minusReg"));
+                inst1 = new binaryInst(curBlock, result, new IntegerConstant(new IRI32Type(), 0), it.expr.entity, binaryInst.opType.sub);
+                curBlock.addInst(inst1);
+                it.entity = result;
+                break;
+            case "~":
+                result = new Register(new IRI32Type(), curFunction.getNameForRegister("flipReg"));
+                inst1 = new binaryInst(curBlock, result, it.expr.entity, new IntegerConstant(new IRI32Type(), -1), binaryInst.opType.xor);
+                curBlock.addInst(inst1);
+                it.entity = result;
+                break;
+            case "!":
+                result = new Register(new IRI1Type(), curFunction.getNameForRegister("notReg"));
+                inst1 = new binaryInst(curBlock, result, it.expr.entity, new IntegerConstant(new IRI1Type(), 1), binaryInst.opType.xor);
+                curBlock.addInst(inst1);
+                it.entity = result;
+        }
+    }
+
+    @Override
+    public void visit(binaryExprNode it) {
+        it.lhs.accept(this);
+        it.rhs.accept(this);
+        binaryInst.opType bop = null;
+        icmpInst.opType iop = null;
+        Register result;
+        Inst inst;
+        String nm = null;
+        switch (it.op) {
+            case "+":
+                bop = binaryInst.opType.add;
+                nm = "addReg";
+                break;
+            case "-":
+                bop = binaryInst.opType.sub;
+                nm = "subReg";
+                break;
+            case "*":
+                bop = binaryInst.opType.mul;
+                nm = "mulReg";
+                break;
+            case "/":
+                bop = binaryInst.opType.sdiv;
+                nm = "divReg";
+                break;
+            case "%":
+                bop = binaryInst.opType.srem;
+                nm = "modReg";
+            case ">":
+                iop = icmpInst.opType.sgt;
+                nm = "gtReg";
+                break;
+            case "<":
+                iop = icmpInst.opType.slt;
+                nm = "ltReg";
+                break;
+            case ">=":
+                iop = icmpInst.opType.sge;
+                nm = "reReg";
+                break;
+            case "<=":
+                iop = icmpInst.opType.sle;
+                nm = "leReg";
+                break;
+            case "==":
+                iop = icmpInst.opType.eq;
+                nm = "eqReg";
+                break;
+            case "!=":
+                iop = icmpInst.opType.ne;
+                nm = "neReg";
+                break;
+            case "&&":
+            case "&":
+                bop = binaryInst.opType.and;
+                nm = "andReg";
+                break;
+            case "||":
+            case "|":
+                bop = binaryInst.opType.or;
+                nm = "orReg";
+                break;
+            case ">>":
+                bop = binaryInst.opType.ashr;
+                nm = "shrReg";
+                break;
+            case "<<":
+                bop = binaryInst.opType.shl;
+                nm = "shlReg";
+                break;
+            case "^":
+                bop = binaryInst.opType.xor;
+                nm = "xorReg";
+        }
+        switch (it.op) {
+            case ">":
+            case "<":
+            case ">=":
+            case "<=":
+            case "!=":
+            case "==":
+                result = new Register(new IRI1Type(), curFunction.getNameForRegister(nm));
+                inst = new icmpInst(curBlock, result, it.lhs.entity, it.rhs.entity, iop);
+                break;
+            default:
+                result = new Register(it.lhs.entity.type, curFunction.getNameForRegister(nm));
+                inst = new binaryInst(curBlock, result, it.lhs.entity, it.rhs.entity, bop);
+        }
+        curBlock.addInst(inst);
+        it.entity = result;
+    }
+
+    @Override
+    public void visit(assignExprNode it) {
+        it.lhs.accept(this);
+        it.rhs.accept(this);
+        storeInst inst = new storeInst(curBlock, it.rhs.entity, it.lhs.entity);
+        it.entity = it.rhs.entity;
+    }
+
+    @Override
+    public void visit(CreatorNode it) {
+        //todo
     }
 
     @Override
@@ -95,11 +317,13 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public void visit(naiveAtomNode it) {
-        if (curStruct == null)
+        if (curStruct == null) {
             it.entity = curFunction.registerMap.get(it.name);
-        else {
+            if (it.entity == null)
+                it.entity = module.GlobalVariableMap.get(it.name);
+        } else {
             int pos = curStruct.getpos(it.name);
-            Register result = new Register(curStruct.typeList.get(pos), curFunction.getNameForRegister("tmpReg"));
+            Register result = new Register(curStruct.typeList.get(pos), curFunction.getNameForRegister("naiveReg"));
             ArrayList<Entity> indices = new ArrayList<>();
             indices.add(new IntegerConstant(new IRI32Type(), pos));
             GEPInst inst = new GEPInst(curBlock, result, curInstPtr, indices);
@@ -113,13 +337,13 @@ public class IRBuilder implements ASTVisitor {
     @Override
     public void visit(arrayExprNode it) {
         it.base.accept(this);
-        Entity ptr = curFunction.registerMap.get(it.base.entity);
+        Entity ptr = it.base.entity;
         ArrayList<Entity> ids = new ArrayList<>();
         for (var index : it.indices) {
             index.accept(this);
             ids.add(index.entity);
         }
-        Register result = new Register(it.base.type.toIRType(), curFunction.getNameForRegister("tmpReg"));
+        Register result = new Register(it.base.type.toIRType(), curFunction.getNameForRegister("arrayReg"));
         GEPInst inst = new GEPInst(curBlock, result, ptr, ids);
         curBlock.addInst(inst);
         it.entity = result;
@@ -148,7 +372,7 @@ public class IRBuilder implements ASTVisitor {
             paras.add(para.entity);
         }
         funcEntity func = new funcEntity(it.type.toIRType(), nm);
-        Register result = new Register(it.type.toIRType(), curFunction.getNameForRegister("tmpReg"));
+        Register result = new Register(it.type.toIRType(), curFunction.getNameForRegister("funcReg"));
         callInst inst = new callInst(curBlock, result, func);
         curBlock.addInst(inst);
         it.entity = result;
@@ -161,16 +385,13 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public void visit(constAtomNode it) {
-        if (it.type.isBoolType()){
+        if (it.type.isBoolType()) {
             it.entity = new BoolConstant(it.value.equals("true"));
-        }
-        else if (it.type.isIntType()){
+        } else if (it.type.isIntType()) {
             it.entity = new IntegerConstant(new IRI32Type(), Long.parseLong(it.value));
-        }
-        else if (it.type.isStringType()){
+        } else if (it.type.isStringType()) {
             it.entity = new StringConstant(it.value);
-        }
-        else{
+        } else {
             it.entity = new NullConstant();
         }
     }
