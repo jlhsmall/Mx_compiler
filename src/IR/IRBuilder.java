@@ -29,6 +29,7 @@ public class IRBuilder implements ASTVisitor {
     IRStructure curStruct;
     Entity curInstPtr;
     Stack<Scope> scopes;
+
     public IRBuilder(SemanticChecker semanticChecker) {
         module = new IRModule();
         scopes = new Stack<>();
@@ -43,11 +44,11 @@ public class IRBuilder implements ASTVisitor {
                 varDef.expr.accept(this);
                 String nm = varDef.names.get(0);
                 module.GlobalVariableMap.put(nm, new GlobalVariable(tp, nm, varDef.expr.entity));
-                scopes.peek().varEntities.put(nm,varDef.expr.entity);
+                scopes.peek().varEntities.put(nm, varDef.expr.entity);
             } else {
                 for (var nm : varDef.names) {
                     module.GlobalVariableMap.put(nm, new GlobalVariable(tp, nm, null));
-                    scopes.peek().varEntities.put(nm,null);
+                    scopes.peek().varEntities.put(nm, null);
                 }
             }
         }
@@ -63,6 +64,7 @@ public class IRBuilder implements ASTVisitor {
                 }
                 for (var funcDef : classDef.funcDefs) {
                     IRFunction irFunc = new IRFunction(module);
+                    curFunction = irFunc;
                     irFunc.name = classDef.name + "." + funcDef.name;
                     irFunc.retType = funcDef.funcType.type.toIRType();
                     irFunc.arguments.add(new Argument(new ClassType(classDef.name).toIRType(), "this"));
@@ -70,12 +72,13 @@ public class IRBuilder implements ASTVisitor {
                         Argument arg = new Argument(para.varType.type.toIRType(), para.names.get(0));
                         irFunc.arguments.add(arg);
                     }
-                    curBlock = new IRBasicBlock(module, "entry");
+                    curBlock = new IRBasicBlock(module, curFunction.getNameForBlock("entry"));
                     irFunc.blocks.add(curBlock);
                     funcDef.funcBody.accept(this);
                     module.FunctionMap.put(irFunc.name, irFunc);
                 }
                 IRFunction irConsFunc = new IRFunction(module);
+                curFunction = irConsFunc;
                 irConsFunc.name = classDef.name + "." + classDef.name;
                 funcDefNode consFuncDef = classDef.consFuncDefs.get(0);
                 irConsFunc.retType = new IRStructureType(classDef.name);
@@ -83,7 +86,7 @@ public class IRBuilder implements ASTVisitor {
                     Argument arg = new Argument(para.varType.type.toIRType(), para.names.get(0));
                     irConsFunc.arguments.add(arg);
                 }
-                curBlock = new IRBasicBlock(module, "entry");
+                curBlock = new IRBasicBlock(module, curFunction.getNameForBlock("entry"));
                 irConsFunc.blocks.add(curBlock);
                 consFuncDef.funcBody.accept(this);
                 module.FunctionMap.put(irConsFunc.name, irConsFunc);
@@ -92,6 +95,7 @@ public class IRBuilder implements ASTVisitor {
         }
         for (var funcDef : it.funcDefs) {
             IRFunction irFunc = new IRFunction(module);
+            curFunction = irFunc;
             irFunc.name = funcDef.name;
             irFunc.retType = funcDef.funcType.type.toIRType();
             scopes.push(new Scope(scopes.peek()));
@@ -100,7 +104,7 @@ public class IRBuilder implements ASTVisitor {
                 irFunc.arguments.add(arg);
                 scopes.peek().varEntities.put(arg.name, arg);
             }
-            curBlock = new IRBasicBlock(module, "entry");
+            curBlock = new IRBasicBlock(module, curFunction.getNameForBlock("entry"));
             irFunc.blocks.add(curBlock);
             funcDef.funcBody.accept(this);
             scopes.pop();
@@ -108,20 +112,22 @@ public class IRBuilder implements ASTVisitor {
         }
         it.mainBlock.accept(this);
     }
+
     @Override
-    public void visit(mainBlockNode it){
+    public void visit(mainBlockNode it) {
         IRFunction ma = new IRFunction(module);
         curFunction = ma;
         ma.name = "main";
         ma.retType = new IRI32Type();
         scopes.push(new Scope(scopes.peek()));
-        curBlock = new IRBasicBlock(module, "entry");
+        curBlock = new IRBasicBlock(module, curFunction.getNameForBlock("entry"));
         ma.blocks.add(curBlock);
-        for(var stmt : it.stmts)
+        for (var stmt : it.stmts)
             stmt.accept(this);
         scopes.pop();
         module.FunctionMap.put(ma.name, ma);
     }
+
     @Override
     public void visit(suiteNode it) {
         if (scopes.peek().varEntities.isEmpty()) {
@@ -132,25 +138,98 @@ public class IRBuilder implements ASTVisitor {
             scopes.pop();
         }
     }
+
     @Override
-    public void visit(exprStmtNode it){
+    public void visit(ifStmtNode it) {
+        it.cond.accept(this);
+        IRBasicBlock trueBlock = new IRBasicBlock(module, curFunction.getNameForBlock("ifTrue")),
+                falseBlock = new IRBasicBlock(module, curFunction.getNameForBlock("ifFalse")),
+                endBlock = new IRBasicBlock(module, curFunction.getNameForBlock("ifEnd"));
+        curFunction.blocks.add(trueBlock);
+        curBlock.addInst(new brInst(curBlock, it.cond.entity, trueBlock, it.elseStmt != null ? falseBlock : endBlock));
+        scopes.push(new Scope(scopes.peek()));
+        curBlock = trueBlock;
+        it.thenStmt.accept(this);
+        curBlock.addInst(new brInst(curBlock, null, endBlock, null));
+        scopes.pop();
+        if (it.elseStmt != null) {
+            curFunction.blocks.add(falseBlock);
+            scopes.push(new Scope(scopes.peek()));
+            curBlock = falseBlock;
+            it.thenStmt.accept(this);
+            curBlock.addInst(new brInst(curBlock, null, endBlock, null));
+            scopes.pop();
+        }
+        curFunction.blocks.add(endBlock);
+        curBlock = endBlock;
+    }
+
+    @Override
+    public void visit(whileStmtNode it) {
+        IRBasicBlock condBlock = new IRBasicBlock(module, curFunction.getNameForBlock("whileCond")),
+                bodyBlock = new IRBasicBlock(module, curFunction.getNameForBlock("whileBody")),
+                endBlock = new IRBasicBlock(module, curFunction.getNameForBlock("whileEnd"));
+        curFunction.blocks.add(condBlock);
+        curFunction.blocks.add(bodyBlock);
+        curFunction.blocks.add(endBlock);
+        curBlock.addInst(new brInst(curBlock, null, condBlock, null));
+        curBlock = condBlock;
+        it.cond.accept(this);
+        curBlock.addInst(new brInst(curBlock, it.cond.entity, bodyBlock, endBlock));
+        scopes.push(new Scope(scopes.peek()));
+        curBlock = bodyBlock;
+        it.stmt.accept(this);
+        curBlock.addInst(new brInst(curBlock, null, condBlock, null));
+        scopes.pop();
+        curBlock = endBlock;
+    }
+
+    @Override
+    public void visit(forStmtNode it) {
+        IRBasicBlock condBlock = new IRBasicBlock(module, curFunction.getNameForBlock("forCond")),
+                bodyBlock = new IRBasicBlock(module, curFunction.getNameForBlock("whileBody")),
+                endBlock = new IRBasicBlock(module, curFunction.getNameForBlock("whileEnd"));
+
+        scopes.push(new Scope(scopes.peek()));
+        if (it.init != null)
+            it.init.accept(this);
+        if (it.cond != null) {
+            curFunction.blocks.add(condBlock);
+            curBlock.addInst(new brInst(curBlock, null, condBlock, null));
+            curBlock = condBlock;
+            it.cond.accept(this);
+            curBlock.addInst(new brInst(curBlock, it.cond.entity, bodyBlock, endBlock));
+        } else
+            curBlock.addInst(new brInst(curBlock, null, bodyBlock, null));
+        curBlock = bodyBlock;
+        it.stmt.accept(this);
+        if (it.incr != null)
+            it.incr.accept(this);
+        curBlock.addInst(new brInst(curBlock, null, condBlock, null));
+        scopes.pop();
+        curBlock = endBlock;
+    }
+    
+    @Override
+    public void visit(exprStmtNode it) {
         it.expr.accept(this);
     }
+
     @Override
-    public void visit(newExprNode it){
+    public void visit(newExprNode it) {
         //todo
     }
+
     @Override
     public void visit(suffixExprNode it) {
         it.expr.accept(this);
         Register result;
         Inst inst1, inst2;
-        if(it.op.equals("++")){
-            result = new Register(new IRI32Type(),curFunction.getNameForRegister("addReg"));
+        if (it.op.equals("++")) {
+            result = new Register(new IRI32Type(), curFunction.getNameForRegister("addReg"));
             inst1 = new binaryInst(curBlock, result, it.expr.entity, new IntegerConstant(new IRI32Type(), 1), binaryInst.opType.add);
-        }
-        else{
-            result = new Register(new IRI32Type(),curFunction.getNameForRegister("subReg"));
+        } else {
+            result = new Register(new IRI32Type(), curFunction.getNameForRegister("subReg"));
             inst1 = new binaryInst(curBlock, result, it.expr.entity, new IntegerConstant(new IRI32Type(), 1), binaryInst.opType.sub);
         }
         curBlock.addInst(inst1);

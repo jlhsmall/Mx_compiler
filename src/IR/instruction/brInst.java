@@ -16,6 +16,7 @@ public class brInst extends Inst {
 
     @Override
     public String toString() {
-        return "br i1 " + cond.toString() + ", label " + ifEqual.toString() + ", label " + ifUnequal.toString();
+        return cond == null ? "br label " + ifEqual.toString()
+                : "br i1 " + cond.toString() + ", label " + ifEqual.toString() + ", label " + ifUnequal.toString();
     }
 }

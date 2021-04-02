@@ -132,7 +132,13 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     @Override
     public ASTNode visitIfStmt(MxParser.IfStmtContext ctx) {
         StmtNode thenStmt = (StmtNode) visit(ctx.trueStmt);
-        StmtNode elseStmt = ctx.falseStmt != null ? (StmtNode) visit(ctx.falseStmt) : null;
+        if (thenStmt == null) thenStmt = new suiteNode(new position(ctx));
+        StmtNode elseStmt = null;
+        if (ctx.falseStmt != null) {
+            elseStmt = (StmtNode) visit(ctx.falseStmt);
+            if (elseStmt == null)
+                elseStmt = new suiteNode(new position(ctx.falseStmt));
+        }
         ExprNode cond = (ExprNode) visit(ctx.expr());
         return new ifStmtNode(cond, thenStmt, elseStmt, new position(ctx));
     }
@@ -140,6 +146,7 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     @Override
     public ASTNode visitWhileStmt(MxParser.WhileStmtContext ctx) {
         StmtNode stmt = (StmtNode) visit(ctx.stmt());
+        if (stmt == null) stmt = new suiteNode(new position(ctx.stmt()));
         ExprNode cond = (ExprNode) visit(ctx.expr());
         return new whileStmtNode(cond, stmt, new position(ctx));
     }
@@ -147,6 +154,7 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     @Override
     public ASTNode visitForStmt(MxParser.ForStmtContext ctx) {
         StmtNode stmt = (StmtNode) visit(ctx.stmt());
+        if (stmt == null) stmt = new suiteNode(new position(ctx.stmt()));
         ExprNode init = ctx.init != null ? (ExprNode) visit(ctx.init) : null;
         ExprNode cond = ctx.cond != null ? (ExprNode) visit(ctx.cond) : null;
         ExprNode incr = ctx.incr != null ? (ExprNode) visit(ctx.incr) : null;

@@ -16,20 +16,29 @@ public class IRFunction {
     public String name;
     public ArrayList<Argument> arguments;
     public IRType retType;
-    public HashMap<String,Integer> registerNameMap;
-    public HashMap<String, Register> registerMap;
+    public HashMap<String, Integer> registerNameMap;
+    public HashMap<String, Integer> blockNameMap;
     public ArrayList<IRBasicBlock> blocks;
     public IRFunction(IRModule mod) {
         parent = mod;
         arguments = new ArrayList<>();
         registerNameMap = new HashMap<>();
-        registerMap = new HashMap<>();
+        blockNameMap = new HashMap<>();
         blocks = new ArrayList<>();
     }
     public String getNameForRegister(String bas){
         Integer ptr = registerNameMap.get(bas);
         if (ptr == null){
             registerNameMap.put(bas, 0);
+            return bas;
+        }
+        ptr = ptr + 1;
+        return bas + ptr;
+    }
+    public String getNameForBlock(String bas){
+        Integer ptr = blockNameMap.get(bas);
+        if (ptr == null){
+            blockNameMap.put(bas, 0);
             return bas;
         }
         ptr = ptr + 1;

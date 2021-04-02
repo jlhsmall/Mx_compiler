@@ -19,6 +19,7 @@ public class SemanticChecker implements ASTVisitor {
     public classItem currentInst, arrayItem;
     public int loopCnt = 0;
     public Type currentFuncType;
+
     @Override
     public void visit(RootNode it) {
         scopes = new Stack<>();
@@ -30,38 +31,38 @@ public class SemanticChecker implements ASTVisitor {
                 funcPrintlnInt = new funcItem(),
                 funcGetString = new funcItem(),
                 funcGetInt = new funcItem(),
-                funcToString =new funcItem();
+                funcToString = new funcItem();
 
         funcPrint.type = new NullType();
         funcPrint.paraNames.add("str");
         funcPrint.paraItems.add(new varItem(new StringType()));
-        funcMap.put("print",funcPrint);
+        funcMap.put("print", funcPrint);
 
         funcPrintln.type = new NullType();
         funcPrintln.paraNames.add("str");
         funcPrintln.paraItems.add(new varItem(new StringType()));
-        funcMap.put("println",funcPrintln);
+        funcMap.put("println", funcPrintln);
 
         funcPrintInt.type = new NullType();
         funcPrintInt.paraNames.add("n");
         funcPrintInt.paraItems.add(new varItem(new IntType()));
-        funcMap.put("printInt",funcPrintInt);
+        funcMap.put("printInt", funcPrintInt);
 
         funcPrintlnInt.type = new NullType();
         funcPrintlnInt.paraNames.add("n");
         funcPrintlnInt.paraItems.add(new varItem(new IntType()));
-        funcMap.put("printlnInt",funcPrintlnInt);
+        funcMap.put("printlnInt", funcPrintlnInt);
 
         funcGetString.type = new StringType();
-        funcMap.put("getString",funcGetString);
+        funcMap.put("getString", funcGetString);
 
         funcGetInt.type = new IntType();
-        funcMap.put("getInt",funcGetInt);
+        funcMap.put("getInt", funcGetInt);
 
         funcToString.type = new StringType();
         funcToString.paraNames.add("i");
         funcToString.paraItems.add(new varItem(new IntType()));
-        funcMap.put("toString",funcToString);
+        funcMap.put("toString", funcToString);
 
         classItem classString = new classItem();
         funcItem funcLength = new funcItem(),
@@ -92,23 +93,23 @@ public class SemanticChecker implements ASTVisitor {
         arrayItem = new classItem();
         funcItem funcSize = new funcItem();
         funcSize.type = new IntType();
-        arrayItem.funcMembers.put("size",funcSize);
+        arrayItem.funcMembers.put("size", funcSize);
 
         scopes.push(new Scope(null));
-        for (var classDef : it.classDefs){
+        for (var classDef : it.classDefs) {
             classItem classitem = (classItem) classDef.toItem(this);
-            if(classMap.get(classDef.name)!= null)
+            if (classMap.get(classDef.name) != null)
                 throw new semanticError("Semantic Error: wrong classDef", classDef.pos);
-            classMap.put(classDef.name,classitem);
+            classMap.put(classDef.name, classitem);
         }
-        for (var funcDef : it.funcDefs){
+        for (var funcDef : it.funcDefs) {
             funcItem funcitem = (funcItem) funcDef.toItem(this);
-            if(funcMap.get(funcDef.name) != null || classMap.get(funcDef.name)!= null)
+            if (funcMap.get(funcDef.name) != null || classMap.get(funcDef.name) != null)
                 throw new semanticError("Semantic Error: wrong funcDef", funcDef.pos);
-            funcMap.put(funcDef.name,funcitem);
+            funcMap.put(funcDef.name, funcitem);
         }
         int classId = 0, funcId = 0, varId = 0;
-        for (RootNode.OrderType o : it.order){
+        for (RootNode.OrderType o : it.order) {
             switch (o) {
                 case CLASS:
                     it.classDefs.get(classId).accept(this);
@@ -136,22 +137,22 @@ public class SemanticChecker implements ASTVisitor {
     public void visit(funcDefNode it) {
         it.funcType.accept(this);
         scopes.push(new Scope(scopes.peek()));
-        it.makeItem(this,funcMap.get(it.name));
+        it.makeItem(this, funcMap.get(it.name));
         it.funcBody.accept(this);
         scopes.pop();
     }
 
     @Override
-    public void visit(funcBodyNode it){
+    public void visit(funcBodyNode it) {
         for (StmtNode stmt : it.stmts) stmt.accept(this);
     }
 
     @Override
     public void visit(varDefNode it) {
         it.varType.accept(this);
-        if (it.expr != null){
+        if (it.expr != null) {
             it.expr.accept(this);
-            if(!it.expr.type.equals(it.varType.type)) throw new semanticError("Semantic Error: wrong varDef", it.pos);
+            if (!it.expr.type.equals(it.varType.type)) throw new semanticError("Semantic Error: wrong varDef", it.pos);
         }
         it.toItem(this);
     }
@@ -160,13 +161,13 @@ public class SemanticChecker implements ASTVisitor {
     public void visit(classDefNode it) {
         currentClass = new ClassType(it.name);
         scopes.push(new Scope(scopes.peek()));
-        it.makeItem(this,classMap.get(it.name));
+        it.makeItem(this, classMap.get(it.name));
         scopes.pop();
         currentClass = null;
     }
 
     @Override
-    public void visit(mainBlockNode it){
+    public void visit(mainBlockNode it) {
         scopes.push(new Scope(scopes.peek()));
         for (StmtNode stmt : it.stmts) stmt.accept(this);
         scopes.pop();
@@ -188,11 +189,9 @@ public class SemanticChecker implements ASTVisitor {
         it.cond.accept(this);
         if (!it.cond.type.isBoolType())
             throw new semanticError("Semantic Error: wrong ifStmt: type not match. It should be bool", it.cond.pos);
-        if (it.thenStmt != null) {
-            scopes.push(new Scope(scopes.peek()));
-            it.thenStmt.accept(this);
-            scopes.pop();
-        }
+        scopes.push(new Scope(scopes.peek()));
+        it.thenStmt.accept(this);
+        scopes.pop();
         if (it.elseStmt != null) {
             scopes.push(new Scope(scopes.peek()));
             it.elseStmt.accept(this);
@@ -206,17 +205,15 @@ public class SemanticChecker implements ASTVisitor {
         if (!it.cond.type.isBoolType())
             throw new semanticError("Semantic Error: wrong whileStmt: type not match. It should be bool", it.cond.pos);
         ++loopCnt;
-        if (it.stmt != null){
-            scopes.push(new Scope(scopes.peek()));
-            it.stmt.accept(this);
-            scopes.pop();
-        }
+        scopes.push(new Scope(scopes.peek()));
+        it.stmt.accept(this);
+        scopes.pop();
         --loopCnt;
     }
 
     @Override
     public void visit(forStmtNode it) {
-        if(it.init != null)
+        if (it.init != null)
             it.init.accept(this);
         if (it.cond != null) {
             it.cond.accept(this);
@@ -224,13 +221,11 @@ public class SemanticChecker implements ASTVisitor {
                 throw new semanticError("Semantic Error: wrong whileStmt: type not match. It should be bool", it.cond.pos);
         }
         ++loopCnt;
-        if (it.stmt!=null) {
-            scopes.push(new Scope(scopes.peek()));
-            it.stmt.accept(this);
-            scopes.pop();
-        }
+        scopes.push(new Scope(scopes.peek()));
+        it.stmt.accept(this);
+        scopes.pop();
         --loopCnt;
-        if(it.incr != null)
+        if (it.incr != null)
             it.incr.accept(this);
     }
 
@@ -240,8 +235,7 @@ public class SemanticChecker implements ASTVisitor {
             it.value.accept(this);
             if (!currentFuncType.equals(it.value.type) || currentFuncType.isNullType())
                 throw new semanticError("Semantic Error: wrong returnStmt", it.pos);
-        }
-        else if (!currentFuncType.isNullType())
+        } else if (!currentFuncType.isNullType())
             throw new semanticError("Semantic Error: wrong returnStmt", it.pos);
     }
 
@@ -271,7 +265,7 @@ public class SemanticChecker implements ASTVisitor {
     @Override
     public void visit(suffixExprNode it) {
         it.expr.accept(this);
-        if(!it.expr.isAssignable || !it.expr.type.isIntType())
+        if (!it.expr.isAssignable || !it.expr.type.isIntType())
             throw new semanticError("Semantic Error: wrong suffixExpr. ", it.pos);
         it.type = new IntType();
     }
@@ -279,7 +273,7 @@ public class SemanticChecker implements ASTVisitor {
     @Override
     public void visit(prefixExprNode it) {
         it.expr.accept(this);
-        switch (it.op){
+        switch (it.op) {
             case "++":
             case "--":
                 if (!it.expr.isAssignable)
@@ -302,9 +296,9 @@ public class SemanticChecker implements ASTVisitor {
     public void visit(binaryExprNode it) {
         it.lhs.accept(this);
         it.rhs.accept(this);
-        if(!it.lhs.type.equals(it.rhs.type))
+        if (!it.lhs.type.equals(it.rhs.type))
             throw new semanticError("Semantic Error: wrong binaryExpr. ", it.pos);
-        switch (it.op){
+        switch (it.op) {
             case "-":
             case "*":
             case "/":
@@ -314,12 +308,12 @@ public class SemanticChecker implements ASTVisitor {
             case "&":
             case "|":
             case "^":
-                if(!it.lhs.type.isIntType())
+                if (!it.lhs.type.isIntType())
                     throw new semanticError("Semantic Error: wrong binaryExpr. ", it.pos);
                 it.type = new IntType();
                 break;
             case "+":
-                if(!it.lhs.type.isIntType() && !it.lhs.type.isStringType())
+                if (!it.lhs.type.isIntType() && !it.lhs.type.isStringType())
                     throw new semanticError("Semantic Error: wrong binaryExpr. ", it.pos);
                 it.type = it.lhs.type;
                 break;
@@ -327,13 +321,13 @@ public class SemanticChecker implements ASTVisitor {
             case ">=":
             case "<":
             case ">":
-                if(!it.lhs.type.isIntType() && !it.lhs.type.isStringType())
+                if (!it.lhs.type.isIntType() && !it.lhs.type.isStringType())
                     throw new semanticError("Semantic Error: wrong binaryExpr. ", it.pos);
                 it.type = new BoolType();
                 break;
             case "&&":
             case "||":
-                if(!it.lhs.type.isBoolType())
+                if (!it.lhs.type.isBoolType())
                     throw new semanticError("Semantic Error: wrong binaryExpr. ", it.pos);
             default:
                 it.type = new BoolType();
@@ -355,7 +349,7 @@ public class SemanticChecker implements ASTVisitor {
     public void visit(CreatorNode it) {
         if (it.type.isNullType())
             throw new semanticError("Semantic Error: wrong creator", it.pos);
-        for (var siz : it.arraySizes){
+        for (var siz : it.arraySizes) {
             siz.accept(this);
             if (!siz.type.isIntType())
                 throw new semanticError("Semantic Error: wrong creator", it.pos);
@@ -393,9 +387,9 @@ public class SemanticChecker implements ASTVisitor {
             if (!index.type.isIntType())
                 throw new semanticError("Semantic Error: wrong arrayAtom", it.pos);
         }
-        ArrayType arrayType = (ArrayType)it.base.type;
+        ArrayType arrayType = (ArrayType) it.base.type;
         if (arrayType.dim > it.indices.size())
-            it.type = new ArrayType(arrayType.base,arrayType.dim-it.indices.size());
+            it.type = new ArrayType(arrayType.base, arrayType.dim - it.indices.size());
         else if (arrayType.dim == it.indices.size())
             it.type = arrayType.base;
         else
@@ -407,7 +401,7 @@ public class SemanticChecker implements ASTVisitor {
         it.inst.accept(this);
         if (it.inst.type.isClassType())
             currentInst = classMap.get(it.inst.type.getName());
-        else if(it.inst.type.isArrayType())
+        else if (it.inst.type.isArrayType())
             currentInst = arrayItem;
         else
             throw new semanticError("Semantic Error: wrong classAtom", it.pos);
@@ -423,14 +417,13 @@ public class SemanticChecker implements ASTVisitor {
                 funcitem = classMap.get(currentClass.getName()).funcMembers.get(it.name);
             if (funcitem == null)
                 funcitem = funcMap.get(it.name);
-        }
-        else {
+        } else {
             funcitem = currentInst.funcMembers.get(it.name);
             currentInst = null;
         }
         if (it.paras.size() != funcitem.paraNames.size())
             throw new semanticError("Semantic Error: wrong funcAtom", it.pos);
-        for (int i = 0; i < it.paras.size(); ++i){
+        for (int i = 0; i < it.paras.size(); ++i) {
             it.paras.get(i).accept(this);
             if (!it.paras.get(i).type.equals(funcitem.paraItems.get(i).type))
                 throw new semanticError("Semantic Error: wrong funcAtom", it.pos);
@@ -452,7 +445,7 @@ public class SemanticChecker implements ASTVisitor {
 
     @Override
     public void visit(TypeNode it) {
-        if(it.type.illegal(this))
+        if (it.type.illegal(this))
             throw new semanticError("Semantic Error: wrong type", it.pos);
     }
 }
