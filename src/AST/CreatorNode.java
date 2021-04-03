@@ -1,5 +1,6 @@
 package AST;
 
+import IR.entity.Entity;
 import Util.position;
 import type.Type;
 
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 public class CreatorNode extends ASTNode {
     public Type type;
     public ArrayList<ExprNode>arraySizes;
+    public Entity entity;
     public CreatorNode(Type type, position pos) {
         super(pos);
         this.type = type;

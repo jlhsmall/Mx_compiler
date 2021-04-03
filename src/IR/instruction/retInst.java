@@ -11,14 +11,14 @@ import IR.entity.Entity;
 public class retInst extends Inst{
     public IRType type;
     public Entity value;
-    public retInst(IRBasicBlock parent, IRType tp, Entity val){
+    public retInst(IRBasicBlock parent, Entity val){
         super(parent);
-        type = tp;
         value = val;
+        type = val == null ? null : val.type;
     }
     @Override
     public String toString(){
-        return value == null ? "ret " + type.toString()
+        return value == null ? "ret void"
                 : "ret " + type.toString() + value.toString();
     }
 }

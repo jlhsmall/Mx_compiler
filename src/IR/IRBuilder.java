@@ -29,10 +29,13 @@ public class IRBuilder implements ASTVisitor {
     IRStructure curStruct;
     Entity curInstPtr;
     Stack<Scope> scopes;
+    Stack<IRBasicBlock> loopCondBlocks, loopEndBlocks;
 
     public IRBuilder(SemanticChecker semanticChecker) {
         module = new IRModule();
         scopes = new Stack<>();
+        loopCondBlocks = new Stack<>();
+        loopEndBlocks = new Stack<>();
     }
 
     @Override
@@ -177,9 +180,13 @@ public class IRBuilder implements ASTVisitor {
         it.cond.accept(this);
         curBlock.addInst(new brInst(curBlock, it.cond.entity, bodyBlock, endBlock));
         scopes.push(new Scope(scopes.peek()));
+        loopCondBlocks.push(condBlock);
+        loopEndBlocks.push(endBlock);
         curBlock = bodyBlock;
         it.stmt.accept(this);
         curBlock.addInst(new brInst(curBlock, null, condBlock, null));
+        loopEndBlocks.pop();
+        loopCondBlocks.pop();
         scopes.pop();
         curBlock = endBlock;
     }
@@ -209,7 +216,28 @@ public class IRBuilder implements ASTVisitor {
         scopes.pop();
         curBlock = endBlock;
     }
-    
+
+    @Override
+    public void visit(returnStmtNode it) {
+        retInst inst;
+        if (it.value != null) {
+            it.value.accept(this);
+            inst = new retInst(curBlock, it.value.entity);
+        } else
+            inst = new retInst(curBlock, null);
+        curBlock.addInst(inst);
+    }
+
+    @Override
+    public void visit(breakStmtNode it) {
+        curBlock.addInst(new brInst(curBlock, null, loopEndBlocks.peek(), null));
+    }
+
+    @Override
+    public void visit(continueStmtNode it) {
+        curBlock.addInst(new brInst(curBlock, null, loopCondBlocks.peek(), null));
+    }
+
     @Override
     public void visit(exprStmtNode it) {
         it.expr.accept(this);
@@ -217,7 +245,8 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public void visit(newExprNode it) {
-        //todo
+       it.creator.accept(this);
+       it.entity = it.creator.entity;
     }
 
     @Override
@@ -385,7 +414,14 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public void visit(CreatorNode it) {
-        //todo
+        if (it.arraySizes.isEmpty()){
+            //todo
+        }
+        else{
+            for(var sz : it.arraySizes)
+                sz.accept(this);
+
+        }
     }
 
     @Override
