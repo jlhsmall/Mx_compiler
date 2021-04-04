@@ -26,12 +26,13 @@ public class IRBuilder implements ASTVisitor {
     IRModule module;
     IRFunction curFunction;
     IRBasicBlock curBlock;
-    IRStructure curStruct,outsideStruct;
+    IRStructure curStruct, outsideStruct;
     Entity curInstPtr;
     Stack<Scope> scopes;
     Stack<IRBasicBlock> loopCondBlocks, loopEndBlocks;
     Scope thisScope;
     Entity checkThis;
+
     public IRBuilder(SemanticChecker semanticChecker) {
         module = new IRModule();
         scopes = new Stack<>();
@@ -83,7 +84,7 @@ public class IRBuilder implements ASTVisitor {
                 irFunc.retType = funcDef.funcType.type.toIRType();
                 scopes.push(new Scope(thisScope));
                 outsideStruct = irStruct;
-                irFunc.arguments.add(new Argument(new IRStructureType(classDef.name),"this"));
+                irFunc.arguments.add(new Argument(new IRStructureType(classDef.name), "this"));
                 for (var para : funcDef.paras) {
                     Argument arg = new Argument(para.varType.type.toIRType(), para.names.get(0));
                     irFunc.arguments.add(arg);
@@ -134,24 +135,29 @@ public class IRBuilder implements ASTVisitor {
             module.FunctionMap.put(funcDef.name, irFunc);
         }
         it.mainBlock.accept(this);
-}
+    }
+
     @Override
     public void visit(funcDefNode it) {
 
     }
+
     @Override
     public void visit(varDefNode it) {
 
     }
+
     @Override
     public void visit(classDefNode it) {
 
     }
+
     @Override
     public void visit(funcBodyNode it) {
         for (var stmt : it.stmts)
             stmt.accept(this);
     }
+
     @Override
     public void visit(mainBlockNode it) {
         IRFunction ma = new IRFunction(module);
@@ -281,8 +287,8 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public void visit(newExprNode it) {
-       it.creator.accept(this);
-       it.entity = it.creator.entity;
+        it.creator.accept(this);
+        it.entity = it.creator.entity;
     }
 
     @Override
@@ -450,11 +456,10 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public void visit(CreatorNode it) {
-        if (it.arraySizes.isEmpty()){
+        if (it.arraySizes.isEmpty()) {
             //todo
-        }
-        else{
-            for(var sz : it.arraySizes)
+        } else {
+            for (var sz : it.arraySizes)
                 sz.accept(this);
 
         }
@@ -469,13 +474,12 @@ public class IRBuilder implements ASTVisitor {
     @Override
     public void visit(naiveAtomNode it) {
         if (curStruct == null) {
-            Entity tmp = scopes.peek().getVarEntity(it.name,true);
-            if (tmp == checkThis){
-                curInstPtr = scopes.peek().getVarEntity("this",true);
+            Entity tmp = scopes.peek().getVarEntity(it.name, true);
+            if (tmp == checkThis) {
+                curInstPtr = scopes.peek().getVarEntity("this", true);
                 curStruct = outsideStruct;
                 it.accept(this);
-            }
-            else
+            } else
                 it.entity = tmp;
         } else {
             int pos = curStruct.getpos(it.name);
@@ -536,7 +540,7 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public void visit(thisAtomNode it) {
-        curInstPtr = scopes.peek().getVarEntity("this",true);
+        curInstPtr = scopes.peek().getVarEntity("this", true);
         curStruct = outsideStruct;
     }
 
