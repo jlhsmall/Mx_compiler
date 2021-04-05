@@ -13,4 +13,8 @@ public class IRI32Type extends IRIntegerType{
     public String toString(){
         return "i32";
     }
+    @Override
+    public int getBytes(){
+        return 4;
+    }
 }

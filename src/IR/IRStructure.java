@@ -14,7 +14,7 @@ public class IRStructure {
     public String name;
     public ArrayList<IRType> typeList;
     public ArrayList<String> nameList;
-
+    public boolean hasConsFunc;
     public IRStructure(IRModule mod) {
         parent = mod;
         typeList = new ArrayList<>();

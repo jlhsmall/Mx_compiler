@@ -14,6 +14,4 @@ abstract public class IRIntegerType extends IRType{
     public boolean isI1Type(){
         return false;
     }
-    @Override
-    abstract public String toString();
 }

@@ -1,5 +1,6 @@
 package IR.IRType;
 
+import IR.IRModule;
 import IR.IRStructure;
 
 /**
@@ -8,11 +9,15 @@ import IR.IRStructure;
  */
 public class IRStringType extends IRStructureType{
     static final IRType realType = new IRPointerType(new IRI8Type());
-    public IRStringType(){
-        super("string");
+    public IRStringType(IRModule mod){
+        super("string",mod);
     }
     @Override
     public String toString(){
         return realType.toString();
+    }
+    @Override
+    public int getBytes(){
+        return 4;
     }
 }

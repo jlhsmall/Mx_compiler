@@ -17,4 +17,8 @@ public class IRArrayType extends IRType {
     public String toString() {
         return "[" + size + " x " + base.toString() + "]";
     }
+    @Override
+    public int getBytes(){
+        return base.getBytes()*size;
+    }
 }

@@ -13,4 +13,8 @@ public class IRPointerType extends IRType{
     public String toString(){
         return base.toString()+"*";
     }
+    @Override
+    public int getBytes(){
+        return 4;
+    }
 }

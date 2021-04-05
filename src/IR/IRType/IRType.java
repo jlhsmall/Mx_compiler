@@ -7,4 +7,5 @@ package IR.IRType;
 abstract public class IRType {
     @Override
     abstract public String toString();
+    abstract public int getBytes();
 }

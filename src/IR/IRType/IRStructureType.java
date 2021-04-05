@@ -1,5 +1,8 @@
 package IR.IRType;
 
+import IR.IRModule;
+import IR.IRStructure;
+
 import java.util.ArrayList;
 
 /**
@@ -8,15 +11,20 @@ import java.util.ArrayList;
  */
 public class IRStructureType extends IRType {
     public String name;
-    //public ArrayList<IRType> members;
-
-    public IRStructureType(String nm) {
+    public ArrayList<IRType> members;
+    public IRStructureType(String nm, IRModule mod) {
         name = nm;
-        //members = new ArrayList<>();
+        members = mod.StructureMap.get(nm).typeList;
     }
 
     @Override
     public String toString() {
         return "@" + name;
+    }
+    @Override
+    public int getBytes(){
+        int ret = 0;
+        for (var tp : members) ret += tp.getBytes();
+        return ret;
     }
 }

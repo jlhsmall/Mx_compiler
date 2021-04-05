@@ -25,4 +25,8 @@ public class IRFunctionType extends IRType {
         ret.append(")");
         return ret.toString();
     }
+    @Override
+    public int getBytes(){
+        return 0;
+    }
 }

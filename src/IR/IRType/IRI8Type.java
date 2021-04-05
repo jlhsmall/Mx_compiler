@@ -13,4 +13,8 @@ public class IRI8Type extends IRIntegerType{
     public String toString(){
         return "i8";
     }
+    @Override
+    public int getBytes(){
+        return 1;
+    }
 }

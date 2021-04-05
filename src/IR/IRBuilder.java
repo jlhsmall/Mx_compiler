@@ -2,10 +2,7 @@ package IR;
 
 import AST.*;
 import Frontend.SemanticChecker;
-import IR.IRType.IRI1Type;
-import IR.IRType.IRI32Type;
-import IR.IRType.IRStructureType;
-import IR.IRType.IRType;
+import IR.IRType.*;
 import IR.entity.*;
 import IR.entity.constant.BoolConstant;
 import IR.entity.constant.IntegerConstant;
@@ -84,7 +81,7 @@ public class IRBuilder implements ASTVisitor {
                 irFunc.retType = funcDef.funcType.type.toIRType();
                 scopes.push(new Scope(thisScope));
                 outsideStruct = irStruct;
-                irFunc.arguments.add(new Argument(new IRStructureType(classDef.name), "this"));
+                irFunc.arguments.add(new Argument(new IRStructureType(classDef.name, module), "this"));
                 for (var para : funcDef.paras) {
                     Argument arg = new Argument(para.varType.type.toIRType(), para.names.get(0));
                     irFunc.arguments.add(arg);
@@ -97,24 +94,28 @@ public class IRBuilder implements ASTVisitor {
                 scopes.pop();
                 scopes.pop();
             }
-
-            IRFunction irConsFunc = new IRFunction(module);
-            curFunction = irConsFunc;
-            irConsFunc.name = classDef.name + "." + classDef.name;
-            funcDefNode consFuncDef = classDef.consFuncDefs.get(0);
-            irConsFunc.retType = new IRStructureType(classDef.name);
-            scopes.push(new Scope(scopes.peek()));
-            for (var para : consFuncDef.paras) {
-                Argument arg = new Argument(para.varType.type.toIRType(), para.names.get(0));
-                irConsFunc.arguments.add(arg);
-                scopes.peek().varEntities.put(arg.name, arg);
+            if (classDef.consFuncDefs.size() == 0)
+                irStruct.hasConsFunc = false;
+            else {
+                irStruct.hasConsFunc = true;
+                IRFunction irConsFunc = new IRFunction(module);
+                curFunction = irConsFunc;
+                irConsFunc.name = classDef.name + "." + classDef.name;
+                funcDefNode consFuncDef = classDef.consFuncDefs.get(0);
+                irConsFunc.retType = new IRStructureType(classDef.name, module);
+                scopes.push(new Scope(scopes.peek()));
+                irConsFunc.arguments.add(new Argument(new IRStructureType(classDef.name, module), "this"));
+                for (var para : consFuncDef.paras) {
+                    Argument arg = new Argument(para.varType.type.toIRType(), para.names.get(0));
+                    irConsFunc.arguments.add(arg);
+                    scopes.peek().varEntities.put(arg.name, arg);
+                }
+                curBlock = new IRBasicBlock(module, curFunction.getNameForBlock("entry"));
+                irConsFunc.blocks.add(curBlock);
+                consFuncDef.funcBody.accept(this);
+                module.FunctionMap.put(irConsFunc.name, irConsFunc);
+                scopes.pop();
             }
-            curBlock = new IRBasicBlock(module, curFunction.getNameForBlock("entry"));
-            irConsFunc.blocks.add(curBlock);
-            consFuncDef.funcBody.accept(this);
-            module.FunctionMap.put(irConsFunc.name, irConsFunc);
-            scopes.pop();
-
         }
 
         for (var funcDef : it.funcDefs) {
@@ -454,14 +455,62 @@ public class IRBuilder implements ASTVisitor {
         it.entity = it.rhs.entity;
     }
 
+    Entity arrayAlloc(int cur, IRPointerType tp, ArrayList<Entity> sizes) {
+        IRType I8Ptr = new IRPointerType(new IRI8Type());
+        funcEntity mallocFunc = new funcEntity(I8Ptr, "malloc");
+        Register pureSize = new Register(new IRI32Type(), curFunction.getNameForRegister("pureSize"));
+        Register realSize = new Register(new IRI32Type(), curFunction.getNameForRegister("realSize"));
+        curBlock.addInst(new binaryInst(curBlock, pureSize, sizes.get(cur), new IntegerConstant(new IRI32Type(), tp.getBytes()), binaryInst.opType.mul));
+        curBlock.addInst(new binaryInst(curBlock, realSize, pureSize, new IntegerConstant(new IRI32Type(), 4), binaryInst.opType.add));
+        mallocFunc.paras.add(realSize);
+        Register mallocReg = new Register(new IRI32Type(), curFunction.getNameForRegister("mallocReg"));
+        curBlock.addInst(new callInst(curBlock, mallocReg, mallocFunc));
+
+        Register castReg = new Register(new IRI32Type(), curFunction.getNameForRegister("castReg"));
+        curBlock.addInst(new bitCastInst(curBlock, castReg, mallocReg.type, mallocReg, new IRPointerType(new IRI32Type())));
+
+        curBlock.addInst(new storeInst(curBlock, sizes.get(cur), castReg));
+
+        Register HeadI32Ptr = new Register(new IRI32Type(), curFunction.getNameForRegister("HeadI32Ptr"));
+        ArrayList<Entity> indices = new ArrayList<>();
+        indices.add(new IntegerConstant(new IRI32Type(), 1));
+        curBlock.addInst(new GEPInst(curBlock, HeadI32Ptr, castReg, indices));
+
+        Register HeadPtr = new Register(tp, curFunction.getNameForRegister("HeadPtr"));
+        curBlock.addInst(new bitCastInst(curBlock, HeadPtr, HeadI32Ptr.type, HeadI32Ptr, tp));
+
+        if (cur != sizes.size() - 1) {
+            Register TailPtr = new Register(tp, curFunction.getNameForRegister("TailPtr"));
+            ArrayList<Entity> indices2 = new ArrayList<>();
+            indices2.add(sizes.get(cur));
+
+        }
+    }
+
     @Override
     public void visit(CreatorNode it) {
         if (it.arraySizes.isEmpty()) {
-            //todo
+            IRStructureType tp = (IRStructureType) it.type.toIRType();
+            funcEntity mallocFunc = new funcEntity(new IRPointerType(new IRI8Type()), "malloc");
+            mallocFunc.paras.add(new IntegerConstant(new IRI32Type(), tp.getBytes()));
+            Register tmp = new Register(new IRPointerType(new IRI8Type()), curFunction.getNameForRegister("mallocReg"));
+            Register result = new Register(tp, curFunction.getNameForRegister("castReg"));
+            curBlock.addInst(new callInst(curBlock, tmp, mallocFunc));
+            curBlock.addInst(new bitCastInst(curBlock, result, tmp.type, tmp, tp));
+            IRStructure irStruct = module.StructureMap.get(tp.name);
+            if (irStruct.hasConsFunc) {
+                funcEntity consFunc = new funcEntity(tp, tp.name + "." + tp.name);
+                curBlock.addInst(new callInst(curBlock, result, consFunc));
+            }
+            it.entity = result;
         } else {
-            for (var sz : it.arraySizes)
+            IRPointerType tp = (IRPointerType) it.type.toIRType();
+            ArrayList<Entity> sizes = new ArrayList<>();
+            for (var sz : it.arraySizes) {
                 sz.accept(this);
-
+                sizes.add(sz.entity);
+            }
+            it.entity = arrayAlloc(0, tp, sizes);
         }
     }
 

@@ -9,4 +9,8 @@ public class IRVoidType extends IRType{
     public String toString(){
         return "void";
     }
+    @Override
+    public int getBytes(){
+        return 0;
+    }
 }
