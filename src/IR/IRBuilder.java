@@ -455,7 +455,7 @@ public class IRBuilder implements ASTVisitor {
         it.entity = it.rhs.entity;
     }
 
-    Entity arrayAlloc(int cur, IRPointerType tp, ArrayList<Entity> sizes) {
+    Entity arrayAlloc(int cur, IRType tp, ArrayList<Entity> sizes) {
         IRType I8Ptr = new IRPointerType(new IRI8Type());
         funcEntity mallocFunc = new funcEntity(I8Ptr, "malloc");
         Register pureSize = new Register(new IRI32Type(), curFunction.getNameForRegister("pureSize"));
@@ -483,8 +483,38 @@ public class IRBuilder implements ASTVisitor {
             Register TailPtr = new Register(tp, curFunction.getNameForRegister("TailPtr"));
             ArrayList<Entity> indices2 = new ArrayList<>();
             indices2.add(sizes.get(cur));
+            curBlock.addInst(new GEPInst(curBlock, TailPtr, HeadPtr, indices2));
 
+            Register nowPtrAddr = new Register(new IRPointerType(tp), curFunction.getNameForRegister("nowPtrAddr"));
+            curBlock.addInst(new allocaInst(curBlock, nowPtrAddr, tp));
+            curBlock.addInst(new storeInst(curBlock, HeadPtr, nowPtrAddr));
+
+            IRBasicBlock loopCond = new IRBasicBlock(module, curFunction.getNameForBlock("loopCond")),
+                    loopBody = new IRBasicBlock(module, curFunction.getNameForBlock("loopBody")),
+                    loopEnd = new IRBasicBlock(module, curFunction.getNameForBlock("loopEnd"));
+            curBlock.addInst(new brInst(curBlock, null, loopCond, null));
+
+            curFunction.blocks.add(loopCond);
+            curBlock = loopCond;
+            Register nowPtr = new Register(tp, curFunction.getNameForRegister("nowPtr"));
+            curBlock.addInst(new loadInst(curBlock, nowPtr, tp, nowPtrAddr));
+            Register icmpReg = new Register(new IRI1Type(), "icmpReg");
+            curBlock.addInst(new icmpInst(curBlock, icmpReg, nowPtr, TailPtr, icmpInst.opType.slt));
+            curBlock.addInst(new brInst(curBlock, icmpReg, loopBody, loopEnd));
+
+            curFunction.blocks.add(loopBody);
+            curBlock = loopBody;
+            Entity allocVal = arrayAlloc(cur + 1, ((IRPointerType) tp).base, sizes);
+            curBlock.addInst(new storeInst(curBlock, allocVal, nowPtr));
+            Register nxtPtr = new Register(tp, curFunction.getNameForRegister("nxtPtr"));
+            curBlock.addInst(new GEPInst(curBlock, nxtPtr, nowPtr, indices));
+            curBlock.addInst(new storeInst(curBlock, nxtPtr, nowPtrAddr));
+            curBlock.addInst(new brInst(curBlock, null, loopCond, null));
+
+            curFunction.blocks.add(loopEnd);
+            curBlock = loopEnd;
         }
+        return HeadPtr;
     }
 
     @Override
