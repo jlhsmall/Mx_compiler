@@ -2,6 +2,7 @@ package IR.instruction;
 
 import IR.IRBasicBlock;
 import IR.IRType.IRType;
+import IR.Pass;
 import IR.entity.Entity;
 import IR.entity.Register;
 
@@ -31,5 +32,10 @@ public class phiInst extends Inst {
         }
         ret.append(" ]");
         return ret.toString();
+    }
+
+    @Override
+    public void accept(Pass pass) {
+        pass.visit(this);
     }
 }

@@ -20,6 +20,7 @@ public class IRFunction {
     public HashMap<String, Integer> blockNameMap;
     public ArrayList<IRBasicBlock> blocks;
     public boolean isExternal;
+
     public IRFunction(IRModule mod) {
         parent = mod;
         arguments = new ArrayList<>();
@@ -48,4 +49,22 @@ public class IRFunction {
         ptr = ptr + 1;
         return bas + ptr;
     }
+
+    public String defString(){
+        StringBuilder ret = new StringBuilder("define ");
+        ret.append(retType.toString()).append(" @").append(name).append("(");
+        boolean flg = false;
+        for (var arg : arguments){
+            if(flg) ret.append(", ");
+            flg = true;
+            ret.append(arg.type.toString()).append(" ").append(arg.toString());
+        }
+        ret.append(")");
+        return ret.toString();
+    }
+
+    public void accept(Pass pass) {
+        pass.visit(this);
+    }
+
 }

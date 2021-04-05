@@ -2,6 +2,7 @@ package IR.instruction;
 
 import IR.IRBasicBlock;
 import IR.IRType.IRPointerType;
+import IR.Pass;
 import IR.entity.Entity;
 import IR.entity.Register;
 
@@ -22,15 +23,21 @@ public class GEPInst extends Inst {
         this.ptr = ptr;
         this.indices = indices;
     }
+
     @Override
-    public String toString(){
+    public String toString() {
         StringBuilder ret = new StringBuilder();
         ret.append(result.toString()).append(" = getelementptr ")
-                .append(((IRPointerType)ptr.type).base.toString()).append(" ")
+                .append(((IRPointerType) ptr.type).base.toString()).append(" ")
                 .append(ptr.type.toString()).append(" ").append(ptr.toString());
-        for (var index : indices){
+        for (var index : indices) {
             ret.append(", ").append(index.type.toString()).append(" ").append(index.toString());
         }
         return ret.toString();
+    }
+
+    @Override
+    public void accept(Pass pass) {
+        pass.visit(this);
     }
 }

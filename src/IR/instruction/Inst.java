@@ -1,6 +1,7 @@
 package IR.instruction;
 
 import IR.IRBasicBlock;
+import IR.Pass;
 
 /**
  * @author Jlhsmall
@@ -15,4 +16,6 @@ abstract public class Inst {
     }
     @Override
     abstract public String toString();
+
+    abstract public void accept(Pass pass);
 }

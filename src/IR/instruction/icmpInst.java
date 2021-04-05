@@ -1,6 +1,7 @@
 package IR.instruction;
 
 import IR.IRBasicBlock;
+import IR.Pass;
 import IR.entity.Entity;
 import IR.entity.Register;
 
@@ -12,6 +13,7 @@ public class icmpInst extends Inst {
     public Register result;
     public Entity lhs, rhs;
     public opType op;
+
     public icmpInst(IRBasicBlock block, Register result, Entity lhs, Entity rhs, opType op) {
         super(block);
         this.lhs = lhs;
@@ -19,8 +21,14 @@ public class icmpInst extends Inst {
         this.result = result;
         this.op = op;
     }
+
     @Override
-    public String toString(){
+    public String toString() {
         return result.toString() + " = icmp " + op.name() + " " + result.type.toString() + " " + lhs.toString() + rhs.toString();
+    }
+
+    @Override
+    public void accept(Pass pass) {
+        pass.visit(this);
     }
 }

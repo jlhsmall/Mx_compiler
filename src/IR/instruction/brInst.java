@@ -1,6 +1,7 @@
 package IR.instruction;
 
 import IR.IRBasicBlock;
+import IR.Pass;
 import IR.entity.Entity;
 
 public class brInst extends Inst {
@@ -18,5 +19,10 @@ public class brInst extends Inst {
     public String toString() {
         return cond == null ? "br label " + ifEqual.toString()
                 : "br i1 " + cond.toString() + ", label " + ifEqual.toString() + ", label " + ifUnequal.toString();
+    }
+
+    @Override
+    public void accept(Pass pass) {
+        pass.visit(this);
     }
 }

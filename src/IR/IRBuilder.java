@@ -10,7 +10,6 @@ import IR.entity.constant.NullConstant;
 import IR.entity.constant.StringConstant;
 import IR.instruction.*;
 import Util.Scope;
-import type.ClassType;
 
 import java.util.ArrayList;
 import java.util.Stack;
@@ -30,7 +29,7 @@ public class IRBuilder implements ASTVisitor {
     Scope thisScope;
     Entity checkThis;
 
-    public IRBuilder(SemanticChecker semanticChecker) {
+    public IRBuilder() {
         module = new IRModule();
         scopes = new Stack<>();
         loopCondBlocks = new Stack<>();
