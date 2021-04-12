@@ -2,7 +2,7 @@ package IR.instruction;
 
 import IR.IRBasicBlock;
 import IR.IRType.IRType;
-import IR.Pass;
+import Backend.Pass;
 import IR.entity.Entity;
 
 /**
@@ -22,7 +22,7 @@ public class retInst extends Inst {
     @Override
     public String toString() {
         return value == null ? "ret void"
-                : "ret " + type.toString() + value.toString();
+                : "ret " + type.toString() + " " + value.toString();
     }
 
     @Override

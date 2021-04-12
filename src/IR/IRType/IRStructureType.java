@@ -10,9 +10,10 @@ import java.util.ArrayList;
  * @date 2021/3/7 20:02
  */
 public class IRStructureType extends IRType {
+    static public IRModule mod;
     public String name;
     public ArrayList<IRType> members;
-    public IRStructureType(String nm, IRModule mod) {
+    public IRStructureType(String nm) {
         name = nm;
         members = mod.StructureMap.get(nm).typeList;
     }

@@ -1,14 +1,9 @@
 package IR.instruction;
 
 import IR.IRBasicBlock;
-import IR.IRType.IRType;
-import IR.Pass;
-import IR.entity.Argument;
-import IR.entity.Entity;
+import Backend.Pass;
 import IR.entity.Register;
 import IR.entity.funcEntity;
-
-import java.util.ArrayList;
 
 /**
  * @author Jlhsmall
@@ -29,7 +24,7 @@ public class callInst extends Inst {
         StringBuilder ret = new StringBuilder();
         if (result != null)
             ret.append(result.toString()).append(" = ");
-        ret.append("call ").append(func.type.toString()).append(func.toString());
+        ret.append("call ").append(func.type.toString()).append(" ").append(func.toString());
 
         return ret.toString();
     }

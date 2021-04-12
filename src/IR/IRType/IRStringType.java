@@ -9,8 +9,8 @@ import IR.IRStructure;
  */
 public class IRStringType extends IRStructureType{
     static final IRType realType = new IRPointerType(new IRI8Type());
-    public IRStringType(IRModule mod){
-        super("string",mod);
+    public IRStringType(){
+        super("string");
     }
     @Override
     public String toString(){

@@ -1,5 +1,9 @@
-package IR;
+package Backend;
 
+import IR.IRBasicBlock;
+import IR.IRFunction;
+import IR.IRModule;
+import IR.IRStructure;
 import IR.instruction.*;
 
 /**

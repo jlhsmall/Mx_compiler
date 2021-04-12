@@ -1,7 +1,7 @@
 package IR.instruction;
 
 import IR.IRBasicBlock;
-import IR.Pass;
+import Backend.Pass;
 import IR.entity.Entity;
 import IR.entity.Register;
 
@@ -24,7 +24,7 @@ public class icmpInst extends Inst {
 
     @Override
     public String toString() {
-        return result.toString() + " = icmp " + op.name() + " " + result.type.toString() + " " + lhs.toString() + rhs.toString();
+        return result.toString() + " = icmp " + op.name() + " " + result.type.toString() + " " + lhs.toString() + " " + rhs.toString();
     }
 
     @Override

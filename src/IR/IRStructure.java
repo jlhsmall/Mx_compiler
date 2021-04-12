@@ -1,9 +1,9 @@
 package IR;
 
+import Backend.Pass;
 import IR.IRType.IRType;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * @author Jlhsmall

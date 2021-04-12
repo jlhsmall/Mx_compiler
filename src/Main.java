@@ -1,6 +1,8 @@
 import AST.RootNode;
 import Frontend.ASTBuilder;
 import Frontend.SemanticChecker;
+import Backend.IRBuilder;
+import Backend.IRPrinter;
 import Parser.MxLexer;
 import Parser.MxParser;
 import Util.MxErrorListener;
@@ -16,9 +18,9 @@ import java.io.InputStream;
 public class Main {
     public static void main(String[] args) throws Exception{
 
-        String name = "testcases\\sema\\basic-package\\basic-4.mx";
-        //InputStream input = new FileInputStream(name);
-        InputStream input = System.in;
+        String name = "testcases\\sema\\basic-package\\basic-2.mx";
+        InputStream input = new FileInputStream(name);
+        //InputStream input = System.in;
 
         try {
             RootNode ASTRoot;
@@ -33,6 +35,9 @@ public class Main {
             ASTBuilder astBuilder = new ASTBuilder();
             ASTRoot = (RootNode)astBuilder.visit(parseTreeRoot);
             new SemanticChecker().visit(ASTRoot);
+            IRBuilder builder = new IRBuilder();
+            builder.visit(ASTRoot);
+            new IRPrinter(System.out).visit(builder.module);
         } catch (error er) {
             System.err.println(er.toString());
             throw new RuntimeException();

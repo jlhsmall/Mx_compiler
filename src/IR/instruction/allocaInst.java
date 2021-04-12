@@ -2,16 +2,15 @@ package IR.instruction;
 
 import IR.IRBasicBlock;
 import IR.IRType.IRType;
-import IR.Pass;
+import Backend.Pass;
 import IR.entity.Entity;
-import IR.entity.Register;
 
 public class allocaInst extends Inst {
 
-    public Register result;
+    public Entity result;
     public IRType type;
 
-    public allocaInst(IRBasicBlock block, Register result, IRType tp) {
+    public allocaInst(IRBasicBlock block, Entity result, IRType tp) {
         super(block);
         this.result = result;
         this.type = tp;

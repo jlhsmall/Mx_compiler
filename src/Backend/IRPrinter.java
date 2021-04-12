@@ -1,8 +1,11 @@
-package IR;
+package Backend;
 
+import IR.IRBasicBlock;
+import IR.IRFunction;
+import IR.IRModule;
+import IR.IRStructure;
 import IR.instruction.*;
 
-import java.io.InputStream;
 import java.io.PrintStream;
 
 /**
@@ -24,8 +27,11 @@ public class IRPrinter implements Pass {
         for (var entry : module.GlobalVariableMap.entrySet())
             out.println(entry.getValue().defString());
         out.println();
-        for (var entry : module.FunctionMap.entrySet())
+        for (var entry : module.FunctionMap.entrySet()) {
             entry.getValue().accept(this);
+            out.println();
+        }
+        module.mainFunc.accept(this);
     }
 
     @Override

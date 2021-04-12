@@ -1,8 +1,8 @@
 package IR;
 
+import Backend.Pass;
 import IR.IRType.IRType;
 import IR.entity.Argument;
-import IR.entity.Register;
 
 import java.util.ArrayList;
 import java.util.HashMap;

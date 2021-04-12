@@ -1,7 +1,7 @@
 package IR.instruction;
 
 import IR.IRBasicBlock;
-import IR.Pass;
+import Backend.Pass;
 import IR.entity.*;
 
 public class binaryInst extends Inst {
@@ -23,7 +23,7 @@ public class binaryInst extends Inst {
 
     @Override
     public String toString() {
-        return result.toString() + " = " + op.name() + " " + result.type.toString() + " " + lhs.toString() + rhs.toString();
+        return result.toString() + " = " + op.name() + " " + result.type.toString() + " " + lhs.toString() + " " + rhs.toString();
     }
 
     @Override

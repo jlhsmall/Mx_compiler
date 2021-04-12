@@ -2,7 +2,7 @@ package IR.instruction;
 
 import IR.IRBasicBlock;
 import IR.IRType.IRType;
-import IR.Pass;
+import Backend.Pass;
 import IR.entity.Entity;
 import IR.entity.Register;
 

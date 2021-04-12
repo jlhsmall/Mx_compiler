@@ -3,9 +3,8 @@ package IR.instruction;
 import IR.IRBasicBlock;
 import IR.IRType.IRPointerType;
 import IR.IRType.IRType;
-import IR.Pass;
+import Backend.Pass;
 import IR.entity.Entity;
-import IR.entity.Register;
 
 public class storeInst extends Inst {
 
@@ -22,7 +21,7 @@ public class storeInst extends Inst {
 
     @Override
     public String toString() {
-        return "store " + type.toString() + data.toString() + ptr.type.toString() + ptr.toString();
+        return "store " + type.toString() + " " + data.toString() + " " + ptr.type.toString() + " " + ptr.toString();
     }
 
     @Override

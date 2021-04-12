@@ -1,7 +1,7 @@
 package IR.instruction;
 
 import IR.IRBasicBlock;
-import IR.Pass;
+import Backend.Pass;
 import IR.entity.Entity;
 
 public class brInst extends Inst {
