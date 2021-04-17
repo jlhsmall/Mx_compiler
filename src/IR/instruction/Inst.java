@@ -11,6 +11,7 @@ abstract public class Inst {
     public IRBasicBlock parent;
     public Inst pre;
     public Inst nxt;
+    public boolean vis;
     public Inst(IRBasicBlock block){
         parent = block;
     }

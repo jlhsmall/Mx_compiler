@@ -17,6 +17,7 @@ public class callInst extends Inst {
         super(parent);
         this.result = result;
         this.func = func;
+        result.defInst = this;
     }
 
     @Override

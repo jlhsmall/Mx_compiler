@@ -1,6 +1,7 @@
 package IR.entity;
 
 import IR.IRType.IRType;
+import IR.instruction.Inst;
 
 /**
  * @author Jlhsmall
@@ -8,7 +9,7 @@ import IR.IRType.IRType;
  */
 public class Register extends Entity {
     public String name;
-
+    public Inst defInst;
     public Register(IRType tp, String nm) {
         super(tp);
         name = nm;

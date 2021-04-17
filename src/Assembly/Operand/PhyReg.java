@@ -2,8 +2,8 @@ package Assembly.Operand;
 
 public class PhyReg extends Reg {
     public String name;
-    public PhyReg(String name) {
-        this.name = name;
+    public PhyReg(String nm) {
+        name = nm;
     }
 
     @Override

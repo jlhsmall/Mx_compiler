@@ -21,6 +21,7 @@ public class bitCastInst extends Inst {
         this.type = tp;
         this.type2 = tp2;
         this.value = val;
+        result.defInst = this;
     }
 
     @Override

@@ -19,6 +19,7 @@ public class binaryInst extends Inst {
         this.rhs = rhs;
         this.result = result;
         this.op = op;
+        result.defInst = this;
     }
 
     @Override

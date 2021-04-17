@@ -2,7 +2,7 @@ package Assembly.Inst;
 
 
 import Assembly.AsmBlock;
-import Assembly.Operand.GReg;
+import Assembly.Operand.GlobalReg;
 import Assembly.Operand.Reg;
 
 /**
@@ -11,8 +11,8 @@ import Assembly.Operand.Reg;
  */
 public class La extends RISCVInst {
     public Reg rd;
-    public GReg symbol;
-    public La(AsmBlock par, Reg rd, GReg symbol){
+    public GlobalReg symbol;
+    public La(AsmBlock par, Reg rd, GlobalReg symbol){
         super(par);
         this.rd = rd;
         this.symbol = symbol;

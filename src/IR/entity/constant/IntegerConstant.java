@@ -1,5 +1,6 @@
 package IR.entity.constant;
 
+import Assembly.Operand.Imm;
 import IR.IRType.IRIntegerType;
 
 /**

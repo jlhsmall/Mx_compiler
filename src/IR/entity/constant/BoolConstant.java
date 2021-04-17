@@ -7,7 +7,7 @@ import IR.IRType.IRI1Type;
  * @date 2021/3/8 20:32
  */
 public class BoolConstant extends Constant {
-    boolean value;
+    public boolean value;
 
     public BoolConstant(boolean val) {
         super(new IRI1Type());

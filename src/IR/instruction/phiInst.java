@@ -20,6 +20,7 @@ public class phiInst extends Inst {
         this.type = tp;
         this.values = values;
         this.labels = labels;
+        result.defInst = this;
     }
 
     @Override

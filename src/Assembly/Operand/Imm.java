@@ -7,6 +7,10 @@ public class Imm extends Operand {
         super();
         this.value = value;
     }
+    public Imm(long value) {
+        super();
+        this.value = (int)value;
+    }
 
     @Override
     public String toString() {

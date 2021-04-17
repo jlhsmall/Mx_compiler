@@ -60,13 +60,13 @@ public class IRBuilder implements ASTVisitor {
                 reg = new GlobalVariable(new IRPointerType(tp), curFunction.getNameForRegister(nm), varDef.expr.entity);
                 curBlock.addInst(new allocaInst(curBlock, reg, reg.type));
                 curBlock.addInst(new storeInst(curBlock, varDef.expr.entity, reg));
-                module.GlobalVariableMap.put(nm, new GlobalVariable(tp, nm, reg));
+                module.GlobalVariableMap.put(nm,reg);
                 scopes.peek().varEntities.put(nm, varDef.expr.entity);
             } else {
                 for (var nm : varDef.names) {
                     reg = new GlobalVariable(new IRPointerType(tp), curFunction.getNameForRegister(nm), null);
                     curBlock.addInst(new allocaInst(curBlock, reg, reg.type));
-                    module.GlobalVariableMap.put(nm, new GlobalVariable(tp, nm, reg));
+                    module.GlobalVariableMap.put(nm, reg);
                     scopes.peek().varEntities.put(nm, null);
                 }
             }
@@ -506,18 +506,14 @@ public class IRBuilder implements ASTVisitor {
         curBlock.addInst(new storeInst(curBlock, sizes.get(cur), castReg));
 
         Register HeadI32Ptr = new Register(new IRI32Type(), curFunction.getNameForRegister("HeadI32Ptr"));
-        ArrayList<Entity> indices = new ArrayList<>();
-        indices.add(new IntegerConstant(new IRI32Type(), 1));
-        curBlock.addInst(new GEPInst(curBlock, HeadI32Ptr, castReg, indices));
+        curBlock.addInst(new GEPInst(curBlock, HeadI32Ptr, castReg, new IntegerConstant(new IRI32Type(), 1),null));
 
         Register HeadPtr = new Register(tp, curFunction.getNameForRegister("HeadPtr"));
         curBlock.addInst(new bitCastInst(curBlock, HeadPtr, HeadI32Ptr.type, HeadI32Ptr, tp));
 
         if (cur != sizes.size() - 1) {
             Register TailPtr = new Register(tp, curFunction.getNameForRegister("TailPtr"));
-            ArrayList<Entity> indices2 = new ArrayList<>();
-            indices2.add(sizes.get(cur));
-            curBlock.addInst(new GEPInst(curBlock, TailPtr, HeadPtr, indices2));
+            curBlock.addInst(new GEPInst(curBlock, TailPtr, HeadPtr, sizes.get(cur),null));
 
             Register nowPtrAddr = new Register(new IRPointerType(tp), curFunction.getNameForRegister("nowPtrAddr"));
             curBlock.addInst(new allocaInst(curBlock, nowPtrAddr, tp));
@@ -541,7 +537,7 @@ public class IRBuilder implements ASTVisitor {
             Entity allocVal = arrayAlloc(cur + 1, ((IRPointerType) tp).base, sizes);
             curBlock.addInst(new storeInst(curBlock, allocVal, nowPtr));
             Register nxtPtr = new Register(tp, curFunction.getNameForRegister("nxtPtr"));
-            curBlock.addInst(new GEPInst(curBlock, nxtPtr, nowPtr, indices));
+            curBlock.addInst(new GEPInst(curBlock, nxtPtr, nowPtr, new IntegerConstant(new IRI32Type(), 1),null));
             curBlock.addInst(new storeInst(curBlock, nxtPtr, nowPtrAddr));
             curBlock.addInst(new brInst(curBlock, null, loopCond, null));
 
@@ -603,9 +599,7 @@ public class IRBuilder implements ASTVisitor {
             int pos = curStruct.getpos(it.name);
             loadReg = new Register(curStruct.typeList.get(pos), curFunction.getNameForRegister("loadReg"));
             Register result = new Register(new IRPointerType(loadReg.type), curFunction.getNameForRegister(it.name));
-            ArrayList<Entity> indices = new ArrayList<>();
-            indices.add(new IntegerConstant(new IRI32Type(), pos));
-            curBlock.addInst(new GEPInst(curBlock, result, curInstPtr, indices));
+            curBlock.addInst(new GEPInst(curBlock, result, curInstPtr, new IntegerConstant(new IRI32Type(),0),new IntegerConstant(new IRI32Type(), pos)));
             curBlock.addInst(new loadInst(curBlock, loadReg,loadReg.type,result));
             it.entity = loadReg;
             it.lvalue = result;
@@ -618,15 +612,15 @@ public class IRBuilder implements ASTVisitor {
     public void visit(arrayExprNode it) {
         it.base.accept(this);
         Entity ptr = it.base.entity;
-        ArrayList<Entity> ids = new ArrayList<>();
+        Register result = null, loadReg = null;
         for (var index : it.indices) {
             index.accept(this);
-            ids.add(index.entity);
+            result = new Register(ptr.type, curFunction.getNameForRegister("arrayReg"));
+            loadReg = new Register(((IRPointerType)ptr.type).base,curFunction.getNameForRegister("loadReg"));
+            curBlock.addInst(new GEPInst(curBlock, result, ptr,index.entity,null));
+            curBlock.addInst(new loadInst(curBlock,loadReg,loadReg.type,result));
+            ptr = result;
         }
-        Register loadReg = new Register(it.base.type.toIRType(),curFunction.getNameForRegister("loadReg"));
-        Register result = new Register(it.type.toIRType(), curFunction.getNameForRegister("arrayReg"));
-        curBlock.addInst(new GEPInst(curBlock, result, ptr, ids));
-        curBlock.addInst(new loadInst(curBlock,loadReg,loadReg.type,result));
         it.entity = loadReg;
         it.lvalue = result;
     }

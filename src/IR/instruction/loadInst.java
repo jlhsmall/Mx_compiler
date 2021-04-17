@@ -17,6 +17,7 @@ public class loadInst extends Inst {
         this.result = result;
         this.type = tp;
         this.ptr = ptr;
+        result.defInst = this;
     }
 
     @Override

@@ -5,6 +5,7 @@ import IR.IRType.IRPointerType;
 import Backend.Pass;
 import IR.entity.Entity;
 import IR.entity.Register;
+import IR.entity.constant.IntegerConstant;
 
 import java.util.ArrayList;
 
@@ -15,13 +16,15 @@ import java.util.ArrayList;
 public class GEPInst extends Inst {
     public Register result;
     public Entity ptr;
-    public ArrayList<Entity> indices;
+    public Entity ArrayIndex;
+    public Entity MemberIndex;
 
-    public GEPInst(IRBasicBlock parent, Register result, Entity ptr, ArrayList<Entity> indices) {
+    public GEPInst(IRBasicBlock parent, Register result, Entity ptr, Entity ArrayIndex, Entity MemberIndex) {
         super(parent);
         this.result = result;
         this.ptr = ptr;
-        this.indices = indices;
+        this.ArrayIndex = ArrayIndex;
+        this.MemberIndex = MemberIndex;
     }
 
     @Override
@@ -29,10 +32,10 @@ public class GEPInst extends Inst {
         StringBuilder ret = new StringBuilder();
         ret.append(result.toString()).append(" = getelementptr ")
                 .append(((IRPointerType) ptr.type).base.toString()).append(" ")
-                .append(ptr.type.toString()).append(" ").append(ptr.toString());
-        for (var index : indices) {
-            ret.append(", ").append(index.type.toString()).append(" ").append(index.toString());
-        }
+                .append(ptr.type.toString()).append(" ").append(ptr.toString()).append(" ")
+                .append(ArrayIndex.type.toString()).append(" ").append(ArrayIndex.toString());
+        if(MemberIndex != null)
+            ret.append(", ").append(MemberIndex.type.toString()).append(" ").append(MemberIndex.toString());
         return ret.toString();
     }
 

@@ -12,14 +12,13 @@ public class Br extends RISCVInst {
         beq, bne, blt, bge
     }
 
-    public Reg rd, rs1, rs2;
+    public Reg rs1, rs2;
     public AsmBlock dest;
     public Category op;
 
-    public Br(AsmBlock par, Category op, Reg rd, Reg rs1, Reg rs2, AsmBlock dest) {
+    public Br(AsmBlock par, Category op, Reg rs1, Reg rs2, AsmBlock dest) {
         super(par);
         this.op = op;
-        this.rd = rd;
         this.rs1 = rs1;
         this.rs2 = rs2;
         this.dest = dest;
