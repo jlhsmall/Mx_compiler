@@ -5,12 +5,14 @@ import Assembly.Inst.RISCVInst;
 import java.util.HashSet;
 
 public class AsmBlock {
+    public AsmFn parent;
     public RISCVInst headInst = null, tailInst = null;
     public HashSet<AsmBlock> successors = new HashSet<>();
     public int index = -1;
     // prune-use: public AsmBlock precursor = null;
 
-    public AsmBlock() {
+    public AsmBlock(AsmFn par) {
+        parent = par;
     }
 
 
@@ -20,6 +22,14 @@ public class AsmBlock {
             tailInst.next = i;
             i.prev = tailInst;
             tailInst = i;
+        }
+    }
+    public void push_front(RISCVInst i) {
+        if (headInst == null) headInst = tailInst = i;
+        else {
+            headInst.prev = i;
+            i.next = headInst;
+            headInst = i;
         }
     }
 

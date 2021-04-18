@@ -668,7 +668,8 @@ public class IRBuilder implements ASTVisitor {
         } else if (it.type.isIntType()) {
             it.entity = new IntegerConstant(new IRI32Type(), Long.parseLong(it.value));
         } else if (it.type.isStringType()) {
-            it.entity = new StringConstant(it.value);
+            GlobalVariable str = new GlobalVariable(new IRStringType(),initFunc.getNameForRegister(it.value),new StringConstant(it.value));
+            it.entity = str;
         } else {
             it.entity = new NullConstant();
         }

@@ -12,14 +12,13 @@ public class Bz extends RISCVInst {
         beqz, bnez, bltz, bgez
     }
 
-    public Reg rd, rs1;
+    public Reg rs1;
     public AsmBlock dest;
     public Category op;
 
-    public Bz(AsmBlock par, Category op, Reg rd, Reg rs1, AsmBlock dest) {
+    public Bz(AsmBlock par, Category op, Reg rs1, AsmBlock dest) {
         super(par);
         this.op = op;
-        this.rd = rd;
         this.rs1 = rs1;
         this.dest = dest;
     }

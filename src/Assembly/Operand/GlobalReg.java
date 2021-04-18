@@ -8,15 +8,15 @@ import IR.entity.GlobalVariable;
  * @date 2021/4/12 16:58
  */
 public class GlobalReg extends Reg{
-    int size;
     String name;
-    public GlobalReg(String nm,int sz){
+    String value;
+    public GlobalReg(String nm,String val){
         name = nm;
-        size = sz;
+        value = val;
     }
 
     @Override
     public String toString() {
-        return name;
+        return value;
     }
 }

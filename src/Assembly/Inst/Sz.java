@@ -13,8 +13,9 @@ public class Sz extends RISCVInst {
     }
     public Category op;
     public Reg rd, rs1;
-    public Sz(AsmBlock par, Reg rd, Reg rs1) {
+    public Sz(AsmBlock par, Category op,Reg rd, Reg rs1) {
         super(par);
+        this.op = op;
         this.rd = rd;
         this.rs1 = rs1;
     }
