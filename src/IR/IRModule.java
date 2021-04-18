@@ -140,41 +140,41 @@ public class IRModule {
 
         IRFunction StringLengthFunc = new IRFunction(this);
         StringLengthFunc.isExternal = true;
-        StringLengthFunc.name = "string.length";
+        StringLengthFunc.name = "string__length";
         StringLengthFunc.retType = new IRI32Type();
-        StringLengthFunc.arguments.add(new Argument(new IRStringType(), "this"));
-        FunctionMap.put("string.length", StringLengthFunc);
+        StringLengthFunc.arguments.add(new Argument(new IRStringType(), "str"));
+        FunctionMap.put("string__length", StringLengthFunc);
 
         IRFunction StringSubstringFunc = new IRFunction(this);
         StringSubstringFunc.isExternal = true;
-        StringSubstringFunc.name = "string.substring";
+        StringSubstringFunc.name = "string__substring";
         StringSubstringFunc.retType = new IRStringType();
-        StringSubstringFunc.arguments.add(new Argument(new IRStringType(), "this"));
+        StringSubstringFunc.arguments.add(new Argument(new IRStringType(), "str"));
         StringSubstringFunc.arguments.add(new Argument(new IRI32Type(), "left"));
         StringSubstringFunc.arguments.add(new Argument(new IRI32Type(), "right"));
-        FunctionMap.put("string.length", StringSubstringFunc);
+        FunctionMap.put("string__length", StringSubstringFunc);
 
         IRFunction StringParseIntFunc = new IRFunction(this);
         StringParseIntFunc.isExternal = true;
-        StringParseIntFunc.name = "string.parseInt";
+        StringParseIntFunc.name = "string__parseInt";
         StringParseIntFunc.retType = new IRI32Type();
-        StringParseIntFunc.arguments.add(new Argument(new IRStringType(), "this"));
-        FunctionMap.put("string.parseInt", StringParseIntFunc);
+        StringParseIntFunc.arguments.add(new Argument(new IRStringType(), "str"));
+        FunctionMap.put("string__parseInt", StringParseIntFunc);
 
         IRFunction StringOrdFunc = new IRFunction(this);
         StringOrdFunc.isExternal = true;
-        StringOrdFunc.name = "string.parseInt";
+        StringOrdFunc.name = "string__ord";
         StringOrdFunc.retType = new IRI32Type();
-        StringOrdFunc.arguments.add(new Argument(new IRStringType(), "this"));
+        StringOrdFunc.arguments.add(new Argument(new IRStringType(), "str"));
         StringOrdFunc.arguments.add(new Argument(new IRI32Type(), "pos"));
-        FunctionMap.put("string.parseInt", StringOrdFunc);
+        FunctionMap.put("string__ord", StringOrdFunc);
 
         IRFunction ArraySizeFunc = new IRFunction(this);
         ArraySizeFunc.isExternal = true;
-        ArraySizeFunc.name = "array.size";
+        ArraySizeFunc.name = "array__size";
         ArraySizeFunc.retType = new IRI32Type();
         ArraySizeFunc.arguments.add(new Argument(new IRPointerType(new IRI8Type()), "arr"));
-        FunctionMap.put("array.size", ArraySizeFunc);
+        FunctionMap.put("array__size", ArraySizeFunc);
     }
 
     public void accept(Pass pass) {

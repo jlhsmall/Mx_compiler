@@ -94,7 +94,7 @@ public class IRBuilder implements ASTVisitor {
                 for (var nm : irStruct.nameList)
                     thisScope.varEntities.put(nm, checkThis);
                 curFunction = irFunc;
-                irFunc.name = classDef.name + "." + funcDef.name;
+                irFunc.name = classDef.name + "__" + funcDef.name;
                 irFunc.retType = funcDef.funcType.type.toIRType();
                 scopes.push(new Scope(thisScope));
                 outsideStruct = irStruct;
@@ -117,7 +117,7 @@ public class IRBuilder implements ASTVisitor {
                 irStruct.hasConsFunc = true;
                 IRFunction irConsFunc = new IRFunction(module);
                 curFunction = irConsFunc;
-                irConsFunc.name = classDef.name + "." + classDef.name;
+                irConsFunc.name = classDef.name + "__" + classDef.name;
                 funcDefNode consFuncDef = classDef.consFuncDefs.get(0);
                 irConsFunc.retType = new IRStructureType(classDef.name);
                 scopes.push(new Scope(scopes.peek()));
@@ -559,7 +559,7 @@ public class IRBuilder implements ASTVisitor {
             curBlock.addInst(new bitCastInst(curBlock, result, tmp.type, tmp, tp));
             IRStructure irStruct = module.StructureMap.get(tp.name);
             if (irStruct.hasConsFunc) {
-                funcEntity consFunc = new funcEntity(tp, tp.name + "." + tp.name);
+                funcEntity consFunc = new funcEntity(tp, tp.name + "__" + tp.name);
                 curBlock.addInst(new callInst(curBlock, result, consFunc));
             }
             it.entity = result;
@@ -641,7 +641,7 @@ public class IRBuilder implements ASTVisitor {
         String nm;
         if (curStruct != null) {
             paras.add(curInstPtr);
-            nm = curStruct.name + "." + it.name;
+            nm = curStruct.name + "__" + it.name;
         } else
             nm = it.name;
         for (var para : it.paras) {
