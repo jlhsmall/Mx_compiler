@@ -65,15 +65,19 @@ public class InstSelector implements Pass {
                 GlobalRegMap.put(entry.getKey(), new GlobalReg(entry.getKey(), ((StringConstant) init).value));
             }
         }
-        for (var key : module.FunctionMap.keySet()) {
-            AsmFn fn = fnMap.put(key, new AsmFn(root, key, VirtualReg.cnt));
-            fn.rootBlock = new AsmBlock(curFn);
+        for (var entry : module.FunctionMap.entrySet()) {
+            AsmFn fn = new AsmFn(root, entry.getKey(), VirtualReg.cnt);
+            fnMap.put(entry.getKey(), fn);
+            if (!entry.getValue().isExternal)fn.rootBlock = new AsmBlock(fn);
         }
         for (var entry : module.FunctionMap.entrySet()) {
             IRFunction func = entry.getValue();
-            if (!func.isExternal) visit(func);
+            if (!func.isExternal) func.accept(this);
         }
-        curFn = mainFn;
+
+        mainFn = new AsmFn(root,"main",VirtualReg.cnt);
+        fnMap.put("main",mainFn);
+        mainFn.rootBlock=new AsmBlock(mainFn);
         module.mainFunc.accept(this);
     }
 
@@ -87,13 +91,15 @@ public class InstSelector implements Pass {
         curFn = fnMap.get(irFunc.name);
         curFn.vRegIndex = VirtualReg.cnt;
         for (int i = 0; i < irFunc.blocks.size(); ++i) {
-            AsmBlock b = blockMap.put(irFunc.blocks.get(i).label, i == 0 ? curFn.rootBlock : new AsmBlock(curFn));
-            if (i != irFunc.blocks.size() - 1)
-                b.successors.add(blockMap.get(irFunc.blocks.get(i + 1).label));
+            AsmBlock b =  i == 0 ? curFn.rootBlock : new AsmBlock(curFn);
+            blockMap.put(irFunc.blocks.get(i).getAsmBlockKey(),b);
         }
-        for (var block : irFunc.blocks) {
-            curBlock = blockMap.get(block.label);
-            visit(block);
+        for (int i = 0; i < irFunc.blocks.size(); ++i) {
+            curBlock = blockMap.get(irFunc.blocks.get(i).getAsmBlockKey());
+            if (i != irFunc.blocks.size() - 1)
+                curBlock.successors.add(blockMap.get(irFunc.blocks.get(i + 1).getAsmBlockKey()));
+            irFunc.blocks.get(i).accept(this);
+            curFn.blocks.add(curBlock);
         }
         int stackLength = (VirtualReg.cnt - curFn.vRegIndex + Integer.max(irFunc.arguments.size() - 8, 0)) * 4;
         RISCVInst curHead = curFn.rootBlock.headInst;
@@ -201,33 +207,33 @@ public class InstSelector implements Pass {
     @Override
     public void visit(brInst inst) {
         if (inst.vis) return;
-        curBlock.successors.add(blockMap.get(inst.ifEqual.label));
+        curBlock.successors.add(blockMap.get(inst.ifEqual.getAsmBlockKey()));
         if (inst.cond == null)
-            curBlock.push_back(new Jp(curBlock, blockMap.get(inst.ifEqual.label)));
+            curBlock.push_back(new Jp(curBlock, blockMap.get(inst.ifEqual.getAsmBlockKey())));
         else {
-            blockMap.get(inst.ifUnequal.label);
+            blockMap.get(inst.ifUnequal.getAsmBlockKey());
             icmpInst condInst = (icmpInst) inst.cond.defInst;
             condInst.vis = true;
             switch (condInst.op) {
                 case eq:
-                    curBlock.push_back(new Br(curBlock, Br.Category.beq, getAsmReg(condInst.lhs), getAsmReg(condInst.rhs), blockMap.get(inst.ifEqual.label)));
+                    curBlock.push_back(new Br(curBlock, Br.Category.beq, getAsmReg(condInst.lhs), getAsmReg(condInst.rhs), blockMap.get(inst.ifEqual.getAsmBlockKey())));
                     break;
                 case ne:
-                    curBlock.push_back(new Br(curBlock, Br.Category.bne, getAsmReg(condInst.lhs), getAsmReg(condInst.rhs), blockMap.get(inst.ifEqual.label)));
+                    curBlock.push_back(new Br(curBlock, Br.Category.bne, getAsmReg(condInst.lhs), getAsmReg(condInst.rhs), blockMap.get(inst.ifEqual.getAsmBlockKey())));
                     break;
                 case sge:
-                    curBlock.push_back(new Br(curBlock, Br.Category.bge, getAsmReg(condInst.lhs), getAsmReg(condInst.rhs), blockMap.get(inst.ifEqual.label)));
+                    curBlock.push_back(new Br(curBlock, Br.Category.bge, getAsmReg(condInst.lhs), getAsmReg(condInst.rhs), blockMap.get(inst.ifEqual.getAsmBlockKey())));
                     break;
                 case slt:
-                    curBlock.push_back(new Br(curBlock, Br.Category.blt, getAsmReg(condInst.lhs), getAsmReg(condInst.rhs), blockMap.get(inst.ifEqual.label)));
+                    curBlock.push_back(new Br(curBlock, Br.Category.blt, getAsmReg(condInst.lhs), getAsmReg(condInst.rhs), blockMap.get(inst.ifEqual.getAsmBlockKey())));
                     break;
                 case sgt:
-                    curBlock.push_back(new Br(curBlock, Br.Category.blt, getAsmReg(condInst.rhs), getAsmReg(condInst.lhs), blockMap.get(inst.ifEqual.label)));
+                    curBlock.push_back(new Br(curBlock, Br.Category.blt, getAsmReg(condInst.rhs), getAsmReg(condInst.lhs), blockMap.get(inst.ifEqual.getAsmBlockKey())));
                     break;
                 case sle:
-                    curBlock.push_back(new Br(curBlock, Br.Category.bge, getAsmReg(condInst.rhs), getAsmReg(condInst.lhs), blockMap.get(inst.ifEqual.label)));
+                    curBlock.push_back(new Br(curBlock, Br.Category.bge, getAsmReg(condInst.rhs), getAsmReg(condInst.lhs), blockMap.get(inst.ifEqual.getAsmBlockKey())));
             }
-            curBlock.push_back(new Jp(curBlock, blockMap.get(inst.ifUnequal.label)));
+            curBlock.push_back(new Jp(curBlock, blockMap.get(inst.ifUnequal.getAsmBlockKey())));
         }
     }
 
@@ -235,7 +241,7 @@ public class InstSelector implements Pass {
     public void visit(callInst inst) {
         if (inst.vis) return;
         AsmFn callee = fnMap.get(inst.func.name);
-        curBlock.successors.add(callee.rootBlock);
+        //curBlock.successors.add(callee.rootBlock);
         ArrayList<Entity> paras = inst.func.paras;
         if (paras.size() <= 8) {
             for (int i = 0; i < paras.size(); ++i)

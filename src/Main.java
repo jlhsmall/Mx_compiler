@@ -1,8 +1,7 @@
 import AST.RootNode;
+import Backend.*;
 import Frontend.ASTBuilder;
 import Frontend.SemanticChecker;
-import Backend.IRBuilder;
-import Backend.IRPrinter;
 import Parser.MxLexer;
 import Parser.MxParser;
 import Util.MxErrorListener;
@@ -13,6 +12,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.PrintStream;
 
 
 public class Main {
@@ -37,7 +37,13 @@ public class Main {
             new SemanticChecker().visit(ASTRoot);
             IRBuilder builder = new IRBuilder();
             builder.visit(ASTRoot);
-            new IRPrinter(System.out).visit(builder.module);
+            //new IRPrinter(System.out).visit(builder.module);
+            InstSelector selector = new InstSelector();
+            selector.visit(builder.module);
+            new RegAlloc(selector).run();
+            new AsmPrinter(selector,new PrintStream("test.s")).print();
+
+
         } catch (error er) {
             System.err.println(er.toString());
             throw new RuntimeException();

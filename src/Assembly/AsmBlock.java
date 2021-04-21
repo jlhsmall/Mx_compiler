@@ -7,12 +7,13 @@ import java.util.HashSet;
 public class AsmBlock {
     public AsmFn parent;
     public RISCVInst headInst = null, tailInst = null;
-    public HashSet<AsmBlock> successors = new HashSet<>();
+    public HashSet<AsmBlock> successors;
     public int index = -1;
     // prune-use: public AsmBlock precursor = null;
 
     public AsmBlock(AsmFn par) {
         parent = par;
+        successors = new HashSet<>();
     }
 
 
@@ -51,6 +52,6 @@ public class AsmBlock {
 
     @Override
     public String toString() {
-        return "." + index;
+        return ".LBB" + index;
     }
 }

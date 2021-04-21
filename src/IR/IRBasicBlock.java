@@ -31,7 +31,9 @@ public class IRBasicBlock {
             tailInst = inst;
         }
     }
-
+    public String getAsmBlockKey(){
+        return parent.name + "___" + label;
+    }
     public void accept(Pass pass) {
         pass.visit(this);
     }

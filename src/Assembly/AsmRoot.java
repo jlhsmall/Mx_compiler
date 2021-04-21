@@ -21,6 +21,7 @@ public class AsmRoot {
         phyRegs = new ArrayList<>();
         for (int i = 0; i < 32; ++i)
             phyRegs.add(new PhyReg(phyRegName.get(i)));
+        argRegs = new ArrayList<>();
         for (int i = 10; i <= 17; ++i)
             argRegs.add(phyRegs.get(i));
         zero = phyRegs.get(0);

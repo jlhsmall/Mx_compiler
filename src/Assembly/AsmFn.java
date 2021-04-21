@@ -2,10 +2,7 @@ package Assembly;
 
 import Assembly.Operand.PhyReg;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class AsmFn {
     public AsmRoot parent;
@@ -13,6 +10,7 @@ public class AsmFn {
     public AsmBlock rootBlock = null;
     public String name;
     public int vRegIndex;
+    public List<AsmBlock> printList = new LinkedList<>();
     public AsmFn(AsmRoot par,String nm, int i) {
         parent = par;
         name = nm;

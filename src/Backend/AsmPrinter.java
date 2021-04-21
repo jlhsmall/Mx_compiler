@@ -3,25 +3,25 @@ package Backend;
 import Assembly.AsmBlock;
 import Assembly.AsmFn;
 import Assembly.Inst.RISCVInst;
+import Assembly.Operand.GlobalReg;
 
 import java.io.PrintStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-public class AsmPrinter {
+public class AsmPrinter extends AsmVisitor{
     private PrintStream out;
 
-    private AsmFn fn;
     private int blockCnt = 0;
-    private List<AsmBlock> printList = new LinkedList<>();
-
-    public AsmPrinter(AsmFn fn, PrintStream out) {
-        this.fn = fn;
+    private int GRegCnt = 0;
+    public AsmPrinter(InstSelector selector, PrintStream out) {
+        super(selector);
         this.out = out;
     }
 
-    private void rename() {
+    private void rename(AsmFn fn) {
+        if(fn.rootBlock == null)return;//External
         fn.blocks.forEach(b -> b.index = -1);
         Queue<AsmBlock> queue = new LinkedList<>();
         queue.offer(fn.rootBlock);
@@ -34,8 +34,11 @@ public class AsmPrinter {
                     queue.offer(s);
                 }
             });
-            printList.add(b);
+            fn.printList.add(b);
         }
+    }
+    private void rename(GlobalReg g){
+        g.index = GRegCnt++;
     }
     public void printBlock(AsmBlock b) {
         out.println(b + ": ");
@@ -44,7 +47,28 @@ public class AsmPrinter {
         }
     }
     public void print() {
-        rename();
-        printList.forEach(this::printBlock);
+        out.println("\t.text");
+        out.println();
+        for (var entry : fnMap.entrySet())
+            rename(entry.getValue());
+        for (var entry : GlobalRegMap.entrySet())
+            rename(entry.getValue());
+        for (var entry : fnMap.entrySet()) {
+            AsmFn fn=entry.getValue();
+            if(fn.rootBlock != null) {
+                out.println("\t.global\t" + fn.name);
+                out.println("\t.p2align\t2");
+                out.println(fn.name+":");
+                fn.printList.forEach(this::printBlock);
+                out.println();
+            }
+        }
+        out.println();
+        for (var entry : GlobalRegMap.entrySet()){
+            GlobalReg g = entry.getValue();
+            out.println(g+":");
+            out.println("\t"+g.value);
+            out.println();
+        }
     }
 }

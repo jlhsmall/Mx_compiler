@@ -6,16 +6,17 @@ import Assembly.Operand.Imm;
 import Assembly.Operand.PhyReg;
 import Assembly.Operand.VirtualReg;
 
+import java.util.HashMap;
+
 import static Assembly.AsmRoot.sp;
 import static Assembly.AsmRoot.t0;
 import static Assembly.AsmRoot.t1;
 import static Assembly.AsmRoot.t2;
 
-public class RegAlloc {
-    public AsmFn f;
+public class RegAlloc extends AsmVisitor{
     public AsmBlock curBlock;
-    public RegAlloc(AsmFn f) {
-        this.f = f;
+    public RegAlloc(InstSelector selector) {
+        super(selector);
     }
 
     private RISCVInst loadVirtualReg(VirtualReg r, PhyReg rd) {
@@ -25,8 +26,13 @@ public class RegAlloc {
     private RISCVInst storeVirtualReg(VirtualReg r) {
         return new St(curBlock, St.Category.sw, t2, sp, new Imm(r.index * 4));
     }
-
-    public void work() {
+    public void run(){
+        for(var entry : fnMap.entrySet()){
+            if(entry.getValue().rootBlock != null)
+                visitFn(entry.getValue());
+        }
+    }
+    public void visitFn(AsmFn f) {
         for (AsmBlock b : f.blocks) {
             curBlock = b;
             for (RISCVInst i = b.headInst; i != null; i = i.next) {
