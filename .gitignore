@@ -6,3 +6,6 @@ Mx_compiler.iml
 /out
 src/Main.java
 /ravel
+test.s
+test.in
+test.out

@@ -18,7 +18,7 @@ import java.io.PrintStream;
 public class Main {
     public static void main(String[] args) throws Exception{
 
-        String name = "testcases\\sema\\basic-package\\basic-2.mx";
+        String name = "testcases\\sema\\basic-package\\basic-11.mx";
         InputStream input = new FileInputStream(name);
         //InputStream input = System.in;
 

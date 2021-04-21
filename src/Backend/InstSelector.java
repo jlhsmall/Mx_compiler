@@ -103,14 +103,18 @@ public class InstSelector implements Pass {
         }
         int stackLength = (VirtualReg.cnt - curFn.vRegIndex + Integer.max(irFunc.arguments.size() - 8, 0)) * 4;
         RISCVInst curHead = curFn.rootBlock.headInst;
-        curBlock.push_back(new IInst(curBlock, IInst.Category.addi, sp, sp, new Imm(stackLength)));
+        if(!curFn.name.equals("main"))
+            curBlock.push_back(new IInst(curBlock, IInst.Category.addi, sp, sp, new Imm(stackLength)));
+        if(!(curBlock.tailInst instanceof Ret))
+            curBlock.push_back(new Ret(curBlock));
         for (int i = 8, offset = stackLength; i <= irFunc.arguments.size() - 1; ++i) {
             int sz = irFunc.arguments.get(i).type.getBytes();
             curFn.rootBlock.insert_before(curHead, new Ld(curFn.rootBlock, sz == 1 ? Ld.Category.lb : Ld.Category.lw,
                     new VirtualReg(curFn, sz), sp, new Imm(offset)));
             offset += sz;
         }
-        curFn.rootBlock.push_front(new IInst(curFn.rootBlock, IInst.Category.addi, sp, sp, new Imm(-stackLength)));
+        if(!curFn.name.equals("main"))
+            curFn.rootBlock.push_front(new IInst(curFn.rootBlock, IInst.Category.addi, sp, sp, new Imm(-stackLength)));
     }
 
     @Override

@@ -1,11 +1,11 @@
 	.text
-	.file	"builtin.c"
+	.file	"builtIn.c"
 	.globl	print                   # -- Begin function print
 	.p2align	2
 	.type	print,@function
 print:                                  # @print
 	.cfi_startproc
-# %bb.0:
+# %bb.0:                                # %entry
 	addi	sp, sp, -16
 	.cfi_def_cfa_offset 16
 	sw	ra, 12(sp)
@@ -32,7 +32,7 @@ print:                                  # @print
 	.type	println,@function
 println:                                # @println
 	.cfi_startproc
-# %bb.0:
+# %bb.0:                                # %entry
 	addi	sp, sp, -16
 	.cfi_def_cfa_offset 16
 	sw	ra, 12(sp)
@@ -59,7 +59,7 @@ println:                                # @println
 	.type	printInt,@function
 printInt:                               # @printInt
 	.cfi_startproc
-# %bb.0:
+# %bb.0:                                # %entry
 	addi	sp, sp, -16
 	.cfi_def_cfa_offset 16
 	sw	ra, 12(sp)
@@ -86,7 +86,7 @@ printInt:                               # @printInt
 	.type	printlnInt,@function
 printlnInt:                             # @printlnInt
 	.cfi_startproc
-# %bb.0:
+# %bb.0:                                # %entry
 	addi	sp, sp, -16
 	.cfi_def_cfa_offset 16
 	sw	ra, 12(sp)
@@ -113,7 +113,7 @@ printlnInt:                             # @printlnInt
 	.type	getString,@function
 getString:                              # @getString
 	.cfi_startproc
-# %bb.0:
+# %bb.0:                                # %entry
 	addi	sp, sp, -16
 	.cfi_def_cfa_offset 16
 	sw	ra, 12(sp)
@@ -144,7 +144,7 @@ getString:                              # @getString
 	.type	getInt,@function
 getInt:                                 # @getInt
 	.cfi_startproc
-# %bb.0:
+# %bb.0:                                # %entry
 	addi	sp, sp, -16
 	.cfi_def_cfa_offset 16
 	sw	ra, 12(sp)
@@ -171,125 +171,29 @@ getInt:                                 # @getInt
 	.type	toString,@function
 toString:                               # @toString
 	.cfi_startproc
-# %bb.0:
-	addi	sp, sp, -64
-	.cfi_def_cfa_offset 64
-	sw	ra, 60(sp)
-	sw	s0, 56(sp)
+# %bb.0:                                # %entry
+	addi	sp, sp, -16
+	.cfi_def_cfa_offset 16
+	sw	ra, 12(sp)
+	sw	s0, 8(sp)
 	.cfi_offset ra, -4
 	.cfi_offset s0, -8
-	addi	s0, sp, 64
+	addi	s0, sp, 16
 	.cfi_def_cfa s0, 0
-	sw	a0, -20(s0)
-	lw	a0, -20(s0)
-	bnez	a0, .LBB6_2
-	j	.LBB6_1
-.LBB6_1:
-	addi	a0, zero, 2
+	sw	a0, -12(s0)
+	addi	a0, zero, 15
 	mv	a1, zero
 	call	malloc
-	sw	a0, -24(s0)
-	lw	a0, -24(s0)
-	addi	a1, zero, 48
-	sb	a1, 0(a0)
-	lw	a0, -24(s0)
-	sb	zero, 1(a0)
-	lw	a0, -24(s0)
 	sw	a0, -16(s0)
-	j	.LBB6_13
-.LBB6_2:
-	sw	zero, -28(s0)
-	sh	zero, -30(s0)
-	lw	a0, -20(s0)
-	addi	a1, zero, -1
-	blt	a1, a0, .LBB6_4
-	j	.LBB6_3
-.LBB6_3:
-	addi	a0, zero, 1
-	sh	a0, -30(s0)
-	sw	a0, -28(s0)
-	lw	a0, -20(s0)
-	neg	a0, a0
-	sw	a0, -20(s0)
-	j	.LBB6_4
-.LBB6_4:
-	sw	zero, -36(s0)
-	lw	a0, -20(s0)
-	sw	a0, -40(s0)
-	j	.LBB6_5
-.LBB6_5:                                # =>This Inner Loop Header: Depth=1
-	lw	a0, -40(s0)
-	addi	a1, zero, 1
-	blt	a0, a1, .LBB6_7
-	j	.LBB6_6
-.LBB6_6:                                #   in Loop: Header=BB6_5 Depth=1
-	lw	a0, -40(s0)
-	addi	a1, zero, 10
-	call	__modsi3
-	lw	a1, -36(s0)
-	addi	a2, a1, 1
-	sw	a2, -36(s0)
-	slli	a1, a1, 1
-	addi	a2, s0, -64
-	add	a1, a2, a1
-	sh	a0, 0(a1)
-	lw	a0, -40(s0)
-	addi	a1, zero, 10
-	call	__divsi3
-	sw	a0, -40(s0)
-	j	.LBB6_5
-.LBB6_7:
-	lw	a0, -28(s0)
-	lw	a1, -36(s0)
-	add	a0, a0, a1
-	addi	a0, a0, 1
-	srai	a1, a0, 31
-	call	malloc
-	sw	a0, -24(s0)
-	lhu	a0, -30(s0)
-	beqz	a0, .LBB6_9
-	j	.LBB6_8
-.LBB6_8:
-	lw	a0, -24(s0)
-	addi	a1, zero, 45
-	sb	a1, 0(a0)
-	j	.LBB6_9
-.LBB6_9:
-	j	.LBB6_10
-.LBB6_10:                               # =>This Inner Loop Header: Depth=1
-	lw	a0, -36(s0)
-	addi	a1, zero, 1
-	blt	a0, a1, .LBB6_12
-	j	.LBB6_11
-.LBB6_11:                               #   in Loop: Header=BB6_10 Depth=1
-	lw	a0, -36(s0)
-	addi	a0, a0, -1
-	sw	a0, -36(s0)
-	slli	a0, a0, 1
-	addi	a1, s0, -64
-	add	a0, a1, a0
-	lh	a0, 0(a0)
-	addi	a0, a0, 48
-	lw	a1, -24(s0)
-	lw	a2, -28(s0)
-	addi	a3, a2, 1
-	sw	a3, -28(s0)
-	add	a1, a1, a2
-	sb	a0, 0(a1)
-	j	.LBB6_10
-.LBB6_12:
-	lw	a0, -24(s0)
-	lw	a1, -28(s0)
-	add	a0, a0, a1
-	sb	zero, 0(a0)
-	lw	a0, -24(s0)
-	sw	a0, -16(s0)
-	j	.LBB6_13
-.LBB6_13:
 	lw	a0, -16(s0)
-	lw	s0, 56(sp)
-	lw	ra, 60(sp)
-	addi	sp, sp, 64
+	lw	a2, -12(s0)
+	lui	a1, %hi(.L.str.2)
+	addi	a1, a1, %lo(.L.str.2)
+	call	sprintf
+	lw	a0, -16(s0)
+	lw	s0, 8(sp)
+	lw	ra, 12(sp)
+	addi	sp, sp, 16
 	ret
 .Lfunc_end6:
 	.size	toString, .Lfunc_end6-toString
@@ -300,7 +204,7 @@ toString:                               # @toString
 	.type	stringAdd,@function
 stringAdd:                              # @stringAdd
 	.cfi_startproc
-# %bb.0:
+# %bb.0:                                # %entry
 	addi	sp, sp, -48
 	.cfi_def_cfa_offset 48
 	sw	ra, 44(sp)
@@ -352,7 +256,7 @@ stringAdd:                              # @stringAdd
 	.type	stringEq,@function
 stringEq:                               # @stringEq
 	.cfi_startproc
-# %bb.0:
+# %bb.0:                                # %entry
 	addi	sp, sp, -32
 	.cfi_def_cfa_offset 32
 	sw	ra, 28(sp)
@@ -380,7 +284,7 @@ stringEq:                               # @stringEq
 	.type	stringNe,@function
 stringNe:                               # @stringNe
 	.cfi_startproc
-# %bb.0:
+# %bb.0:                                # %entry
 	addi	sp, sp, -32
 	.cfi_def_cfa_offset 32
 	sw	ra, 28(sp)
@@ -408,7 +312,7 @@ stringNe:                               # @stringNe
 	.type	stringGe,@function
 stringGe:                               # @stringGe
 	.cfi_startproc
-# %bb.0:
+# %bb.0:                                # %entry
 	addi	sp, sp, -32
 	.cfi_def_cfa_offset 32
 	sw	ra, 28(sp)
@@ -437,7 +341,7 @@ stringGe:                               # @stringGe
 	.type	stringGt,@function
 stringGt:                               # @stringGt
 	.cfi_startproc
-# %bb.0:
+# %bb.0:                                # %entry
 	addi	sp, sp, -32
 	.cfi_def_cfa_offset 32
 	sw	ra, 28(sp)
@@ -465,7 +369,7 @@ stringGt:                               # @stringGt
 	.type	stringLe,@function
 stringLe:                               # @stringLe
 	.cfi_startproc
-# %bb.0:
+# %bb.0:                                # %entry
 	addi	sp, sp, -32
 	.cfi_def_cfa_offset 32
 	sw	ra, 28(sp)
@@ -493,7 +397,7 @@ stringLe:                               # @stringLe
 	.type	stringLt,@function
 stringLt:                               # @stringLt
 	.cfi_startproc
-# %bb.0:
+# %bb.0:                                # %entry
 	addi	sp, sp, -32
 	.cfi_def_cfa_offset 32
 	sw	ra, 28(sp)
@@ -521,7 +425,7 @@ stringLt:                               # @stringLt
 	.type	string__length,@function
 string__length:                         # @string__length
 	.cfi_startproc
-# %bb.0:
+# %bb.0:                                # %entry
 	addi	sp, sp, -16
 	.cfi_def_cfa_offset 16
 	sw	ra, 12(sp)
@@ -546,7 +450,7 @@ string__length:                         # @string__length
 	.type	string__substring,@function
 string__substring:                      # @string__substring
 	.cfi_startproc
-# %bb.0:
+# %bb.0:                                # %entry
 	addi	sp, sp, -32
 	.cfi_def_cfa_offset 32
 	sw	ra, 28(sp)
@@ -591,7 +495,7 @@ string__substring:                      # @string__substring
 	.type	string__parseInt,@function
 string__parseInt:                       # @string__parseInt
 	.cfi_startproc
-# %bb.0:
+# %bb.0:                                # %entry
 	addi	sp, sp, -32
 	.cfi_def_cfa_offset 32
 	sw	ra, 28(sp)
@@ -620,7 +524,7 @@ string__parseInt:                       # @string__parseInt
 	.type	string__ord,@function
 string__ord:                            # @string__ord
 	.cfi_startproc
-# %bb.0:
+# %bb.0:                                # %entry
 	addi	sp, sp, -32
 	.cfi_def_cfa_offset 32
 	sw	ra, 28(sp)
@@ -648,7 +552,7 @@ string__ord:                            # @string__ord
 	.type	array__size,@function
 array__size:                            # @array__size
 	.cfi_startproc
-# %bb.0:
+# %bb.0:                                # %entry
 	addi	sp, sp, -16
 	.cfi_def_cfa_offset 16
 	sw	ra, 12(sp)

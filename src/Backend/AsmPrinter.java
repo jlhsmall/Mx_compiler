@@ -56,7 +56,7 @@ public class AsmPrinter extends AsmVisitor{
         for (var entry : fnMap.entrySet()) {
             AsmFn fn=entry.getValue();
             if(fn.rootBlock != null) {
-                out.println("\t.global\t" + fn.name);
+                out.println("\t.globl\t" + fn.name);
                 out.println("\t.p2align\t2");
                 out.println(fn.name+":");
                 fn.printList.forEach(this::printBlock);

@@ -25,6 +25,6 @@ public class Ld extends RISCVInst {
     }
     @Override
     public String toString() {
-        return op + " " + rd + ", " + rs1 + "(" + offset + ")";
+        return op + " " + rd + ", " + offset + "(" + rs1 + ")";
     }
 }

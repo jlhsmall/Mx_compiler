@@ -24,31 +24,8 @@ int getInt(){
     return ret;
 }
 char* toString(int i){
-    char* ret;
-    if(i==0){
-        ret=malloc(2);
-        ret[0]='0';ret[1]='\0';
-        return ret;
-    }
-    int len=0;
-    short flg=0;
-    if(i<0){
-        flg=1;
-        len=1;
-        i=-i;
-    }
-    int id=0,tmp=i;
-    short num[10];
-    while(tmp>0){
-        num[id++]=tmp%10;
-        tmp/=10;
-    }
-    ret=malloc(len+id+1);
-    if(flg)ret[0]='-';
-    while(id>0){
-        ret[len++]=num[--id]+'0';
-    }
-    ret[len]='\0';
+    char* ret=malloc(15);
+    sprintf(ret,"%d",i);
     return ret;
 }
 char* stringAdd(char* str1,char* str2){
