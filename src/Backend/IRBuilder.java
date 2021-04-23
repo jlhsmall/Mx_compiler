@@ -51,27 +51,27 @@ public class IRBuilder implements ASTVisitor {
         curFunction = initFunc;
         curBlock = new IRBasicBlock(curFunction, "entry");
         curFunction.blocks.add(curBlock);
-        GlobalVariable reg;
+        GlobalVariable gv;
         for (var varDef : it.varDefs) {
             IRType tp = varDef.varType.type.toIRType();
             if (varDef.expr != null) {
                 varDef.expr.accept(this);
                 String nm = varDef.names.get(0);
-                reg = new GlobalVariable(new IRPointerType(tp), curFunction.getNameForRegister(nm), varDef.expr.entity);
-                curBlock.addInst(new allocaInst(curBlock, reg, reg.type));
-                curBlock.addInst(new storeInst(curBlock, varDef.expr.entity, reg));
-                module.GlobalVariableMap.put(nm,reg);
-                scopes.peek().varEntities.put(nm, varDef.expr.entity);
+                gv = new GlobalVariable(new IRPointerType(tp), curFunction.getNameForRegister(nm), varDef.expr.entity);
+                curBlock.addInst(new allocaInst(curBlock, gv, gv.type));
+                curBlock.addInst(new storeInst(curBlock, varDef.expr.entity, gv));
+                module.GlobalVariableMap.put(nm, gv);
+                scopes.peek().varEntities.put(nm, gv);
             } else {
                 for (var nm : varDef.names) {
-                    reg = new GlobalVariable(new IRPointerType(tp), curFunction.getNameForRegister(nm), null);
-                    curBlock.addInst(new allocaInst(curBlock, reg, reg.type));
-                    module.GlobalVariableMap.put(nm, reg);
-                    scopes.peek().varEntities.put(nm, null);
+                    gv = new GlobalVariable(new IRPointerType(tp), curFunction.getNameForRegister(nm), null);
+                    curBlock.addInst(new allocaInst(curBlock, gv, gv.type));
+                    module.GlobalVariableMap.put(nm, gv);
+                    scopes.peek().varEntities.put(nm, gv);
                 }
             }
         }
-        module.FunctionMap.put("init_main",initFunc);
+        module.FunctionMap.put("init_main", initFunc);
         for (var classDef : it.classDefs) {
             IRStructure irStruct = new IRStructure(module);
             irStruct.name = classDef.name;
@@ -200,8 +200,8 @@ public class IRBuilder implements ASTVisitor {
         scopes.push(new Scope(scopes.peek()));
         curBlock = new IRBasicBlock(curFunction, curFunction.getNameForBlock("entry"));
         ma.blocks.add(curBlock);
-        funcEntity initEntity = new funcEntity(new IRVoidType(),"init_main");
-        curBlock.addInst(new callInst(curBlock,null,initEntity));
+        funcEntity initEntity = new funcEntity(new IRVoidType(), "init_main", new ArrayList<>());
+        curBlock.addInst(new callInst(curBlock, null, initEntity));
         for (var stmt : it.stmts)
             stmt.accept(this);
         scopes.pop();
@@ -226,6 +226,7 @@ public class IRBuilder implements ASTVisitor {
                 falseBlock = new IRBasicBlock(curFunction, curFunction.getNameForBlock("ifFalse")),
                 endBlock = new IRBasicBlock(curFunction, curFunction.getNameForBlock("ifEnd"));
         curFunction.blocks.add(trueBlock);
+        it.cond.entity.isCond = true;
         curBlock.addInst(new brInst(curBlock, it.cond.entity, trueBlock, it.elseStmt != null ? falseBlock : endBlock));
         scopes.push(new Scope(scopes.peek()));
         curBlock = trueBlock;
@@ -271,8 +272,8 @@ public class IRBuilder implements ASTVisitor {
     @Override
     public void visit(forStmtNode it) {
         IRBasicBlock condBlock = new IRBasicBlock(curFunction, curFunction.getNameForBlock("forCond")),
-                bodyBlock = new IRBasicBlock(curFunction, curFunction.getNameForBlock("whileBody")),
-                endBlock = new IRBasicBlock(curFunction, curFunction.getNameForBlock("whileEnd"));
+                bodyBlock = new IRBasicBlock(curFunction, curFunction.getNameForBlock("forBody")),
+                endBlock = new IRBasicBlock(curFunction, curFunction.getNameForBlock("forEnd"));
 
         scopes.push(new Scope(scopes.peek()));
         if (it.init != null)
@@ -286,12 +287,14 @@ public class IRBuilder implements ASTVisitor {
         } else
             curBlock.addInst(new brInst(curBlock, null, bodyBlock, null));
         curBlock = bodyBlock;
+        curFunction.blocks.add(bodyBlock);
         it.stmt.accept(this);
         if (it.incr != null)
             it.incr.accept(this);
         curBlock.addInst(new brInst(curBlock, null, condBlock, null));
         scopes.pop();
         curBlock = endBlock;
+        curFunction.blocks.add(endBlock);
     }
 
     @Override
@@ -335,11 +338,12 @@ public class IRBuilder implements ASTVisitor {
             result = new Register(new IRI32Type(), curFunction.getNameForRegister("addReg"));
             inst1 = new binaryInst(curBlock, result, it.expr.entity, new IntegerConstant(new IRI32Type(), 1), binaryInst.opType.add);
         } else {
+            assert(it.op.equals("--"));
             result = new Register(new IRI32Type(), curFunction.getNameForRegister("subReg"));
             inst1 = new binaryInst(curBlock, result, it.expr.entity, new IntegerConstant(new IRI32Type(), 1), binaryInst.opType.sub);
         }
         curBlock.addInst(inst1);
-        inst2 = new storeInst(curBlock, result, it.expr.entity);
+        inst2 = new storeInst(curBlock, result, it.expr.lvalue);
         curBlock.addInst(inst2);
         it.entity = it.expr.entity;
     }
@@ -491,12 +495,13 @@ public class IRBuilder implements ASTVisitor {
 
     Entity arrayAlloc(int cur, IRType tp, ArrayList<Entity> sizes) {
         IRType I8Ptr = new IRPointerType(new IRI8Type());
-        funcEntity mallocFunc = new funcEntity(I8Ptr, "malloc");
+        ArrayList<Entity> mallocParas = new ArrayList<>();
+        funcEntity mallocFunc = new funcEntity(I8Ptr, "malloc", mallocParas);
         Register pureSize = new Register(new IRI32Type(), curFunction.getNameForRegister("pureSize"));
         Register realSize = new Register(new IRI32Type(), curFunction.getNameForRegister("realSize"));
         curBlock.addInst(new binaryInst(curBlock, pureSize, sizes.get(cur), new IntegerConstant(new IRI32Type(), tp.getBytes()), binaryInst.opType.mul));
         curBlock.addInst(new binaryInst(curBlock, realSize, pureSize, new IntegerConstant(new IRI32Type(), 4), binaryInst.opType.add));
-        mallocFunc.paras.add(realSize);
+        mallocParas.add(realSize);
         Register mallocReg = new Register(new IRI32Type(), curFunction.getNameForRegister("mallocReg"));
         curBlock.addInst(new callInst(curBlock, mallocReg, mallocFunc));
 
@@ -506,14 +511,14 @@ public class IRBuilder implements ASTVisitor {
         curBlock.addInst(new storeInst(curBlock, sizes.get(cur), castReg));
 
         Register HeadI32Ptr = new Register(new IRI32Type(), curFunction.getNameForRegister("HeadI32Ptr"));
-        curBlock.addInst(new GEPInst(curBlock, HeadI32Ptr, castReg, new IntegerConstant(new IRI32Type(), 1),null));
+        curBlock.addInst(new GEPInst(curBlock, HeadI32Ptr, castReg, new IntegerConstant(new IRI32Type(), 1), null));
 
         Register HeadPtr = new Register(tp, curFunction.getNameForRegister("HeadPtr"));
         curBlock.addInst(new bitCastInst(curBlock, HeadPtr, HeadI32Ptr.type, HeadI32Ptr, tp));
 
         if (cur != sizes.size() - 1) {
             Register TailPtr = new Register(tp, curFunction.getNameForRegister("TailPtr"));
-            curBlock.addInst(new GEPInst(curBlock, TailPtr, HeadPtr, sizes.get(cur),null));
+            curBlock.addInst(new GEPInst(curBlock, TailPtr, HeadPtr, sizes.get(cur), null));
 
             Register nowPtrAddr = new Register(new IRPointerType(tp), curFunction.getNameForRegister("nowPtrAddr"));
             curBlock.addInst(new allocaInst(curBlock, nowPtrAddr, tp));
@@ -537,7 +542,7 @@ public class IRBuilder implements ASTVisitor {
             Entity allocVal = arrayAlloc(cur + 1, ((IRPointerType) tp).base, sizes);
             curBlock.addInst(new storeInst(curBlock, allocVal, nowPtr));
             Register nxtPtr = new Register(tp, curFunction.getNameForRegister("nxtPtr"));
-            curBlock.addInst(new GEPInst(curBlock, nxtPtr, nowPtr, new IntegerConstant(new IRI32Type(), 1),null));
+            curBlock.addInst(new GEPInst(curBlock, nxtPtr, nowPtr, new IntegerConstant(new IRI32Type(), 1), null));
             curBlock.addInst(new storeInst(curBlock, nxtPtr, nowPtrAddr));
             curBlock.addInst(new brInst(curBlock, null, loopCond, null));
 
@@ -551,7 +556,7 @@ public class IRBuilder implements ASTVisitor {
     public void visit(CreatorNode it) {
         if (it.arraySizes.isEmpty()) {
             IRStructureType tp = (IRStructureType) it.type.toIRType();
-            funcEntity mallocFunc = new funcEntity(new IRPointerType(new IRI8Type()), "malloc");
+            funcEntity mallocFunc = new funcEntity(new IRPointerType(new IRI8Type()), "malloc", new ArrayList<>());
             mallocFunc.paras.add(new IntegerConstant(new IRI32Type(), tp.getBytes()));
             Register tmp = new Register(new IRPointerType(new IRI8Type()), curFunction.getNameForRegister("mallocReg"));
             Register result = new Register(tp, curFunction.getNameForRegister("castReg"));
@@ -559,7 +564,7 @@ public class IRBuilder implements ASTVisitor {
             curBlock.addInst(new bitCastInst(curBlock, result, tmp.type, tmp, tp));
             IRStructure irStruct = module.StructureMap.get(tp.name);
             if (irStruct.hasConsFunc) {
-                funcEntity consFunc = new funcEntity(tp, tp.name + "__" + tp.name);
+                funcEntity consFunc = new funcEntity(tp, tp.name + "__" + tp.name, new ArrayList<>());
                 curBlock.addInst(new callInst(curBlock, result, consFunc));
             }
             it.entity = result;
@@ -599,8 +604,8 @@ public class IRBuilder implements ASTVisitor {
             int pos = curStruct.getpos(it.name);
             loadReg = new Register(curStruct.typeList.get(pos), curFunction.getNameForRegister("loadReg"));
             Register result = new Register(new IRPointerType(loadReg.type), curFunction.getNameForRegister(it.name));
-            curBlock.addInst(new GEPInst(curBlock, result, curInstPtr, new IntegerConstant(new IRI32Type(),0),new IntegerConstant(new IRI32Type(), pos)));
-            curBlock.addInst(new loadInst(curBlock, loadReg,loadReg.type,result));
+            curBlock.addInst(new GEPInst(curBlock, result, curInstPtr, new IntegerConstant(new IRI32Type(), 0), new IntegerConstant(new IRI32Type(), pos)));
+            curBlock.addInst(new loadInst(curBlock, loadReg, loadReg.type, result));
             it.entity = loadReg;
             it.lvalue = result;
             curStruct = null;
@@ -616,9 +621,9 @@ public class IRBuilder implements ASTVisitor {
         for (var index : it.indices) {
             index.accept(this);
             result = new Register(ptr.type, curFunction.getNameForRegister("arrayReg"));
-            loadReg = new Register(((IRPointerType)ptr.type).base,curFunction.getNameForRegister("loadReg"));
-            curBlock.addInst(new GEPInst(curBlock, result, ptr,index.entity,null));
-            curBlock.addInst(new loadInst(curBlock,loadReg,loadReg.type,result));
+            loadReg = new Register(((IRPointerType) ptr.type).base, curFunction.getNameForRegister("loadReg"));
+            curBlock.addInst(new GEPInst(curBlock, result, ptr, index.entity, null));
+            curBlock.addInst(new loadInst(curBlock, loadReg, loadReg.type, result));
             ptr = result;
         }
         it.entity = loadReg;
@@ -648,7 +653,7 @@ public class IRBuilder implements ASTVisitor {
             para.accept(this);
             paras.add(para.entity);
         }
-        funcEntity func = new funcEntity(it.type.toIRType(), nm);
+        funcEntity func = new funcEntity(it.type.toIRType(), nm, paras);
         Register result = new Register(it.type.toIRType(), curFunction.getNameForRegister("funcReg"));
         callInst inst = new callInst(curBlock, result, func);
         curBlock.addInst(inst);
@@ -668,7 +673,8 @@ public class IRBuilder implements ASTVisitor {
         } else if (it.type.isIntType()) {
             it.entity = new IntegerConstant(new IRI32Type(), Long.parseLong(it.value));
         } else if (it.type.isStringType()) {
-            GlobalVariable str = new GlobalVariable(new IRStringType(),initFunc.getNameForRegister(it.value),new StringConstant(it.value));
+            GlobalVariable str = new GlobalVariable(new IRStringType(), initFunc.getNameForRegister(it.value), new StringConstant(it.value));
+            module.GlobalVariableMap.put(str.name, str);
             it.entity = str;
         } else {
             it.entity = new NullConstant();

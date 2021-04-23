@@ -66,8 +66,9 @@ public class AsmPrinter extends AsmVisitor{
         out.println();
         for (var entry : GlobalRegMap.entrySet()){
             GlobalReg g = entry.getValue();
+            out.println("\t.section\t.data");
             out.println(g+":");
-            out.println("\t"+g.value);
+            out.println("\t.asciz\t"+ g.outValue);
             out.println();
         }
     }

@@ -28,6 +28,10 @@ public class IRModule {
         StringStruct.typeList.add(new IRPointerType(new IRI8Type()));
         StructureMap.put("string",StringStruct);
 
+        IRStructure ArrayStruct = new IRStructure(this);
+        ArrayStruct.name = "array";
+        StructureMap.put("array",ArrayStruct);
+
         IRFunction printFunc = new IRFunction(this);
         printFunc.isExternal = true;
         printFunc.name = "print";

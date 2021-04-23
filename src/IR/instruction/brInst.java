@@ -17,10 +17,13 @@ public class brInst extends Inst {
             this.ifEqual = ifEqual;
             this.ifUnequal = ifUnequal;
         }
-        else{
-            assert(cond instanceof BoolConstant);
+        else if(cond instanceof BoolConstant){
             this.cond = null;
             this.ifEqual = ((BoolConstant)cond).value ? ifEqual : ifUnequal;
+        }
+        else{
+            this.cond = null;
+            this.ifEqual = ifEqual;
         }
     }
 

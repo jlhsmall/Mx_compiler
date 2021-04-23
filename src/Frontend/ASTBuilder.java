@@ -13,25 +13,22 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     public ASTNode visitProgram(MxParser.ProgramContext ctx) {
         RootNode root = new RootNode(new position(ctx));
         for (var block : ctx.block()) {
-            if(block.mainBlock() != null) {
+            if (block.mainBlock() != null) {
                 root.order.add(RootNode.OrderType.MAIN);
                 root.mainBlock = (mainBlockNode) visit(block.mainBlock());
-            }
-            else if (block.funcDef() != null) {
+            } else if (block.funcDef() != null) {
                 root.order.add(RootNode.OrderType.FUNC);
                 root.funcDefs.add((funcDefNode) visit(block.funcDef()));
-            }
-            else if (block.classDef() != null) {
+            } else if (block.classDef() != null) {
                 root.order.add(RootNode.OrderType.CLASS);
                 root.classDefs.add((classDefNode) visit(block.classDef()));
-            }
-            else {
+            } else {
                 root.order.add(RootNode.OrderType.VAR);
                 root.varDefs.add((varDefNode) visit(block.varDef(0)));
             }
         }
         if (root.mainBlock == null)
-            throw(new semanticError("Semantic Error: no main function", new position(ctx)));
+            throw (new semanticError("Semantic Error: no main function", new position(ctx)));
         return root;
     }
 
@@ -72,7 +69,7 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         for (var block : ctx.varDef())
             classDef.varDefs.add((varDefNode) visit(block));
         for (var block : ctx.consFuncDef())
-            classDef.consFuncDefs.add((funcDefNode)visit(block));
+            classDef.consFuncDefs.add((funcDefNode) visit(block));
         return classDef;
     }
 
@@ -93,6 +90,7 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     public ASTNode visitVarDefStmt(MxParser.VarDefStmtContext ctx) {
         return visit(ctx.varDef());
     }
+
     @Override
     public ASTNode visitMainBlock(MxParser.MainBlockContext ctx) {
         mainBlockNode mainBlock = new mainBlockNode(new position(ctx));
@@ -257,21 +255,25 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     @Override
     public ASTNode visitArrayExpr(MxParser.ArrayExprContext ctx) {
         arrayExprNode arrayAtom = new arrayExprNode(new position(ctx));
-        arrayAtom.base = (ExprNode)visit(ctx.expr(0));
-        for (int i=1;i<ctx.expr().size();++i)
-            arrayAtom.indices.add((ExprNode)visit(ctx.expr(i)));
+        arrayAtom.base = (ExprNode) visit(ctx.expr(0));
+        for (int i = 1; i < ctx.expr().size(); ++i)
+            arrayAtom.indices.add((ExprNode) visit(ctx.expr(i)));
         return arrayAtom;
     }
 
     @Override
     public ASTNode visitConstAtom(MxParser.ConstAtomContext ctx) {
         if (ctx.Logic() != null)
-            return new constAtomNode(new BoolType(),ctx.Logic().getText(),new position(ctx));
+            return new constAtomNode(new BoolType(), ctx.Logic().getText(), new position(ctx));
         if (ctx.Integer() != null)
-            return new constAtomNode(new IntType(),ctx.Integer().getText(),new position(ctx));
-        if (ctx.StringConst() != null)
-            return new constAtomNode(new StringType(),ctx.StringConst().getText(),new position(ctx));
-        return new constAtomNode(new NullType(),"null",new position(ctx));
+            return new constAtomNode(new IntType(), ctx.Integer().getText(), new position(ctx));
+        if (ctx.StringConst() != null) {
+            String str = ctx.StringConst().getText();
+            str = str.substring(1, str.length() - 1)
+                    .replace("\\n", "\n").replace("\\\"", "\"").replace("\\\\", "\\");
+            return new constAtomNode(new StringType(), str, new position(ctx));
+        }
+        return new constAtomNode(new NullType(), "null", new position(ctx));
     }
 
     @Override
@@ -284,8 +286,8 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
     @Override
     public ASTNode visitClassExpr(MxParser.ClassExprContext ctx) {
         classExprNode classExpr = new classExprNode(new position(ctx));
-        classExpr.inst = (ExprNode)visit(ctx.inst);
-        classExpr.field = (AtomNode)visit(ctx.field);
+        classExpr.inst = (ExprNode) visit(ctx.inst);
+        classExpr.field = (AtomNode) visit(ctx.field);
         return classExpr;
     }
 
@@ -295,7 +297,7 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         funcAtom.name = ctx.Identifier().getText();
         if (ctx.exprList() != null) {
             for (var para : ctx.exprList().expr())
-                funcAtom.paras.add((ExprNode)visit(para));
+                funcAtom.paras.add((ExprNode) visit(para));
         }
         return funcAtom;
     }

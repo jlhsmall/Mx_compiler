@@ -16,6 +16,9 @@ public class AsmBlock {
         successors = new HashSet<>();
     }
 
+    public void addSuccessor(AsmBlock b) {
+        if (b != null) successors.add(b);
+    }
 
     public void push_back(RISCVInst i) {
         if (headInst == null) headInst = tailInst = i;
@@ -25,6 +28,7 @@ public class AsmBlock {
             tailInst = i;
         }
     }
+
     public void push_front(RISCVInst i) {
         if (headInst == null) headInst = tailInst = i;
         else {

@@ -1,6 +1,8 @@
 package Assembly;
 
+import Assembly.Inst.Ret;
 import Assembly.Operand.PhyReg;
+import type.ArrayType;
 
 import java.util.*;
 
@@ -11,6 +13,8 @@ public class AsmFn {
     public String name;
     public int vRegIndex;
     public List<AsmBlock> printList = new LinkedList<>();
+    public ArrayList<Ret> RetList= new ArrayList<>();
+    public boolean hasCall = false;
     public AsmFn(AsmRoot par,String nm, int i) {
         parent = par;
         name = nm;

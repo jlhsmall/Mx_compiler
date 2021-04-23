@@ -11,10 +11,10 @@ import java.util.ArrayList;
 public class funcEntity extends Entity{
     public String name;
     public ArrayList<Entity> paras;
-    public funcEntity(IRType tp,String nm){
+    public funcEntity(IRType tp,String nm, ArrayList<Entity> paras){
         super(tp);
         name = nm;
-        paras = new ArrayList<>();
+        this.paras=paras;
     }
     @Override
     public String toString(){
