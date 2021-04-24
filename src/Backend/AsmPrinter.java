@@ -64,11 +64,19 @@ public class AsmPrinter extends AsmVisitor{
             }
         }
         out.println();
+        out.println("\t.section\t.data");
         for (var entry : GlobalRegMap.entrySet()){
             GlobalReg g = entry.getValue();
-            out.println("\t.section\t.data");
-            out.println(g+":");
-            out.println("\t.asciz\t"+ g.outValue);
+            if(g.isString) {
+                out.println(g + ":");
+                out.println("\t.asciz\t" + g.outValue);
+            }
+            else{
+                out.println("\t.globl\t"+g.name);
+                out.println("\t.p2align\t2");
+                out.println(g + ":");
+                out.println("\t.word\t0");
+            }
             out.println();
         }
     }

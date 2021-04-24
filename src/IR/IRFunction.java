@@ -37,6 +37,7 @@ public class IRFunction {
             return bas;
         }
         ptr = ptr + 1;
+        registerNameMap.put(bas,ptr);
         return bas + ptr;
     }
 
@@ -47,6 +48,7 @@ public class IRFunction {
             return bas;
         }
         ptr = ptr + 1;
+        blockNameMap.put(bas,ptr);
         return bas + ptr;
     }
 

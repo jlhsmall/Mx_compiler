@@ -58,7 +58,6 @@ public class IRBuilder implements ASTVisitor {
                 varDef.expr.accept(this);
                 String nm = varDef.names.get(0);
                 gv = new GlobalVariable(new IRPointerType(tp), curFunction.getNameForRegister(nm), varDef.expr.entity);
-                curBlock.addInst(new allocaInst(curBlock, gv, gv.type));
                 curBlock.addInst(new storeInst(curBlock, varDef.expr.entity, gv));
                 module.GlobalVariableMap.put(nm, gv);
                 scopes.peek().varEntities.put(nm, gv);
@@ -222,11 +221,11 @@ public class IRBuilder implements ASTVisitor {
     @Override
     public void visit(ifStmtNode it) {
         it.cond.accept(this);
+        it.cond.entity.isCond = true;
         IRBasicBlock trueBlock = new IRBasicBlock(curFunction, curFunction.getNameForBlock("ifTrue")),
                 falseBlock = new IRBasicBlock(curFunction, curFunction.getNameForBlock("ifFalse")),
                 endBlock = new IRBasicBlock(curFunction, curFunction.getNameForBlock("ifEnd"));
         curFunction.blocks.add(trueBlock);
-        it.cond.entity.isCond = true;
         curBlock.addInst(new brInst(curBlock, it.cond.entity, trueBlock, it.elseStmt != null ? falseBlock : endBlock));
         scopes.push(new Scope(scopes.peek()));
         curBlock = trueBlock;
@@ -237,7 +236,7 @@ public class IRBuilder implements ASTVisitor {
             curFunction.blocks.add(falseBlock);
             scopes.push(new Scope(scopes.peek()));
             curBlock = falseBlock;
-            it.thenStmt.accept(this);
+            it.elseStmt.accept(this);
             curBlock.addInst(new brInst(curBlock, null, endBlock, null));
             scopes.pop();
         }
@@ -256,6 +255,7 @@ public class IRBuilder implements ASTVisitor {
         curBlock.addInst(new brInst(curBlock, null, condBlock, null));
         curBlock = condBlock;
         it.cond.accept(this);
+        it.cond.entity.isCond = true;
         curBlock.addInst(new brInst(curBlock, it.cond.entity, bodyBlock, endBlock));
         scopes.push(new Scope(scopes.peek()));
         loopCondBlocks.push(condBlock);
@@ -283,6 +283,7 @@ public class IRBuilder implements ASTVisitor {
             curBlock.addInst(new brInst(curBlock, null, condBlock, null));
             curBlock = condBlock;
             it.cond.accept(this);
+            it.cond.entity.isCond = true;
             curBlock.addInst(new brInst(curBlock, it.cond.entity, bodyBlock, endBlock));
         } else
             curBlock.addInst(new brInst(curBlock, null, bodyBlock, null));

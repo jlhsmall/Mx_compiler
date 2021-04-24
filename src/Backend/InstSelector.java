@@ -58,16 +58,13 @@ public class InstSelector implements Pass {
         }
         if (entity instanceof GlobalVariable) {
             Entity init = ((GlobalVariable) entity).init;
-            if (init != null && init instanceof StringConstant) {
-                Reg ret = new VirtualReg(curFn, 4);
-                curBlock.push_back(new La(curBlock, ret, GlobalRegMap.get(((StringConstant) init).value)));
-                return ret;
-            }
+            if (init != null && init instanceof StringConstant)
+                return GlobalRegMap.get(((StringConstant) init).value);
+            return GlobalRegMap.get(((GlobalVariable)entity).name);
         }
         Register reg = (Register) entity;
-        if (!regMap.containsKey(reg)) {
+        if (!regMap.containsKey(reg))
             regMap.put(reg, new VirtualReg(curFn, entity.type.getBytes()));
-        }
         return regMap.get(reg);
     }
 
@@ -79,6 +76,9 @@ public class InstSelector implements Pass {
             Entity init = entry.getValue().init;
             if (init != null && init instanceof StringConstant) {
                 GlobalRegMap.put(entry.getKey(), new GlobalReg(entry.getKey(), ((StringConstant) init).value));
+            }
+            else{
+                GlobalRegMap.put(entry.getKey(), new GlobalReg(entry.getKey()));
             }
         }
         for (var entry : module.FunctionMap.entrySet()) {
@@ -337,7 +337,12 @@ public class InstSelector implements Pass {
                     curBlock.push_back(new IInst(curBlock, slti, getAsmReg(inst.result), getAsmReg(inst.lhs), new Imm(((IntegerConstant) inst.rhs).value)));
                 else
                     curBlock.push_back(new RInst(curBlock, slt, getAsmReg(inst.result), getAsmReg(inst.lhs), getAsmReg(inst.rhs)));
+                break;
             case sge:
+                if (checkImm(inst.rhs))
+                    curBlock.push_back(new IInst(curBlock, slti, getAsmReg(inst.result), getAsmReg(inst.lhs), new Imm(((IntegerConstant) inst.rhs).value)));
+                else
+                    curBlock.push_back(new RInst(curBlock, slt, getAsmReg(inst.result), getAsmReg(inst.lhs), getAsmReg(inst.rhs)));
                 curBlock.push_back(new IInst(curBlock, xori, getAsmReg(inst.result), getAsmReg(inst.result), new Imm(1)));
                 break;
             case sgt:
@@ -345,7 +350,12 @@ public class InstSelector implements Pass {
                     curBlock.push_back(new IInst(curBlock, slti, getAsmReg(inst.result), getAsmReg(inst.rhs), new Imm(((IntegerConstant) inst.lhs).value)));
                 else
                     curBlock.push_back(new RInst(curBlock, slt, getAsmReg(inst.result), getAsmReg(inst.rhs), getAsmReg(inst.lhs)));
+                break;
             case sle:
+                if (checkImm(inst.lhs))
+                    curBlock.push_back(new IInst(curBlock, slti, getAsmReg(inst.result), getAsmReg(inst.rhs), new Imm(((IntegerConstant) inst.lhs).value)));
+                else
+                    curBlock.push_back(new RInst(curBlock, slt, getAsmReg(inst.result), getAsmReg(inst.rhs), getAsmReg(inst.lhs)));
                 curBlock.push_back(new IInst(curBlock, xori, getAsmReg(inst.result), getAsmReg(inst.result), new Imm(1)));
         }
     }

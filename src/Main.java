@@ -37,7 +37,7 @@ public class Main {
             new SemanticChecker().visit(ASTRoot);
             IRBuilder builder = new IRBuilder();
             builder.visit(ASTRoot);
-            //new IRPrinter(System.out).visit(builder.module);
+            new IRPrinter(System.out).visit(builder.module);
             InstSelector selector = new InstSelector();
             selector.visit(builder.module);
             new RegAlloc(selector).run();

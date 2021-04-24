@@ -9,16 +9,25 @@ import IR.entity.GlobalVariable;
  */
 public class GlobalReg extends Reg{
     public String name;
-    public String value;
+    public String strValue;
     public String outValue;
+    public boolean isString;
     public int index = -1;
     public GlobalReg(String nm,String val){
         name = nm;
-        value = val;
+        isString = true;
+        strValue = val;
         outValue = "\""+val.replace("\\","\\\\").replace("\n","\\n").replace("\"","\\\"")+"\"";
+    }
+    public GlobalReg(String nm){
+        name = nm;
+        isString = false;
+
     }
     @Override
     public String toString() {
-        return ".str."+index;
+        if(isString)
+            return ".str."+index;
+        return name;
     }
 }

@@ -15,7 +15,7 @@ public class AsmRoot {
             "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7",
             "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"));
     public static ArrayList<PhyReg> phyRegs, argRegs;
-    public static PhyReg zero, ra, sp, t0, t1, t2,a0;
+    public static PhyReg zero, ra, sp, t0, t1, t2,a0,t3;
 
     static public void init() {
         phyRegs = new ArrayList<>();
@@ -30,6 +30,7 @@ public class AsmRoot {
         t0 = phyRegs.get(5);
         t1 = phyRegs.get(6);
         t2 = phyRegs.get(7);
+        t3 = phyRegs.get(28);
         a0 = phyRegs.get(10);
     }
 }
