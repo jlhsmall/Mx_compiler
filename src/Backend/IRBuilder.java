@@ -141,7 +141,7 @@ public class IRBuilder implements ASTVisitor {
             irFunc.retType = funcDef.funcType.type.toIRType();
             scopes.push(new Scope(scopes.peek()));
             for (var para : funcDef.paras) {
-                Argument arg = new Argument(para.varType.type.toIRType(), para.names.get(0));
+                Argument arg = new Argument(new IRPointerType(para.varType.type.toIRType()), para.names.get(0));
                 irFunc.arguments.add(arg);
                 scopes.peek().varEntities.put(arg.name, arg);
             }
@@ -506,7 +506,7 @@ public class IRBuilder implements ASTVisitor {
         Register mallocReg = new Register(new IRI32Type(), curFunction.getNameForRegister("mallocReg"));
         curBlock.addInst(new callInst(curBlock, mallocReg, mallocFunc));
 
-        Register castReg = new Register(new IRI32Type(), curFunction.getNameForRegister("castReg"));
+        Register castReg = new Register(new IRPointerType(new IRI32Type()), curFunction.getNameForRegister("castReg"));
         curBlock.addInst(new bitCastInst(curBlock, castReg, mallocReg.type, mallocReg, new IRPointerType(new IRI32Type())));
 
         curBlock.addInst(new storeInst(curBlock, sizes.get(cur), castReg));

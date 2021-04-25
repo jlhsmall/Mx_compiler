@@ -13,9 +13,11 @@ import IR.IRFunction;
 import IR.IRModule;
 import IR.IRStructure;
 import IR.IRType.*;
+import IR.entity.Argument;
 import IR.entity.Entity;
 import IR.entity.GlobalVariable;
 import IR.entity.Register;
+import IR.entity.constant.BoolConstant;
 import IR.entity.constant.Constant;
 import IR.entity.constant.IntegerConstant;
 import IR.entity.constant.StringConstant;
@@ -40,32 +42,41 @@ public class InstSelector implements Pass {
     public HashMap<String, AsmBlock> blockMap = new HashMap<>();
     public HashMap<Register, VirtualReg> regMap = new HashMap<>();
     public HashMap<String, GlobalReg> GlobalRegMap = new HashMap<>();
+    public HashMap<Integer, Reg> LiRegMap = new HashMap<>();
     public AsmFn mainFn;
     public AsmFn curFn;
     public AsmBlock curBlock;
 
     public InstSelector() {
-
+        LiRegMap.put(0, zero);
     }
 
     private Reg getAsmReg(Entity entity) {
-        if (entity instanceof IntegerConstant) {
-            int val = (int) ((IntegerConstant) entity).value;
-            if (val == 0) return AsmRoot.zero;
-            Reg ret = new VirtualReg(curFn, ((IntegerConstant) entity).type.getBytes());
-            curBlock.push_back(new Li(curBlock, ret, new Imm(val)));
-            return ret;
+        if (entity instanceof Register) {
+            Register reg = (Register) entity;
+            if (!regMap.containsKey(reg))
+                regMap.put(reg, new VirtualReg(curFn, entity.type.getBytes()));
+            return regMap.get(reg);
         }
         if (entity instanceof GlobalVariable) {
             Entity init = ((GlobalVariable) entity).init;
             if (init != null && init instanceof StringConstant)
                 return GlobalRegMap.get(((StringConstant) init).value);
-            return GlobalRegMap.get(((GlobalVariable)entity).name);
+            return GlobalRegMap.get(((GlobalVariable) entity).name);
         }
-        Register reg = (Register) entity;
-        if (!regMap.containsKey(reg))
-            regMap.put(reg, new VirtualReg(curFn, entity.type.getBytes()));
-        return regMap.get(reg);
+        int val, bytes;
+        if (entity instanceof IntegerConstant) {
+            val = (int) ((IntegerConstant) entity).value;
+            bytes = ((IntegerConstant) entity).type.getBytes();
+        } else {
+            val = ((BoolConstant) entity).value ? 1 : 0;
+            bytes = 1;
+        }
+        if (LiRegMap.containsKey(val)) return LiRegMap.get(val);
+        Reg ret = new VirtualReg(curFn, bytes);
+        curBlock.push_back(new Li(curBlock, ret, new Imm(val)));
+        LiRegMap.put(val, ret);
+        return ret;
     }
 
     @Override
@@ -76,8 +87,7 @@ public class InstSelector implements Pass {
             Entity init = entry.getValue().init;
             if (init != null && init instanceof StringConstant) {
                 GlobalRegMap.put(entry.getKey(), new GlobalReg(entry.getKey(), ((StringConstant) init).value));
-            }
-            else{
+            } else {
                 GlobalRegMap.put(entry.getKey(), new GlobalReg(entry.getKey()));
             }
         }
@@ -122,7 +132,7 @@ public class InstSelector implements Pass {
             curBlock.push_back(tmp);
             curFn.RetList.add(tmp);
         }
-        int stackLength = (VirtualReg.cnt - curFn.vRegIndex + Integer.max(irFunc.arguments.size() - 8, 0)) * 4 + 4;
+        int stackLength = (VirtualReg.cnt - curFn.vRegIndex + irFunc.arguments.size()) * 4 + 4;
         RISCVInst curHead = curFn.rootBlock.headInst;
         if (curFn.hasCall) {
             for (var ret : curFn.RetList)
@@ -130,6 +140,9 @@ public class InstSelector implements Pass {
         }
         for (var ret : curFn.RetList)
             curBlock.insert_before(ret, new IInst(curBlock, addi, sp, sp, new Imm(stackLength)));
+        for (int i = 0; i < Integer.min(8, irFunc.arguments.size()); ++i) {
+            curFn.rootBlock.insert_before(curHead, new Mv(curFn.rootBlock, getAsmReg(irFunc.arguments.get(i)), argRegs.get(i)));
+        }
         for (int i = 8, offset = stackLength; i <= irFunc.arguments.size() - 1; ++i) {
             int sz = irFunc.arguments.get(i).type.getBytes();
             curFn.rootBlock.insert_before(curHead, new Ld(curFn.rootBlock, sz == 1 ? lb : lw,
@@ -298,7 +311,7 @@ public class InstSelector implements Pass {
                 curBlock.push_back(new IInst(curBlock, addi, getAsmReg(inst.result), getAsmReg(inst.ptr), new Imm(sz)));
             } else {
                 VirtualReg szReg = new VirtualReg(curFn, 4);
-                curBlock.push_back(new IInst(curBlock, muli, szReg, getAsmReg(inst.MemberIndex), new Imm(bytes)));
+                curBlock.push_back(new IInst(curBlock, muli, szReg, getAsmReg(inst.ArrayIndex), new Imm(bytes)));
                 curBlock.push_back(new RInst(curBlock, add, getAsmReg(inst.result), getAsmReg(inst.ptr), szReg));
             }
         } else {
