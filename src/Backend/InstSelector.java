@@ -40,29 +40,29 @@ public class InstSelector implements Pass {
     public AsmRoot root;
     public HashMap<String, AsmFn> fnMap = new HashMap<>();
     public HashMap<String, AsmBlock> blockMap = new HashMap<>();
-    public HashMap<Register, VirtualReg> regMap = new HashMap<>();
+    public HashMap<Register, Reg> regMap = new HashMap<>();
     public HashMap<String, GlobalReg> GlobalRegMap = new HashMap<>();
-    public HashMap<Integer, Reg> LiRegMap = new HashMap<>();
+    //public HashMap<Integer, Reg> LiRegMap = new HashMap<>();
     public AsmFn mainFn;
     public AsmFn curFn;
     public AsmBlock curBlock;
 
     public InstSelector() {
-        LiRegMap.put(0, zero);
+        //LiRegMap.put(0, zero);
     }
 
     private Reg getAsmReg(Entity entity) {
-        if (entity instanceof Register) {
-            Register reg = (Register) entity;
-            if (!regMap.containsKey(reg))
-                regMap.put(reg, new VirtualReg(curFn, entity.type.getBytes()));
-            return regMap.get(reg);
-        }
         if (entity instanceof GlobalVariable) {
             Entity init = ((GlobalVariable) entity).init;
             if (init != null && init instanceof StringConstant)
                 return GlobalRegMap.get(((StringConstant) init).value);
             return GlobalRegMap.get(((GlobalVariable) entity).name);
+        }
+        if (entity instanceof Register) {
+            Register reg = (Register) entity;
+            if (!regMap.containsKey(reg))
+                regMap.put(reg, new VirtualReg(curFn, entity.type.getBytes()));
+            return regMap.get(reg);
         }
         int val, bytes;
         if (entity instanceof IntegerConstant) {
@@ -72,10 +72,9 @@ public class InstSelector implements Pass {
             val = ((BoolConstant) entity).value ? 1 : 0;
             bytes = 1;
         }
-        if (LiRegMap.containsKey(val)) return LiRegMap.get(val);
+        if(val==0)return zero;
         Reg ret = new VirtualReg(curFn, bytes);
         curBlock.push_back(new Li(curBlock, ret, new Imm(val)));
-        LiRegMap.put(val, ret);
         return ret;
     }
 
@@ -86,9 +85,9 @@ public class InstSelector implements Pass {
         for (var entry : module.GlobalVariableMap.entrySet()) {
             Entity init = entry.getValue().init;
             if (init != null && init instanceof StringConstant) {
-                GlobalRegMap.put(entry.getKey(), new GlobalReg(entry.getKey(), ((StringConstant) init).value));
+                GlobalRegMap.put(entry.getValue().name, new GlobalReg(entry.getKey(), ((StringConstant) init).value));
             } else {
-                GlobalRegMap.put(entry.getKey(), new GlobalReg(entry.getKey()));
+                GlobalRegMap.put(entry.getValue().name, new GlobalReg(entry.getKey()));
             }
         }
         for (var entry : module.FunctionMap.entrySet()) {
@@ -120,6 +119,14 @@ public class InstSelector implements Pass {
             AsmBlock b = i == 0 ? curFn.rootBlock : new AsmBlock(curFn);
             blockMap.put(irFunc.blocks.get(i).getAsmBlockKey(), b);
         }
+        curBlock=curFn.rootBlock;
+        for (int i = 0; i < irFunc.arguments.size();++i) {
+            Argument arg = irFunc.arguments.get(i);
+            if(i<8)
+                curBlock.push_back(new St(curBlock,sw,argRegs.get(i),getAsmReg(arg),new Imm(0)));
+            else
+                regMap.put(arg,new VirtualReg(curFn, 4));
+        }
         for (int i = 0; i < irFunc.blocks.size(); ++i) {
             curBlock = blockMap.get(irFunc.blocks.get(i).getAsmBlockKey());
             if (i != irFunc.blocks.size() - 1)
@@ -140,14 +147,11 @@ public class InstSelector implements Pass {
         }
         for (var ret : curFn.RetList)
             curBlock.insert_before(ret, new IInst(curBlock, addi, sp, sp, new Imm(stackLength)));
-        for (int i = 0; i < Integer.min(8, irFunc.arguments.size()); ++i) {
-            curFn.rootBlock.insert_before(curHead, new Mv(curFn.rootBlock, getAsmReg(irFunc.arguments.get(i)), argRegs.get(i)));
-        }
         for (int i = 8, offset = stackLength; i <= irFunc.arguments.size() - 1; ++i) {
-            int sz = irFunc.arguments.get(i).type.getBytes();
-            curFn.rootBlock.insert_before(curHead, new Ld(curFn.rootBlock, sz == 1 ? lb : lw,
-                    new VirtualReg(curFn, sz), sp, new Imm(offset)));
-            offset += sz;
+            //int sz = irFunc.arguments.get(i).type.getBytes();
+            curFn.rootBlock.insert_before(curHead, new IInst(curFn.rootBlock, addi,
+                    getAsmReg(irFunc.arguments.get(i)), sp, new Imm(offset)));
+            offset += 4;//sz;
         }
         if (curFn.hasCall)
             curFn.rootBlock.push_front(new St(curFn.rootBlock, sw, ra, sp, new Imm(stackLength - 4)));
@@ -162,7 +166,12 @@ public class InstSelector implements Pass {
 
     @Override
     public void visit(allocaInst inst) {
-
+        IRType tp = ((IRPointerType)inst.type).base;
+        if (tp instanceof IRIntegerType) {
+            curBlock.push_back(new Li(curBlock,a0,new Imm(tp.getBytes())));
+            curBlock.push_back(new Call(curBlock, fnMap.get("malloc")));
+            curBlock.push_back(new Mv(curBlock,getAsmReg(inst.result),a0));
+        }
     }
 
     public boolean checkImmBound(int i) {
@@ -229,7 +238,7 @@ public class InstSelector implements Pass {
                 break;
             case xor:
                 if (checkImm(inst.rhs))
-                    curBlock.push_back(new IInst(curBlock, ori, getAsmReg(inst.result), getAsmReg(inst.lhs), new Imm(((IntegerConstant) inst.rhs).value)));
+                    curBlock.push_back(new IInst(curBlock, xori, getAsmReg(inst.result), getAsmReg(inst.lhs), new Imm(((IntegerConstant) inst.rhs).value)));
                 else if (inst.lhs instanceof IntegerConstant)
                     curBlock.push_back(new IInst(curBlock, xori, getAsmReg(inst.result), getAsmReg(inst.rhs), new Imm(((IntegerConstant) inst.rhs).value)));
                 else
@@ -280,7 +289,6 @@ public class InstSelector implements Pass {
 
     @Override
     public void visit(callInst inst) {
-        curFn.hasCall = true;
         AsmFn callee = fnMap.get(inst.func.name);
         //curBlock.addSuccessor(callee.rootBlock);
         ArrayList<Entity> paras = inst.func.paras;
@@ -311,7 +319,7 @@ public class InstSelector implements Pass {
                 curBlock.push_back(new IInst(curBlock, addi, getAsmReg(inst.result), getAsmReg(inst.ptr), new Imm(sz)));
             } else {
                 VirtualReg szReg = new VirtualReg(curFn, 4);
-                curBlock.push_back(new IInst(curBlock, muli, szReg, getAsmReg(inst.ArrayIndex), new Imm(bytes)));
+                curBlock.push_back(new RInst(curBlock, mul, szReg, getAsmReg(inst.ArrayIndex), getAsmReg(new IntegerConstant(new IRI32Type(),bytes))));
                 curBlock.push_back(new RInst(curBlock, add, getAsmReg(inst.result), getAsmReg(inst.ptr), szReg));
             }
         } else {
@@ -394,6 +402,9 @@ public class InstSelector implements Pass {
 
     @Override
     public void visit(storeInst inst) {
+        //if(!(inst.ptr instanceof GlobalVariable)&&inst.ptr.isLvalue)
+        //   curBlock.push_back(new Mv(curBlock, getAsmReg(inst.ptr), getAsmReg(inst.data)));
+        //else
         curBlock.push_back(new St(curBlock, inst.type.getBytes() == 1 ? sb : sw, getAsmReg(inst.data), getAsmReg(inst.ptr), new Imm(0)));
     }
 }

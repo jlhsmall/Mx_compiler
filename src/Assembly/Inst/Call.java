@@ -13,6 +13,7 @@ public class Call extends RISCVInst {
     public Call(AsmBlock par, AsmFn callee) {
         super(par);
         this.callee = callee;
+        par.parent.hasCall = true;
     }
 
     @Override

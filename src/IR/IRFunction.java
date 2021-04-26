@@ -38,7 +38,7 @@ public class IRFunction {
         }
         ptr = ptr + 1;
         registerNameMap.put(bas,ptr);
-        return bas + ptr;
+        return bas +"__"+ ptr;
     }
 
     public String getNameForBlock(String bas) {

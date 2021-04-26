@@ -25,6 +25,6 @@ public class Imm extends Operand {
     public String toString() {
         if (GReg == null)
             return "" + value;
-        return (isHigh ? "hi(" : "lo(") + GReg.name + ")";
+        return (isHigh ? "%hi(" : "%lo(") + GReg.name + ")";
     }
 }

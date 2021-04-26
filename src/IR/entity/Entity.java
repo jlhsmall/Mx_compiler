@@ -9,6 +9,7 @@ import IR.IRType.IRType;
 abstract public class Entity {
     public IRType type;
     public boolean isCond = false;
+    public boolean isLvalue;
     public Entity(IRType tp){
         type = tp;
     }

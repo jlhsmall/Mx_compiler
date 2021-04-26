@@ -22,6 +22,7 @@ public class funcEntity extends Entity{
         boolean comma=false;
         for(var para : paras){
             if (comma) ret.append(", ");
+            comma = true;
             ret.append(para.type.toString()).append(" ").append(para.toString());
         }
         ret.append(")");

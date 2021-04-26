@@ -2,6 +2,7 @@ package type;
 
 import IR.IRType.IRI8Type;
 import IR.IRType.IRPointerType;
+import IR.IRType.IRStringType;
 import IR.IRType.IRType;
 
 /**
@@ -23,6 +24,6 @@ public class StringType extends ClassType{
     }
     @Override
     public IRType toIRType(){
-        return new IRPointerType(new IRI8Type());
+        return new IRStringType();
     }
 }

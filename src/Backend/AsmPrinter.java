@@ -2,6 +2,7 @@ package Backend;
 
 import Assembly.AsmBlock;
 import Assembly.AsmFn;
+import Assembly.Inst.Mv;
 import Assembly.Inst.RISCVInst;
 import Assembly.Operand.GlobalReg;
 

@@ -15,16 +15,17 @@ import static Assembly.Inst.Ld.Category.lw;
 
 public class RegAlloc extends AsmVisitor{
     public AsmBlock curBlock;
+    public AsmFn curFn;
     public RegAlloc(InstSelector selector) {
         super(selector);
     }
 
     private RISCVInst loadVirtualReg(VirtualReg r, PhyReg rd) {
-        return new Ld(curBlock, lw,rd, sp, new Imm(r.index * 4));
+        return new Ld(curBlock, lw,rd, sp, new Imm((r.index-curFn.vRegIndex) * 4));
     }
 
     private RISCVInst storeVirtualReg(VirtualReg r) {
-        return new St(curBlock, sw, t2, sp, new Imm(r.index * 4));
+        return new St(curBlock, sw, t2, sp, new Imm((r.index-curFn.vRegIndex) * 4));
     }
 
     public void run(){
@@ -34,6 +35,7 @@ public class RegAlloc extends AsmVisitor{
         }
     }
     public void visitFn(AsmFn f) {
+        curFn = f;
         for (AsmBlock b : f.blocks) {
             curBlock = b;
             for (RISCVInst i = b.headInst; i != null; i = i.next) {

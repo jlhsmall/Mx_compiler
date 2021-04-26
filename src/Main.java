@@ -18,7 +18,7 @@ import java.io.PrintStream;
 public class Main {
     public static void main(String[] args) throws Exception{
 
-        String name = "testcases\\codegen\\e2.mx";
+        String name = "testcases\\codegen\\t1.mx";
         InputStream input = new FileInputStream(name);
         //InputStream input = System.in;
 
@@ -37,7 +37,7 @@ public class Main {
             new SemanticChecker().visit(ASTRoot);
             IRBuilder builder = new IRBuilder();
             builder.visit(ASTRoot);
-            new IRPrinter(System.out).visit(builder.module);
+            new IRPrinter(new PrintStream("test.ll")).visit(builder.module);
             InstSelector selector = new InstSelector();
             selector.visit(builder.module);
             new RegAlloc(selector).run();

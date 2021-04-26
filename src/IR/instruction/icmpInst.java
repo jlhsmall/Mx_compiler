@@ -25,7 +25,7 @@ public class icmpInst extends Inst {
 
     @Override
     public String toString() {
-        return result.toString() + " = icmp " + op.name() + " " + result.type.toString() + " " + lhs.toString() + " " + rhs.toString();
+        return result.toString() + " = icmp " + op.name() + " " + lhs.type.toString() + " " + lhs.toString() + " " + rhs.toString();
     }
 
     @Override

@@ -6,7 +6,7 @@ import Assembly.Operand.Reg;
 
 public class IInst extends RISCVInst {
     public enum Category {
-        addi, muli, divi, remi, slli, srai, andi, ori, xori, slti
+        addi, slli, srai, andi, ori, xori, slti
     }
 
     public Reg rd, rs1;

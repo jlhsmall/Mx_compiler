@@ -156,7 +156,7 @@ public class IRModule {
         StringSubstringFunc.arguments.add(new Argument(new IRStringType(), "str"));
         StringSubstringFunc.arguments.add(new Argument(new IRI32Type(), "left"));
         StringSubstringFunc.arguments.add(new Argument(new IRI32Type(), "right"));
-        FunctionMap.put("string__length", StringSubstringFunc);
+        FunctionMap.put("string__substring", StringSubstringFunc);
 
         IRFunction StringParseIntFunc = new IRFunction(this);
         StringParseIntFunc.isExternal = true;
