@@ -387,6 +387,10 @@ public class InstSelector implements Pass {
     }
 
     @Override
+    public void visit(moveInst inst){
+        curBlock.push_back(new Mv(curBlock,getAsmReg(inst.result),getAsmReg(inst.src)));
+    }
+    @Override
     public void visit(phiInst inst) {
 
     }

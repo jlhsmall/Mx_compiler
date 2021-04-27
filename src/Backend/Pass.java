@@ -23,6 +23,7 @@ public interface Pass {
     void visit(GEPInst inst);
     void visit(icmpInst inst);
     void visit(loadInst inst);
+    void visit(moveInst inst);
     void visit(phiInst inst);
     void visit(retInst inst);
     void visit(storeInst inst);

@@ -100,6 +100,10 @@ public class IRPrinter implements Pass {
     public void visit(loadInst inst) {
         out.println(INDENT + inst.toString());
     }
+    @Override
+    public void visit(moveInst inst) {
+        out.println(INDENT + inst.toString());
+    }
 
     @Override
     public void visit(phiInst inst) {
