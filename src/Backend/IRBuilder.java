@@ -362,6 +362,7 @@ public class IRBuilder implements ASTVisitor {
                 inst2 = new storeInst(curBlock, result, it.expr.lvalue);
                 curBlock.addInst(inst2);
                 it.entity = result;
+                it.lvalue = it.expr.lvalue;
                 break;
             case "--":
                 result = new Register(new IRI32Type(), curFunction.getNameForRegister("subReg"));
@@ -370,6 +371,7 @@ public class IRBuilder implements ASTVisitor {
                 inst2 = new storeInst(curBlock, result, it.expr.lvalue);
                 curBlock.addInst(inst2);
                 it.entity = result;
+                it.lvalue = it.expr.lvalue;
                 break;
             case "+":
                 it.entity = it.expr.entity;
