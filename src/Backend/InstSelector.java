@@ -329,7 +329,7 @@ public class InstSelector implements Pass {
                 curBlock.push_back(new RInst(curBlock, add, getAsmReg(inst.result), getAsmReg(inst.ptr), szReg));
             }
         } else {
-            ArrayList<IRType> members = ((IRStructureType) inst.ptr.type).members;
+            ArrayList<IRType> members = ((IRStructureType)((IRPointerType) inst.ptr.type).base).members;
             int pos = (int) ((IntegerConstant) inst.MemberIndex).value, offset = 0;
             for (int i = 0; i < pos - 1; ++i) offset += members.get(i).getBytes();
             curBlock.push_back(new IInst(curBlock, addi, getAsmReg(inst.result), getAsmReg(inst.ptr), new Imm(offset)));

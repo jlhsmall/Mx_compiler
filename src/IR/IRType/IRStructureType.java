@@ -25,7 +25,10 @@ public class IRStructureType extends IRType {
     @Override
     public int getBytes(){
         int ret = 0;
-        for (var tp : members) ret += tp.getBytes();
+        for (var tp : members) {
+            if(tp instanceof IRStructureType)ret +=4;
+            else ret += tp.getBytes();
+        }
         return ret;
     }
 }

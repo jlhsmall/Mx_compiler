@@ -25,6 +25,8 @@ public class GEPInst extends Inst {
         this.ptr = ptr;
         this.ArrayIndex = ArrayIndex;
         this.MemberIndex = MemberIndex;
+        if(!(ptr.type instanceof IRPointerType))
+            System.out.println();
     }
 
     @Override
