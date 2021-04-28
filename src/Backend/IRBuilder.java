@@ -625,6 +625,17 @@ public class IRBuilder implements ASTVisitor {
         return HeadPtr;
     }
 
+    public Entity getLValue(Entity entity){
+        IRType tp = entity.type;
+        funcEntity mallocFunc = new funcEntity(new IRPointerType(new IRI8Type()), "malloc", new ArrayList<>());
+        mallocFunc.paras.add(new IntegerConstant(new IRI32Type(), 4));
+        Register tmp = new Register(new IRPointerType(new IRI8Type()), curFunction.getNameForRegister("mallocReg"));
+        Register result = new Register(new IRPointerType(tp), curFunction.getNameForRegister("castReg"));
+        curBlock.addInst(new callInst(curBlock, tmp, mallocFunc));
+        curBlock.addInst(new bitCastInst(curBlock, result, tmp.type, tmp, result.type));
+        curBlock.addInst(new storeInst(curBlock,entity,result));
+        return result;
+    }
     @Override
     public void visit(CreatorNode it) {
         if (it.arraySizes.isEmpty()) {
@@ -648,8 +659,10 @@ public class IRBuilder implements ASTVisitor {
                 sz.accept(this);
                 sizes.add(sz.entity);
             }
-            it.entity = arrayAlloc(0, tp, sizes);
+            Entity result = arrayAlloc(0, tp, sizes);
+            it.entity = result;
         }
+        it.lvalue = getLValue(it.entity);
     }
 
     @Override
@@ -699,7 +712,7 @@ public class IRBuilder implements ASTVisitor {
             loadReg = new Register(((IRPointerType) ptr.type).base, curFunction.getNameForRegister("loadReg"));
             curBlock.addInst(new GEPInst(curBlock, result, ptr, index.entity, null));
             curBlock.addInst(new loadInst(curBlock, loadReg, loadReg.type, result));
-            ptr = result;
+            ptr = loadReg;
         }
         it.entity = loadReg;
         it.lvalue = result;

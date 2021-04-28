@@ -72,7 +72,7 @@ public class InstSelector implements Pass {
             val = ((BoolConstant) entity).value ? 1 : 0;
             bytes = 1;
         }
-        if(val==0)return zero;
+        if (val == 0) return zero;
         Reg ret = new VirtualReg(curFn, bytes);
         curBlock.push_back(new Li(curBlock, ret, new Imm(val)));
         return ret;
@@ -119,13 +119,21 @@ public class InstSelector implements Pass {
             AsmBlock b = i == 0 ? curFn.rootBlock : new AsmBlock(curFn);
             blockMap.put(irFunc.blocks.get(i).getAsmBlockKey(), b);
         }
-        curBlock=curFn.rootBlock;
-        for (int i = 0; i < irFunc.arguments.size();++i) {
+        curBlock = curFn.rootBlock;
+        ArrayList<VirtualReg>argVals= new ArrayList<>();
+        for (int i = 0; i < Integer.min(8, irFunc.arguments.size()); ++i) {
+            argVals.add(new VirtualReg(curFn, 4));
+            curBlock.push_back(new Mv(curBlock, argVals.get(i), argRegs.get(i)));
+        }
+        for (int i = 0; i < irFunc.arguments.size(); ++i) {
             Argument arg = irFunc.arguments.get(i);
-            if(i<8)
-                curBlock.push_back(new St(curBlock,sw,argRegs.get(i),getAsmReg(arg),new Imm(0)));
-            else
-                regMap.put(arg,new VirtualReg(curFn, 4));
+            if (i < 8) {
+                curBlock.push_back(new Li(curBlock, a0, new Imm(4)));
+                curBlock.push_back(new Call(curBlock, fnMap.get("malloc")));
+                curBlock.push_back(new Mv(curBlock, getAsmReg(arg), a0));
+                curBlock.push_back(new St(curBlock, sw, argVals.get(i), getAsmReg(arg), new Imm(0)));
+            } else
+                regMap.put(arg, new VirtualReg(curFn, 4));
         }
         for (int i = 0; i < irFunc.blocks.size(); ++i) {
             curBlock = blockMap.get(irFunc.blocks.get(i).getAsmBlockKey());
@@ -166,12 +174,10 @@ public class InstSelector implements Pass {
 
     @Override
     public void visit(allocaInst inst) {
-        IRType tp = ((IRPointerType)inst.type).base;
-        if (tp instanceof IRIntegerType) {
-            curBlock.push_back(new Li(curBlock,a0,new Imm(tp.getBytes())));
-            curBlock.push_back(new Call(curBlock, fnMap.get("malloc")));
-            curBlock.push_back(new Mv(curBlock,getAsmReg(inst.result),a0));
-        }
+        IRType tp = ((IRPointerType) inst.type).base;
+        curBlock.push_back(new Li(curBlock, a0, new Imm(tp.getBytes())));
+        curBlock.push_back(new Call(curBlock, fnMap.get("malloc")));
+        curBlock.push_back(new Mv(curBlock, getAsmReg(inst.result), a0));
     }
 
     public boolean checkImmBound(int i) {
@@ -319,7 +325,7 @@ public class InstSelector implements Pass {
                 curBlock.push_back(new IInst(curBlock, addi, getAsmReg(inst.result), getAsmReg(inst.ptr), new Imm(sz)));
             } else {
                 VirtualReg szReg = new VirtualReg(curFn, 4);
-                curBlock.push_back(new RInst(curBlock, mul, szReg, getAsmReg(inst.ArrayIndex), getAsmReg(new IntegerConstant(new IRI32Type(),bytes))));
+                curBlock.push_back(new RInst(curBlock, mul, szReg, getAsmReg(inst.ArrayIndex), getAsmReg(new IntegerConstant(new IRI32Type(), bytes))));
                 curBlock.push_back(new RInst(curBlock, add, getAsmReg(inst.result), getAsmReg(inst.ptr), szReg));
             }
         } else {
@@ -387,9 +393,10 @@ public class InstSelector implements Pass {
     }
 
     @Override
-    public void visit(moveInst inst){
-        curBlock.push_back(new Mv(curBlock,getAsmReg(inst.result),getAsmReg(inst.src)));
+    public void visit(moveInst inst) {
+        curBlock.push_back(new Mv(curBlock, getAsmReg(inst.result), getAsmReg(inst.src)));
     }
+
     @Override
     public void visit(phiInst inst) {
 
