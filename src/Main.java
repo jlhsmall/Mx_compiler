@@ -18,9 +18,9 @@ import java.io.PrintStream;
 public class Main {
     public static void main(String[] args) throws Exception{
 
-        String name = "testcases\\codegen\\t1.mx";
-        InputStream input = new FileInputStream(name);
-        //InputStream input = System.in;
+        String name = "testcases\\codegen\\t3.mx";
+        //InputStream input = new FileInputStream(name);
+        InputStream input = System.in;
 
         try {
             RootNode ASTRoot;
