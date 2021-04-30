@@ -18,7 +18,7 @@ import java.io.PrintStream;
 public class Main {
     public static void main(String[] args) throws Exception{
 
-        String name = "testcases\\sema\\basic-package\\basic-59.mx";
+        String name = "testcases\\codegen\\t1.mx";
         //InputStream input = new FileInputStream(name);
         InputStream input = System.in;
 
@@ -41,7 +41,8 @@ public class Main {
             InstSelector selector = new InstSelector();
             selector.visit(builder.module);
             new RegAlloc(selector).run();
-            new AsmPrinter(selector,new PrintStream("test.s")).print();
+            //new AsmPrinter(selector,new PrintStream("test.s")).print();
+            new AsmPrinter(selector,new PrintStream("code.txt")).print();
 
 
         } catch (error er) {
