@@ -17,11 +17,9 @@ import IR.entity.Argument;
 import IR.entity.Entity;
 import IR.entity.GlobalVariable;
 import IR.entity.Register;
-import IR.entity.constant.BoolConstant;
-import IR.entity.constant.Constant;
-import IR.entity.constant.IntegerConstant;
-import IR.entity.constant.StringConstant;
+import IR.entity.constant.*;
 import IR.instruction.*;
+import type.NullType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,9 +66,13 @@ public class InstSelector implements Pass {
         if (entity instanceof IntegerConstant) {
             val = (int) ((IntegerConstant) entity).value;
             bytes = ((IntegerConstant) entity).type.getBytes();
-        } else {
+        } else if(entity instanceof BoolConstant){
             val = ((BoolConstant) entity).value ? 1 : 0;
             bytes = 1;
+        } else{
+            assert(entity instanceof NullConstant);
+            val = 0;
+            bytes = 4;
         }
         if (val == 0) return zero;
         Reg ret = new VirtualReg(curFn, bytes);

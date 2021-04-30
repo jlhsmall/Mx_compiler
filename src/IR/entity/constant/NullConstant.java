@@ -1,5 +1,6 @@
 package IR.entity.constant;
 
+import IR.IRType.IRNullType;
 import IR.IRType.IRVoidType;
 
 /**
@@ -8,9 +9,9 @@ import IR.IRType.IRVoidType;
  */
 public class NullConstant extends Constant{
     public NullConstant(){
-        super(new IRVoidType());
+        super(new IRNullType());
     }
     public String toString(){
-        return "null";
+        return "Null";
     }
 }

@@ -1,6 +1,6 @@
 package type;
 
-import IR.IRType.IRVoidType;
+import IR.IRType.IRNullType;
 import IR.IRType.IRType;
 
 /**
@@ -22,6 +22,6 @@ public class NullType extends Type {
     }
     @Override
     public IRType toIRType(){
-        return new IRVoidType();
+        return new IRNullType();
     }
 }

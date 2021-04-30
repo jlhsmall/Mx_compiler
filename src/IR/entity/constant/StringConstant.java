@@ -1,6 +1,5 @@
 package IR.entity.constant;
 
-import IR.IRType.IRArrayType;
 import IR.IRType.IRI8Type;
 import IR.IRType.IRStringType;
 
@@ -13,7 +12,6 @@ public class StringConstant extends Constant {
 
     public StringConstant(String val) {
         super(new IRStringType());
-        //super(new IRArrayType(new IRI8Type(), val.length()));
         value = val;
     }
 

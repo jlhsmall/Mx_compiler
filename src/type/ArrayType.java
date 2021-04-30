@@ -2,7 +2,6 @@ package type;
 
 import AST.ExprNode;
 import Frontend.SemanticChecker;
-import IR.IRType.IRArrayType;
 import IR.IRType.IRPointerType;
 import IR.IRType.IRType;
 
