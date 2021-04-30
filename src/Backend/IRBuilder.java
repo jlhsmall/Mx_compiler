@@ -357,6 +357,7 @@ public class IRBuilder implements ASTVisitor {
     public void visit(newExprNode it) {
         it.creator.accept(this);
         it.entity = it.creator.entity;
+        it.lvalue = it.creator.lvalue;
     }
 
     @Override
@@ -699,6 +700,7 @@ public class IRBuilder implements ASTVisitor {
     public void visit(paronAtomNode it) {
         it.expr.accept(this);
         it.entity = it.expr.entity;
+        it.lvalue = it.expr.lvalue;
     }
 
     @Override
