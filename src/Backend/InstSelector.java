@@ -197,7 +197,7 @@ public class InstSelector implements Pass {
                 if (checkImm(inst.rhs))
                     curBlock.push_back(new IInst(curBlock, addi, getAsmReg(inst.result), getAsmReg(inst.lhs), new Imm(((IntegerConstant) inst.rhs).value)));
                 else if (checkImm(inst.lhs))
-                    curBlock.push_back(new IInst(curBlock, addi, getAsmReg(inst.result), getAsmReg(inst.rhs), new Imm(((IntegerConstant) inst.rhs).value)));
+                    curBlock.push_back(new IInst(curBlock, addi, getAsmReg(inst.result), getAsmReg(inst.rhs), new Imm(((IntegerConstant) inst.lhs).value)));
                 else
                     curBlock.push_back(new RInst(curBlock, add, getAsmReg(inst.result), getAsmReg(inst.lhs), getAsmReg(inst.rhs)));
                 break;
