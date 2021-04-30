@@ -59,6 +59,16 @@ public class IRBuilder implements ASTVisitor {
             irStruct.name = classDef.name;
             module.StructureMap.put(irStruct.name, irStruct);
         }
+        for (var classDef : it.classDefs) {
+            IRStructure irStruct = module.StructureMap.get(classDef.name);
+            for (var varDef : classDef.varDefs) {
+                IRType tp = varDef.varType.type.toIRType();
+                for (var nm : varDef.names) {
+                    irStruct.nameList.add(nm);
+                    irStruct.typeList.add(tp);
+                }
+            }
+        }
         for (var varDef : it.varDefs) {
             IRType tp = varDef.varType.type.toIRType();
             if (varDef.expr != null) {
@@ -78,16 +88,6 @@ public class IRBuilder implements ASTVisitor {
             }
         }
         module.FunctionMap.put("init_main", initFunc);
-        for (var classDef : it.classDefs) {
-            IRStructure irStruct = module.StructureMap.get(classDef.name);
-            for (var varDef : classDef.varDefs) {
-                IRType tp = varDef.varType.type.toIRType();
-                for (var nm : varDef.names) {
-                    irStruct.nameList.add(nm);
-                    irStruct.typeList.add(tp);
-                }
-            }
-        }
 
         for (var classDef : it.classDefs) {
             IRStructure irStruct = module.StructureMap.get(classDef.name);
