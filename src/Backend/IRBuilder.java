@@ -682,15 +682,23 @@ public class IRBuilder implements ASTVisitor {
             funcEntity mallocFunc = new funcEntity(new IRPointerType(new IRI8Type()), "malloc", new ArrayList<>());
             mallocFunc.paras.add(new IntegerConstant(new IRI32Type(), tp.getBytes()));
             Register tmp = new Register(new IRPointerType(new IRI8Type()), curFunction.getNameForRegister("mallocReg"));
-            Register result = new Register(tp, curFunction.getNameForRegister("castReg"));
+            Register castReg = new Register(new IRPointerType(tp), curFunction.getNameForRegister("castReg"));
             curBlock.addInst(new callInst(curBlock, tmp, mallocFunc));
-            curBlock.addInst(new bitCastInst(curBlock, result, tmp.type, tmp, tp));
+            curBlock.addInst(new bitCastInst(curBlock, castReg, tmp.type, tmp, new IRPointerType(tp)));
             IRStructure irStruct = module.StructureMap.get(tp.name);
+            Register result = new Register(tp,"structResult");
             if (irStruct.hasConsFunc) {
-                funcEntity consFunc = new funcEntity(tp, tp.name, new ArrayList<>());
+                ArrayList<Entity>paras = new ArrayList<>();
+                paras.add(castReg);
+                funcEntity consFunc = new funcEntity(tp, tp.name, paras);
                 curBlock.addInst(new callInst(curBlock, result, consFunc));
+                curBlock.addInst(new storeInst(curBlock,result,castReg));
+            }
+            else{
+                curBlock.addInst(new loadInst(curBlock,result,tp,castReg));
             }
             it.entity = result;
+            it.lvalue = castReg;
         } else {
             IRPointerType tp = (IRPointerType) it.type.toIRType();
             ArrayList<Entity> sizes = new ArrayList<>();
@@ -700,8 +708,8 @@ public class IRBuilder implements ASTVisitor {
             }
             Entity result = arrayAlloc(0, tp, sizes);
             it.entity = result;
+            it.lvalue = getLValue(it.entity);
         }
-        it.lvalue = getLValue(it.entity);
     }
 
     @Override
@@ -803,8 +811,14 @@ public class IRBuilder implements ASTVisitor {
         Register result = new Register(it.type.toIRType(), curFunction.getNameForRegister("funcReg"));
         callInst inst = new callInst(curBlock, result, func);
         curBlock.addInst(inst);
-        it.entity = result;
-        it.lvalue = getLValue(result);
+        if(!(it.type instanceof NullType)) {
+            it.entity = result;
+            it.lvalue = getLValue(result);
+        }
+        else{
+            it.entity = null;
+            it.lvalue = null;
+        }
     }
 
     @Override

@@ -1,6 +1,8 @@
 package IR.instruction;
 
 import IR.IRBasicBlock;
+import IR.IRType.IRNullType;
+import IR.IRType.IRPointerType;
 import IR.IRType.IRType;
 import Backend.Pass;
 import IR.entity.Entity;
@@ -22,6 +24,8 @@ public class bitCastInst extends Inst {
         this.type2 = tp2;
         this.value = val;
         result.defInst = this;
+        if(((IRPointerType)tp2).base instanceof IRNullType)
+            System.out.println();
     }
 
     @Override

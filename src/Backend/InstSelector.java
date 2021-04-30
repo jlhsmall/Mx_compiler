@@ -130,10 +130,14 @@ public class InstSelector implements Pass {
         for (int i = 0; i < irFunc.arguments.size(); ++i) {
             Argument arg = irFunc.arguments.get(i);
             if (i < 8) {
-                curBlock.push_back(new Li(curBlock, a0, new Imm(4)));
-                curBlock.push_back(new Call(curBlock, fnMap.get("malloc")));
-                curBlock.push_back(new Mv(curBlock, getAsmReg(arg), a0));
-                curBlock.push_back(new St(curBlock, sw, argVals.get(i), getAsmReg(arg), new Imm(0)));
+                if(!(arg.type instanceof IRPointerType)) {
+                    curBlock.push_back(new Li(curBlock, a0, new Imm(4)));
+                    curBlock.push_back(new Call(curBlock, fnMap.get("malloc")));
+                    curBlock.push_back(new Mv(curBlock, getAsmReg(arg), a0));
+                    curBlock.push_back(new St(curBlock, sw, argVals.get(i), getAsmReg(arg), new Imm(0)));
+                }
+                else
+                    regMap.put(arg,argVals.get(i));
             } else
                 regMap.put(arg, new VirtualReg(curFn, 4));
         }
