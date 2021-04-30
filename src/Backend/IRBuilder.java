@@ -31,7 +31,7 @@ public class IRBuilder implements ASTVisitor {
     IRStructure curStruct, outsideStruct;
     Entity curInstPtr;
     Stack<Scope> scopes;
-    Stack<IRBasicBlock> loopCondBlocks, loopEndBlocks;
+    Stack<IRBasicBlock> loopBeginBlocks, loopEndBlocks;
     Scope thisScope;
     Entity checkThis;
     IRFunction initFunc;
@@ -39,7 +39,7 @@ public class IRBuilder implements ASTVisitor {
     public IRBuilder() {
         module = new IRModule();
         scopes = new Stack<>();
-        loopCondBlocks = new Stack<>();
+        loopBeginBlocks = new Stack<>();
         loopEndBlocks = new Stack<>();
         checkThis = new NullConstant();
         initFunc = new IRFunction(module);
@@ -287,13 +287,13 @@ public class IRBuilder implements ASTVisitor {
         it.cond.entity.isCond = true;
         curBlock.addInst(new brInst(curBlock, it.cond.entity, bodyBlock, endBlock));
         scopes.push(new Scope(scopes.peek()));
-        loopCondBlocks.push(condBlock);
+        loopBeginBlocks.push(condBlock);
         loopEndBlocks.push(endBlock);
         curBlock = bodyBlock;
         it.stmt.accept(this);
         curBlock.addInst(new brInst(curBlock, null, condBlock, null));
         loopEndBlocks.pop();
-        loopCondBlocks.pop();
+        loopBeginBlocks.pop();
         scopes.pop();
         curBlock = endBlock;
     }
@@ -309,19 +309,25 @@ public class IRBuilder implements ASTVisitor {
             it.init.accept(this);
         if (it.cond != null) {
             curFunction.blocks.add(condBlock);
+            loopBeginBlocks.push(condBlock);
             curBlock.addInst(new brInst(curBlock, null, condBlock, null));
             curBlock = condBlock;
             it.cond.accept(this);
             it.cond.entity.isCond = true;
             curBlock.addInst(new brInst(curBlock, it.cond.entity, bodyBlock, endBlock));
-        } else
+        } else {
+            loopBeginBlocks.push(bodyBlock);
             curBlock.addInst(new brInst(curBlock, null, bodyBlock, null));
+        }
+        loopEndBlocks.push(endBlock);
         curBlock = bodyBlock;
         curFunction.blocks.add(bodyBlock);
         it.stmt.accept(this);
         if (it.incr != null)
             it.incr.accept(this);
         curBlock.addInst(new brInst(curBlock, null, condBlock, null));
+        loopEndBlocks.pop();
+        loopBeginBlocks.pop();
         scopes.pop();
         curBlock = endBlock;
         curFunction.blocks.add(endBlock);
@@ -345,7 +351,7 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public void visit(continueStmtNode it) {
-        curBlock.addInst(new brInst(curBlock, null, loopCondBlocks.peek(), null));
+        curBlock.addInst(new brInst(curBlock, null, loopBeginBlocks.peek(), null));
     }
 
     @Override
@@ -466,6 +472,7 @@ public class IRBuilder implements ASTVisitor {
             }
             curBlock.addInst(new callInst(curBlock, result, func));
             it.entity = result;
+            it.lvalue = getLValue(result);
             return;
         }
         if (it.op.equals("&&")) {
@@ -680,7 +687,7 @@ public class IRBuilder implements ASTVisitor {
             curBlock.addInst(new bitCastInst(curBlock, result, tmp.type, tmp, tp));
             IRStructure irStruct = module.StructureMap.get(tp.name);
             if (irStruct.hasConsFunc) {
-                funcEntity consFunc = new funcEntity(tp, tp.name + "__" + tp.name, new ArrayList<>());
+                funcEntity consFunc = new funcEntity(tp, tp.name, new ArrayList<>());
                 curBlock.addInst(new callInst(curBlock, result, consFunc));
             }
             it.entity = result;
@@ -757,6 +764,8 @@ public class IRBuilder implements ASTVisitor {
         it.inst.accept(this);
         if (it.inst.entity.type instanceof IRStructureType) {
             curInstPtr = it.inst.lvalue;
+            if (curInstPtr == null)
+                System.out.println();
             curStruct = module.StructureMap.get(((IRStructureType) ((IRPointerType) curInstPtr.type).base).name);
             it.field.accept(this);
             it.entity = it.field.entity;
