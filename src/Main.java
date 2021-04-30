@@ -42,7 +42,7 @@ public class Main {
             selector.visit(builder.module);
             new RegAlloc(selector).run();
             //new AsmPrinter(selector,new PrintStream("test.s")).print();
-            new AsmPrinter(selector,new PrintStream("code.txt")).print();
+            new AsmPrinter(selector,new PrintStream("output.s")).print();
 
 
         } catch (error er) {
