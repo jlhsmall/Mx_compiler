@@ -91,6 +91,7 @@ public class IRBuilder implements ASTVisitor {
 
         for (var classDef : it.classDefs) {
             IRStructure irStruct = module.StructureMap.get(classDef.name);
+            outsideStruct = irStruct;
             for (var funcDef : classDef.funcDefs) {
                 IRFunction irFunc = new IRFunction(module);
                 thisScope = new Scope(scopes.peek());
@@ -101,7 +102,6 @@ public class IRBuilder implements ASTVisitor {
                 irFunc.name = classDef.name + "__" + funcDef.name;
                 irFunc.retType = funcDef.funcType.type.toIRType();
                 scopes.push(new Scope(thisScope));
-                outsideStruct = irStruct;
                 Argument arg = new Argument(new IRPointerType(new IRStructureType(classDef.name)), "this");
                 irFunc.arguments.add(arg);
                 scopes.peek().varEntities.put("this", arg);
@@ -122,14 +122,20 @@ public class IRBuilder implements ASTVisitor {
             else {
                 irStruct.hasConsFunc = true;
                 IRFunction irConsFunc = new IRFunction(module);
+                thisScope = new Scope(scopes.peek());
+                scopes.push(thisScope);
+                for (var nm : irStruct.nameList)
+                    thisScope.varEntities.put(nm, checkThis);
                 curFunction = irConsFunc;
                 irConsFunc.name = classDef.name + "__" + classDef.name;
                 funcDefNode consFuncDef = classDef.consFuncDefs.get(0);
                 irConsFunc.retType = new IRStructureType(classDef.name);
                 scopes.push(new Scope(scopes.peek()));
-                irConsFunc.arguments.add(new Argument(new IRStructureType(classDef.name), "this"));
+                Argument arg =new Argument(new IRPointerType(new IRStructureType(classDef.name)), "this");
+                irConsFunc.arguments.add(arg);
+                scopes.peek().varEntities.put("this", arg);
                 for (var para : consFuncDef.paras) {
-                    Argument arg = new Argument(new IRPointerType(para.varType.type.toIRType()), para.names.get(0));
+                    arg = new Argument(new IRPointerType(para.varType.type.toIRType()), para.names.get(0));
                     irConsFunc.arguments.add(arg);
                     scopes.peek().varEntities.put(arg.name, arg);
                 }
@@ -137,6 +143,7 @@ public class IRBuilder implements ASTVisitor {
                 irConsFunc.blocks.add(curBlock);
                 consFuncDef.funcBody.accept(this);
                 module.FunctionMap.put(irConsFunc.name, irConsFunc);
+                scopes.pop();
                 scopes.pop();
             }
         }
