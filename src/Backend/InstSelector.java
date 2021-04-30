@@ -145,6 +145,7 @@ public class InstSelector implements Pass {
             curFn.blocks.add(curBlock);
         }
         if (!(curBlock.tailInst instanceof Ret)) {
+            curBlock.push_back(new Mv(curBlock,a0,zero));
             Ret tmp = new Ret(curBlock);
             curBlock.push_back(tmp);
             curFn.RetList.add(tmp);
