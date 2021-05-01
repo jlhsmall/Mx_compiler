@@ -360,6 +360,8 @@ public class InstSelector implements Pass {
                     curBlock.push_back(new IInst(curBlock, xori, reg, getAsmReg(inst.lhs), new Imm(((IntegerConstant) inst.rhs).value)));
                 else if (checkImm(inst.lhs))
                     curBlock.push_back(new IInst(curBlock, xori, reg, getAsmReg(inst.rhs), new Imm(((IntegerConstant) inst.lhs).value)));
+                else
+                    curBlock.push_back(new RInst(curBlock, xor, reg, getAsmReg(inst.lhs), getAsmReg(inst.rhs)));
                 curBlock.push_back(new Sz(curBlock, snez, getAsmReg(inst.result), reg));
                 break;
             case slt:
