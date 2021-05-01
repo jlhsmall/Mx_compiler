@@ -147,7 +147,7 @@ public class IRBuilder implements ASTVisitor {
                 scopes.pop();
             }
         }
-
+        outsideStruct = null;
         for (var funcDef : it.funcDefs) {
             IRFunction irFunc = new IRFunction(module);
             curFunction = irFunc;
@@ -797,8 +797,18 @@ public class IRBuilder implements ASTVisitor {
             nm = curStruct.name + "__" + it.name;
             curStruct = null;
             curInstPtr = null;
-        } else
+        } else if(outsideStruct != null && module.FunctionMap.containsKey(outsideStruct.name + "__" + it.name)) {
+            curStruct = outsideStruct;
+            Entity thisPtr = scopes.peek().getVarEntity("this", true);
+            Register loadReg = new Register(((IRPointerType) thisPtr.type).base, curFunction.getNameForRegister("loadReg"));
+            curBlock.addInst(new loadInst(curBlock, loadReg, loadReg.type, thisPtr));
+            curInstPtr = loadReg;
+            it.accept(this);
+            return;
+        }
+        else{
             nm = it.name;
+        }
         for (var para : it.paras) {
             para.accept(this);
             paras.add(para.entity);
