@@ -1,7 +1,7 @@
 package type;
 
 import Frontend.SemanticChecker;
-import IR.IRType.IRStructureType;
+import IR.IRType.IRStructurePtrType;
 import IR.IRType.IRType;
 
 import java.util.HashSet;
@@ -38,6 +38,6 @@ public class ClassType extends Type {
 
     @Override
     public IRType toIRType(){
-        return new IRStructureType(name);
+        return new IRStructurePtrType(name);
     }
 }

@@ -130,13 +130,11 @@ public class InstSelector implements Pass {
         for (int i = 0; i < irFunc.arguments.size(); ++i) {
             Argument arg = irFunc.arguments.get(i);
             if (i < 8) {
-                if((arg.type instanceof IRPointerType) && (((IRPointerType)arg.type).base instanceof IRStructureType))regMap.put(arg,argVals.get(i));
-                else{
                     curBlock.push_back(new Li(curBlock, a0, new Imm(4)));
                     curBlock.push_back(new Call(curBlock, fnMap.get("malloc")));
                     curBlock.push_back(new Mv(curBlock, getAsmReg(arg), a0));
                     curBlock.push_back(new St(curBlock, sw, argVals.get(i), getAsmReg(arg), new Imm(0)));
-                }
+                //}
             } else
                 regMap.put(arg, new VirtualReg(curFn, 4));
         }
@@ -335,7 +333,7 @@ public class InstSelector implements Pass {
                 curBlock.push_back(new RInst(curBlock, add, getAsmReg(inst.result), getAsmReg(inst.ptr), szReg));
             }
         } else {
-            ArrayList<IRType> members = ((IRStructureType)((IRPointerType) inst.ptr.type).base).members;
+            ArrayList<IRType> members = ((IRStructureType)((IRStructurePtrType) inst.ptr.type).base).members;
             int pos = (int) ((IntegerConstant) inst.MemberIndex).value, offset = 0;
             for (int i = 0; i < pos - 1; ++i) offset += members.get(i).getBytes();
             curBlock.push_back(new IInst(curBlock, addi, getAsmReg(inst.result), getAsmReg(inst.ptr), new Imm(offset)));

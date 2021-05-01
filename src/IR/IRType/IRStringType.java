@@ -7,7 +7,7 @@ import IR.IRStructure;
  * @author Jlhsmall
  * @date 2021/4/4 16:06
  */
-public class IRStringType extends IRStructureType{
+public class IRStringType extends IRStructurePtrType{
     static final IRType realType = new IRPointerType(new IRI8Type());
     public IRStringType(){
         super("string");

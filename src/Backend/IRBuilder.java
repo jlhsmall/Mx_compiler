@@ -102,7 +102,7 @@ public class IRBuilder implements ASTVisitor {
                 irFunc.name = classDef.name + "__" + funcDef.name;
                 irFunc.retType = funcDef.funcType.type.toIRType();
                 scopes.push(new Scope(thisScope));
-                Argument arg = new Argument(new IRPointerType(new IRStructureType(classDef.name)), "this");
+                Argument arg = new Argument(new IRPointerType(new IRStructurePtrType(classDef.name)), "this");
                 irFunc.arguments.add(arg);
                 scopes.peek().varEntities.put("this", arg);
                 for (var para : funcDef.paras) {
@@ -129,9 +129,9 @@ public class IRBuilder implements ASTVisitor {
                 curFunction = irConsFunc;
                 irConsFunc.name = classDef.name + "__" + classDef.name;
                 funcDefNode consFuncDef = classDef.consFuncDefs.get(0);
-                irConsFunc.retType = new IRStructureType(classDef.name);
+                irConsFunc.retType = new IRStructurePtrType(classDef.name);
                 scopes.push(new Scope(scopes.peek()));
-                Argument arg = new Argument(new IRPointerType(new IRStructureType(classDef.name)), "this");
+                Argument arg = new Argument(new IRPointerType(new IRStructurePtrType(classDef.name)), "this");
                 irConsFunc.arguments.add(arg);
                 scopes.peek().varEntities.put("this", arg);
                 for (var para : consFuncDef.paras) {
@@ -678,27 +678,22 @@ public class IRBuilder implements ASTVisitor {
     @Override
     public void visit(CreatorNode it) {
         if (it.arraySizes.isEmpty()) {
-            IRStructureType tp = (IRStructureType) it.type.toIRType();
+            IRStructurePtrType tp = (IRStructurePtrType) it.type.toIRType();
             funcEntity mallocFunc = new funcEntity(new IRPointerType(new IRI8Type()), "malloc", new ArrayList<>());
-            mallocFunc.paras.add(new IntegerConstant(new IRI32Type(), tp.getBytes()));
+            mallocFunc.paras.add(new IntegerConstant(new IRI32Type(), tp.base.getBytes()));
             Register tmp = new Register(new IRPointerType(new IRI8Type()), curFunction.getNameForRegister("mallocReg"));
-            Register castReg = new Register(new IRPointerType(tp), curFunction.getNameForRegister("castReg"));
+            Register castReg = new Register(tp, curFunction.getNameForRegister("castReg"));
             curBlock.addInst(new callInst(curBlock, tmp, mallocFunc));
-            curBlock.addInst(new bitCastInst(curBlock, castReg, tmp.type, tmp, new IRPointerType(tp)));
-            IRStructure irStruct = module.StructureMap.get(tp.name);
-            Register result = new Register(tp,"structResult");
+            curBlock.addInst(new bitCastInst(curBlock, castReg, tmp.type, tmp, tp));
+            IRStructure irStruct = module.StructureMap.get(tp.baseName);
             if (irStruct.hasConsFunc) {
                 ArrayList<Entity>paras = new ArrayList<>();
                 paras.add(castReg);
-                funcEntity consFunc = new funcEntity(tp, tp.name, paras);
-                curBlock.addInst(new callInst(curBlock, result, consFunc));
-                curBlock.addInst(new storeInst(curBlock,result,castReg));
+                funcEntity consFunc = new funcEntity(tp, tp.baseName, paras);
+                curBlock.addInst(new callInst(curBlock, null, consFunc));
             }
-            else{
-                curBlock.addInst(new loadInst(curBlock,result,tp,castReg));
-            }
-            it.entity = result;
-            it.lvalue = castReg;
+            it.entity = castReg;
+            it.lvalue = getLValue(castReg);
         } else {
             IRPointerType tp = (IRPointerType) it.type.toIRType();
             ArrayList<Entity> sizes = new ArrayList<>();
@@ -708,7 +703,7 @@ public class IRBuilder implements ASTVisitor {
             }
             Entity result = arrayAlloc(0, tp, sizes);
             it.entity = result;
-            it.lvalue = getLValue(it.entity);
+            it.lvalue = getLValue(result);
         }
     }
 
@@ -725,8 +720,11 @@ public class IRBuilder implements ASTVisitor {
         if (curStruct == null) {
             Entity tmp = scopes.peek().getVarEntity(it.name, true);
             if (tmp == checkThis) {
-                curInstPtr = scopes.peek().getVarEntity("this", true);
                 curStruct = outsideStruct;
+                Entity thisPtr = scopes.peek().getVarEntity("this", true);
+                loadReg = new Register(((IRPointerType) thisPtr.type).base, curFunction.getNameForRegister("loadReg"));
+                curBlock.addInst(new loadInst(curBlock, loadReg, loadReg.type, thisPtr));
+                curInstPtr = loadReg;
                 it.accept(this);
             } else {
                 loadReg = new Register(((IRPointerType) tmp.type).base, curFunction.getNameForRegister("loadReg"));
@@ -770,11 +768,9 @@ public class IRBuilder implements ASTVisitor {
     @Override
     public void visit(classExprNode it) {
         it.inst.accept(this);
-        if (it.inst.entity.type instanceof IRStructureType) {
-            curInstPtr = it.inst.lvalue;
-            if (curInstPtr == null)
-                System.out.println();
-            curStruct = module.StructureMap.get(((IRStructureType) ((IRPointerType) curInstPtr.type).base).name);
+        if (it.inst.entity.type instanceof IRStructurePtrType) {
+            curInstPtr = it.inst.entity;
+            curStruct = module.StructureMap.get(((IRStructurePtrType) curInstPtr.type).baseName);
             it.field.accept(this);
             it.entity = it.field.entity;
             it.lvalue = it.field.lvalue;
@@ -824,12 +820,11 @@ public class IRBuilder implements ASTVisitor {
     @Override
     public void visit(thisAtomNode it) {
         curStruct = outsideStruct;
-        curInstPtr = scopes.peek().getVarEntity("this", true);
-        Register loadReg = new Register(((IRPointerType) curInstPtr.type).base, curFunction.getNameForRegister("loadReg"));
-        curBlock.addInst(new loadInst(curBlock, loadReg, loadReg.type, curInstPtr));
-        it.entity = loadReg;
-        it.lvalue = curInstPtr;
-        curInstPtr.isLvalue = true;
+        Entity thisPtr = scopes.peek().getVarEntity("this", true);
+        Register loadReg = new Register(((IRPointerType) thisPtr.type).base, curFunction.getNameForRegister("loadReg"));
+        curBlock.addInst(new loadInst(curBlock, loadReg, loadReg.type, thisPtr));
+        curInstPtr = it.entity = loadReg;
+        it.lvalue = thisPtr;
     }
 
     @Override
