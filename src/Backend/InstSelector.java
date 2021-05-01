@@ -154,10 +154,10 @@ public class InstSelector implements Pass {
         RISCVInst curHead = curFn.rootBlock.headInst;
         if (curFn.hasCall) {
             for (var ret : curFn.RetList)
-                curBlock.insert_before(ret, new Ld(curBlock, lw, ra, sp, new Imm(stackLength - 4)));
+                ret.parent.insert_before(ret, new Ld(ret.parent, lw, ra, sp, new Imm(stackLength - 4)));
         }
         for (var ret : curFn.RetList)
-            curBlock.insert_before(ret, new IInst(curBlock, addi, sp, sp, new Imm(stackLength)));
+            ret.parent.insert_before(ret, new IInst(ret.parent, addi, sp, sp, new Imm(stackLength)));
         for (int i = 8, offset = stackLength; i <= irFunc.arguments.size() - 1; ++i) {
             //int sz = irFunc.arguments.get(i).type.getBytes();
             curFn.rootBlock.insert_before(curHead, new IInst(curFn.rootBlock, addi,

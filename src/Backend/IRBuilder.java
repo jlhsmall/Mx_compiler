@@ -325,7 +325,7 @@ public class IRBuilder implements ASTVisitor {
         it.stmt.accept(this);
         if (it.incr != null)
             it.incr.accept(this);
-        curBlock.addInst(new brInst(curBlock, null, condBlock, null));
+        curBlock.addInst(new brInst(curBlock, null, it.cond == null ? bodyBlock :condBlock, null));
         loopEndBlocks.pop();
         loopBeginBlocks.pop();
         scopes.pop();
