@@ -689,7 +689,7 @@ public class IRBuilder implements ASTVisitor {
             if (irStruct.hasConsFunc) {
                 ArrayList<Entity>paras = new ArrayList<>();
                 paras.add(castReg);
-                funcEntity consFunc = new funcEntity(tp, tp.baseName, paras);
+                funcEntity consFunc = new funcEntity(tp, tp.baseName + "__" + tp.baseName, paras);
                 curBlock.addInst(new callInst(curBlock, null, consFunc));
             }
             it.entity = castReg;
