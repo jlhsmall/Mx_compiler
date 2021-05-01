@@ -66,11 +66,11 @@ public class InstSelector implements Pass {
         if (entity instanceof IntegerConstant) {
             val = (int) ((IntegerConstant) entity).value;
             bytes = ((IntegerConstant) entity).type.getBytes();
-        } else if(entity instanceof BoolConstant){
+        } else if (entity instanceof BoolConstant) {
             val = ((BoolConstant) entity).value ? 1 : 0;
             bytes = 1;
-        } else{
-            assert(entity instanceof NullConstant);
+        } else {
+            assert (entity instanceof NullConstant);
             val = 0;
             bytes = 4;
         }
@@ -122,7 +122,7 @@ public class InstSelector implements Pass {
             blockMap.put(irFunc.blocks.get(i).getAsmBlockKey(), b);
         }
         curBlock = curFn.rootBlock;
-        ArrayList<VirtualReg>argVals= new ArrayList<>();
+        ArrayList<VirtualReg> argVals = new ArrayList<>();
         for (int i = 0; i < Integer.min(8, irFunc.arguments.size()); ++i) {
             argVals.add(new VirtualReg(curFn, 4));
             curBlock.push_back(new Mv(curBlock, argVals.get(i), argRegs.get(i)));
@@ -130,11 +130,10 @@ public class InstSelector implements Pass {
         for (int i = 0; i < irFunc.arguments.size(); ++i) {
             Argument arg = irFunc.arguments.get(i);
             if (i < 8) {
-                    curBlock.push_back(new Li(curBlock, a0, new Imm(4)));
-                    curBlock.push_back(new Call(curBlock, fnMap.get("malloc")));
-                    curBlock.push_back(new Mv(curBlock, getAsmReg(arg), a0));
-                    curBlock.push_back(new St(curBlock, sw, argVals.get(i), getAsmReg(arg), new Imm(0)));
-                //}
+                curBlock.push_back(new Li(curBlock, a0, new Imm(4)));
+                curBlock.push_back(new Call(curBlock, fnMap.get("malloc")));
+                curBlock.push_back(new Mv(curBlock, getAsmReg(arg), a0));
+                curBlock.push_back(new St(curBlock, sw, argVals.get(i), getAsmReg(arg), new Imm(0)));
             } else
                 regMap.put(arg, new VirtualReg(curFn, 4));
         }
@@ -146,7 +145,7 @@ public class InstSelector implements Pass {
             curFn.blocks.add(curBlock);
         }
         if (!(curBlock.tailInst instanceof Ret)) {
-            curBlock.push_back(new Mv(curBlock,a0,zero));
+            curBlock.push_back(new Mv(curBlock, a0, zero));
             Ret tmp = new Ret(curBlock);
             curBlock.push_back(tmp);
             curFn.RetList.add(tmp);
@@ -333,9 +332,9 @@ public class InstSelector implements Pass {
                 curBlock.push_back(new RInst(curBlock, add, getAsmReg(inst.result), getAsmReg(inst.ptr), szReg));
             }
         } else {
-            ArrayList<IRType> members = ((IRStructureType)((IRStructurePtrType) inst.ptr.type).base).members;
+            ArrayList<IRType> members = ((IRStructureType) ((IRStructurePtrType) inst.ptr.type).base).members;
             int pos = (int) ((IntegerConstant) inst.MemberIndex).value, offset = 0;
-            for (int i = 0; i < pos - 1; ++i) offset += members.get(i).getBytes();
+            for (int i = 0; i < pos; ++i) offset += members.get(i).getBytes();
             curBlock.push_back(new IInst(curBlock, addi, getAsmReg(inst.result), getAsmReg(inst.ptr), new Imm(offset)));
         }
     }
