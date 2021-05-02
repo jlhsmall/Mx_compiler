@@ -31,15 +31,16 @@ public class IRBuilder implements ASTVisitor {
     IRStructure curStruct, outsideStruct;
     Entity curInstPtr;
     Stack<Scope> scopes;
-    Stack<IRBasicBlock> loopBeginBlocks, loopEndBlocks;
+    Stack<IRBasicBlock> loopNextBlocks, loopEndBlocks;
     Scope thisScope;
     Entity checkThis;
     IRFunction initFunc;
+    classDefNode outsideClassDef;
 
     public IRBuilder() {
         module = new IRModule();
         scopes = new Stack<>();
-        loopBeginBlocks = new Stack<>();
+        loopNextBlocks = new Stack<>();
         loopEndBlocks = new Stack<>();
         checkThis = new NullConstant();
         initFunc = new IRFunction(module);
@@ -92,6 +93,7 @@ public class IRBuilder implements ASTVisitor {
         for (var classDef : it.classDefs) {
             IRStructure irStruct = module.StructureMap.get(classDef.name);
             outsideStruct = irStruct;
+            outsideClassDef = classDef;
             for (var funcDef : classDef.funcDefs) {
                 IRFunction irFunc = new IRFunction(module);
                 thisScope = new Scope(scopes.peek());
@@ -148,6 +150,7 @@ public class IRBuilder implements ASTVisitor {
             }
         }
         outsideStruct = null;
+        outsideClassDef = null;
         for (var funcDef : it.funcDefs) {
             IRFunction irFunc = new IRFunction(module);
             curFunction = irFunc;
@@ -287,13 +290,13 @@ public class IRBuilder implements ASTVisitor {
         it.cond.entity.isCond = true;
         curBlock.addInst(new brInst(curBlock, it.cond.entity, bodyBlock, endBlock));
         scopes.push(new Scope(scopes.peek()));
-        loopBeginBlocks.push(condBlock);
+        loopNextBlocks.push(condBlock);
         loopEndBlocks.push(endBlock);
         curBlock = bodyBlock;
         it.stmt.accept(this);
         curBlock.addInst(new brInst(curBlock, null, condBlock, null));
         loopEndBlocks.pop();
-        loopBeginBlocks.pop();
+        loopNextBlocks.pop();
         scopes.pop();
         curBlock = endBlock;
     }
@@ -302,32 +305,40 @@ public class IRBuilder implements ASTVisitor {
     public void visit(forStmtNode it) {
         IRBasicBlock condBlock = new IRBasicBlock(curFunction, curFunction.getNameForBlock("forCond")),
                 bodyBlock = new IRBasicBlock(curFunction, curFunction.getNameForBlock("forBody")),
+                incrBlock = new IRBasicBlock(curFunction,curFunction.getNameForBlock("forIncr")),
                 endBlock = new IRBasicBlock(curFunction, curFunction.getNameForBlock("forEnd"));
+        IRBasicBlock loopBegin = it.cond == null ? bodyBlock : condBlock;
+        IRBasicBlock loopNext = it.incr == null ? loopBegin : incrBlock;
 
         scopes.push(new Scope(scopes.peek()));
         if (it.init != null)
             it.init.accept(this);
+        scopes.push(new Scope(scopes.peek()));
         if (it.cond != null) {
             curFunction.blocks.add(condBlock);
-            loopBeginBlocks.push(condBlock);
             curBlock.addInst(new brInst(curBlock, null, condBlock, null));
             curBlock = condBlock;
             it.cond.accept(this);
             it.cond.entity.isCond = true;
             curBlock.addInst(new brInst(curBlock, it.cond.entity, bodyBlock, endBlock));
         } else {
-            loopBeginBlocks.push(bodyBlock);
             curBlock.addInst(new brInst(curBlock, null, bodyBlock, null));
         }
+        loopNextBlocks.push(loopNext);
         loopEndBlocks.push(endBlock);
         curBlock = bodyBlock;
         curFunction.blocks.add(bodyBlock);
         it.stmt.accept(this);
-        if (it.incr != null)
+        curBlock.addInst(new brInst(curBlock,null,loopNext,null));
+        scopes.pop();
+        if (it.incr != null) {
+            curBlock = incrBlock;
+            curFunction.blocks.add(incrBlock);
             it.incr.accept(this);
-        curBlock.addInst(new brInst(curBlock, null, it.cond == null ? bodyBlock :condBlock, null));
+            curBlock.addInst(new brInst(curBlock, null, loopBegin, null));
+        }
         loopEndBlocks.pop();
-        loopBeginBlocks.pop();
+        loopNextBlocks.pop();
         scopes.pop();
         curBlock = endBlock;
         curFunction.blocks.add(endBlock);
@@ -351,7 +362,7 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public void visit(continueStmtNode it) {
-        curBlock.addInst(new brInst(curBlock, null, loopBeginBlocks.peek(), null));
+        curBlock.addInst(new brInst(curBlock, null, loopNextBlocks.peek(), null));
     }
 
     @Override
@@ -797,7 +808,7 @@ public class IRBuilder implements ASTVisitor {
             nm = curStruct.name + "__" + it.name;
             curStruct = null;
             curInstPtr = null;
-        } else if(outsideStruct != null && module.FunctionMap.containsKey(outsideStruct.name + "__" + it.name)) {
+        } else if(outsideStruct != null && outsideClassDef.hasFunc(it.name)) {
             curStruct = outsideStruct;
             Entity thisPtr = scopes.peek().getVarEntity("this", true);
             Register loadReg = new Register(((IRPointerType) thisPtr.type).base, curFunction.getNameForRegister("loadReg"));

@@ -92,4 +92,10 @@ public class classDefNode extends DefNode {
             visitor.scopes.pop();
         }
     }
+    public boolean hasFunc(String nm){
+        for (var funcDef : funcDefs){
+            if(funcDef.name.equals(nm))return true;
+        }
+        return false;
+    }
 }
