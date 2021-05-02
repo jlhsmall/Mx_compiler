@@ -76,7 +76,6 @@ public class IRBuilder implements ASTVisitor {
                 varDef.expr.accept(this);
                 String nm = varDef.names.get(0);
                 gv = new GlobalVariable(new IRPointerType(tp), curFunction.getNameForRegister(nm), varDef.expr.entity);
-                //if (!(varDef.expr.type instanceof NullType))
                 curBlock.addInst(new storeInst(curBlock, varDef.expr.entity, gv));
                 module.GlobalVariableMap.put(nm, gv);
                 scopes.peek().varEntities.put(nm, gv);
@@ -281,11 +280,9 @@ public class IRBuilder implements ASTVisitor {
         IRBasicBlock condBlock = new IRBasicBlock(curFunction, curFunction.getNameForBlock("whileCond")),
                 bodyBlock = new IRBasicBlock(curFunction, curFunction.getNameForBlock("whileBody")),
                 endBlock = new IRBasicBlock(curFunction, curFunction.getNameForBlock("whileEnd"));
-        curFunction.blocks.add(condBlock);
-        curFunction.blocks.add(bodyBlock);
-        curFunction.blocks.add(endBlock);
         curBlock.addInst(new brInst(curBlock, null, condBlock, null));
         curBlock = condBlock;
+        curFunction.blocks.add(condBlock);
         it.cond.accept(this);
         it.cond.entity.isCond = true;
         curBlock.addInst(new brInst(curBlock, it.cond.entity, bodyBlock, endBlock));
@@ -293,12 +290,14 @@ public class IRBuilder implements ASTVisitor {
         loopNextBlocks.push(condBlock);
         loopEndBlocks.push(endBlock);
         curBlock = bodyBlock;
+        curFunction.blocks.add(bodyBlock);
         it.stmt.accept(this);
         curBlock.addInst(new brInst(curBlock, null, condBlock, null));
         loopEndBlocks.pop();
         loopNextBlocks.pop();
         scopes.pop();
         curBlock = endBlock;
+        curFunction.blocks.add(endBlock);
     }
 
     @Override
@@ -315,9 +314,9 @@ public class IRBuilder implements ASTVisitor {
             it.init.accept(this);
         scopes.push(new Scope(scopes.peek()));
         if (it.cond != null) {
-            curFunction.blocks.add(condBlock);
             curBlock.addInst(new brInst(curBlock, null, condBlock, null));
             curBlock = condBlock;
+            curFunction.blocks.add(condBlock);
             it.cond.accept(this);
             it.cond.entity.isCond = true;
             curBlock.addInst(new brInst(curBlock, it.cond.entity, bodyBlock, endBlock));
