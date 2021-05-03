@@ -18,6 +18,8 @@ public class Sz extends RISCVInst {
         this.op = op;
         this.rd = rd;
         this.rs1 = rs1;
+        uses.add(rs1);
+        defs.add(rd);
     }
     @Override
     public String toString(){

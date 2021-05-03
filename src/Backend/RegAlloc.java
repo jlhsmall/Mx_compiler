@@ -1,261 +1,321 @@
 package Backend;
 
-import Assembly.*;
-import Assembly.Inst.*;
-import Assembly.Operand.GlobalReg;
-import Assembly.Operand.Imm;
+import Assembly.AsmFn;
+import Assembly.Inst.Mv;
+import Assembly.Inst.RISCVInst;
 import Assembly.Operand.PhyReg;
-import Assembly.Operand.VirtualReg;
+import Assembly.Operand.Reg;
+import org.w3c.dom.Node;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Stack;
 
-import static Assembly.AsmRoot.*;
-import static Assembly.Inst.St.Category.sw;
-import static Assembly.Inst.Ld.Category.lw;
+import static Assembly.AsmRoot.assignableRegs;
 
-public class RegAlloc extends AsmVisitor{
-    public AsmBlock curBlock;
-    public AsmFn curFn;
+/**
+ * @author Jlhsmall
+ * @date 2021/5/3 19:38
+ */
+public class RegAlloc extends AsmVisitor {
+    AsmFn curFn;
+    HashSet<Reg> precolored = new HashSet<>(), initial = new HashSet<>(), simplifyWorkList = new HashSet<>(), freezeWorkList = new HashSet<>(), spillWorkList = new HashSet<>(), spilledNodes = new HashSet<>(), coalescedNodes = new HashSet<>(), coloredNodes = new HashSet<>();
+    Stack<Reg> selectStack = new Stack<>();
+    HashSet<Mv> coalescedMvs = new HashSet<>(), constrainedMvs = new HashSet<>(), frozenMvs = new HashSet<>(), workListMvs = new HashSet<>(), activeMvs = new HashSet<>();
+    int K;
+
+    static class Edge {
+        Reg u, v;
+
+        public Edge(Reg u, Reg v) {
+            this.u = u;
+            this.v = v;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return (o instanceof Edge) && ((Edge) o).u == u && ((Edge) o).v == v;
+        }
+    }
+
+    HashSet<Edge> adjSet = new HashSet<>();
+
     public RegAlloc(InstSelector selector) {
         super(selector);
     }
 
-    private RISCVInst loadVirtualReg(VirtualReg r, PhyReg rd) {
-        return new Ld(curBlock, lw,rd, sp, new Imm((r.index-curFn.vRegIndex) * 4));
-    }
-
-    private RISCVInst storeVirtualReg(VirtualReg r) {
-        return new St(curBlock, sw, t2, sp, new Imm((r.index-curFn.vRegIndex) * 4));
-    }
-
-    public void run(){
-        for(var entry : fnMap.entrySet()){
-            if(entry.getValue().rootBlock != null)
-                visitFn(entry.getValue());
-        }
-    }
-    public void visitFn(AsmFn f) {
-        curFn = f;
-        for (AsmBlock b : f.blocks) {
-            curBlock = b;
-            for (RISCVInst i = b.headInst; i != null; i = i.next) {
-                if (i instanceof Br) {
-                    Br br = (Br) i;
-                    if (br.rs1 instanceof VirtualReg) {
-                        b.insert_before(i, loadVirtualReg((VirtualReg) br.rs1, t0));
-                        br.rs1 = t0;
-                    }
-                    else if(br.rs1 instanceof GlobalReg){
-                        b.insert_before(i,new La(curBlock,t0,(GlobalReg)br.rs1));
-                        br.rs1 = t0;
-                    }
-                    if (br.rs2 instanceof VirtualReg) {
-                        b.insert_before(i, loadVirtualReg((VirtualReg) br.rs2, t1));
-                        br.rs2 = t1;
-                    }
-                    else if(br.rs2 instanceof GlobalReg){
-                        b.insert_before(i,new La(curBlock,t1,(GlobalReg)br.rs2));
-                        br.rs2 = t1;
-                    }
-                } else if (i instanceof Bz) {
-                    Bz bz = (Bz) i;
-                    if (bz.rs1 instanceof VirtualReg) {
-                        b.insert_before(i, loadVirtualReg((VirtualReg) bz.rs1, t0));
-                        bz.rs1 = t0;
-                    }
-                    else if(bz.rs1 instanceof GlobalReg){
-                        b.insert_before(i,new La(curBlock,t0,(GlobalReg)bz.rs1));
-                        bz.rs1 = t0;
-                    }
-                } else if(i instanceof Call){
-
-                } else if (i instanceof IInst) {
-                    IInst ii = (IInst) i;
-                    if (ii.rs1 instanceof VirtualReg) {
-                        b.insert_before(i, loadVirtualReg((VirtualReg) ii.rs1, t0));
-                        ii.rs1 = t0;
-                    }
-                    else if(ii.rs1 instanceof GlobalReg){
-                        b.insert_before(i,new La(curBlock,t0,(GlobalReg)ii.rs1));
-                        ii.rs1 = t0;
-                    }
-                    if (ii.rd instanceof VirtualReg){
-                        b.insert_after(i, storeVirtualReg((VirtualReg)ii.rd));
-                        ii.rd = t2;
-                        i=i.next;
-                    }
-                    else if(ii.rd instanceof GlobalReg){
-                        b.insert_after(i,new Lui(curBlock,t3,new Imm((GlobalReg)ii.rd,true)));
-                        i=i.next;
-                        b.insert_after(i,new St(curBlock, sw,t2,t3,new Imm((GlobalReg)ii.rd,false)));
-                        i=i.next;
-                        ii.rd = t2;
-                    }
-                } else if(i instanceof Jp){
-
-                } else if(i instanceof La){
-                    La la = (La) i;
-                    if (la.rd instanceof VirtualReg){
-                        b.insert_after(i, storeVirtualReg((VirtualReg)la.rd));
-                        la.rd = t2;
-                        i=i.next;
-                    }
-                    else if(la.rd instanceof GlobalReg){
-                        b.insert_after(i,new Lui(curBlock,t3,new Imm((GlobalReg)la.rd,true)));
-                        i=i.next;
-                        b.insert_after(i,new St(curBlock, sw,t2,t3,new Imm((GlobalReg)la.rd,false)));
-                        i=i.next;
-                        la.rd = t2;
-                    }
-                } else if(i instanceof Ld){
-                    Ld ld = (Ld) i;
-                    if (ld.rs1 instanceof VirtualReg) {
-                        b.insert_before(i, loadVirtualReg((VirtualReg) ld.rs1, t0));
-                        ld.rs1 = t0;
-                    }
-                    else if(ld.rs1 instanceof GlobalReg){
-                        b.insert_before(i,new La(curBlock,t0,(GlobalReg)ld.rs1));
-                        ld.rs1 = t0;
-                    }
-                    if (ld.rd instanceof VirtualReg){
-                        b.insert_after(i, storeVirtualReg((VirtualReg)ld.rd));
-                        ld.rd = t2;
-                        i=i.next;
-                    }
-                    else if(ld.rd instanceof GlobalReg){
-                        b.insert_after(i,new Lui(curBlock,t3,new Imm((GlobalReg)ld.rd,true)));
-                        i=i.next;
-                        b.insert_after(i,new St(curBlock, sw,t2,t3,new Imm((GlobalReg)ld.rd,false)));
-                        i=i.next;
-                        ld.rd = t2;
-                    }
-
-                } else if (i instanceof Li) {
-                    Li li = (Li) i;
-                    if (li.rd instanceof VirtualReg) {
-                        b.insert_after(i, storeVirtualReg((VirtualReg) li.rd));
-                        li.rd = t2;
-                        i=i.next;
-                    }
-                    else if(li.rd instanceof GlobalReg){
-                        b.insert_after(i,new Lui(curBlock,t3,new Imm((GlobalReg)li.rd,true)));
-                        i=i.next;
-                        b.insert_after(i,new St(curBlock, sw,t2,t3,new Imm((GlobalReg)li.rd,false)));
-                        i=i.next;
-                        li.rd = t2;
-                    }
-                } else if (i instanceof Lui){
-                    Lui lui = (Lui) i;
-                    if (lui.rd instanceof VirtualReg) {
-                        b.insert_after(i, storeVirtualReg((VirtualReg) lui.rd));
-                        lui.rd = t2;
-                        i=i.next;
-                    }
-                    else if(lui.rd instanceof GlobalReg){
-                        b.insert_after(i,new Lui(curBlock,t3,new Imm((GlobalReg)lui.rd,true)));
-                        i=i.next;
-                        b.insert_after(i,new St(curBlock, sw,t2,t3,new Imm((GlobalReg)lui.rd,false)));
-                        i=i.next;
-                        lui.rd = t2;
-                    }
-                } else if (i instanceof Mv) {
-                    Mv mv = (Mv) i;
-                    if (mv.rs1 instanceof VirtualReg) {
-                        b.insert_before(i, loadVirtualReg((VirtualReg) mv.rs1, t0));
-                        mv.rs1 = t0;
-                    }
-                    else if(mv.rs1 instanceof GlobalReg){
-                        b.insert_before(i,new La(curBlock,t0,(GlobalReg)mv.rs1));
-                        mv.rs1 = t0;
-                    }
-                    if (mv.rd instanceof VirtualReg){
-                        b.insert_after(i, storeVirtualReg((VirtualReg)mv.rd));
-                        mv.rd = t2;
-                        i=i.next;
-                    }
-                    else if(mv.rd instanceof GlobalReg){
-                        b.insert_after(i,new Lui(curBlock,t3,new Imm((GlobalReg)mv.rd,true)));
-                        i=i.next;
-                        b.insert_after(i,new St(curBlock, sw,t2,t3,new Imm((GlobalReg)mv.rd,false)));
-                        i=i.next;
-                        mv.rd = t2;
-                    }
-                } else if(i instanceof Ret){
-
-                } else if (i instanceof RInst) {
-                    RInst ri = (RInst) i;
-                    if (ri.rs1 instanceof VirtualReg) {
-                        b.insert_before(i, loadVirtualReg((VirtualReg) ri.rs1, t0));
-                        ri.rs1 = t0;
-                    }
-                    else if(ri.rs1 instanceof GlobalReg){
-                        b.insert_before(i,new La(curBlock,t0,(GlobalReg)ri.rs1));
-                        ri.rs1 = t0;
-                    }
-                    if (ri.rs2 instanceof VirtualReg) {
-                        b.insert_before(i, loadVirtualReg((VirtualReg) ri.rs2, t1));
-                        ri.rs2 = t1;
-                    }
-                    else if(ri.rs2 instanceof GlobalReg){
-                        b.insert_before(i,new La(curBlock,t1,(GlobalReg)ri.rs2));
-                        ri.rs2 = t1;
-                    }
-                    if (ri.rd instanceof VirtualReg){
-                        b.insert_after(i, storeVirtualReg((VirtualReg)ri.rd));
-                        ri.rd = t2;
-                        i=i.next;
-                    }
-                    else if(ri.rd instanceof GlobalReg){
-                        b.insert_after(i,new Lui(curBlock,t3,new Imm((GlobalReg)ri.rd,true)));
-                        i=i.next;
-                        b.insert_after(i,new St(curBlock, sw,t2,t3,new Imm((GlobalReg)ri.rd,false)));
-                        i=i.next;
-                        ri.rd = t2;
-                    }
-                } else if (i instanceof St){
-                    St st = (St) i;
-                    if (st.rs instanceof VirtualReg) {
-                        b.insert_before(i, loadVirtualReg((VirtualReg) st.rs, t0));
-                        st.rs = t0;
-                    }
-                    else if(st.rs instanceof GlobalReg){
-                        b.insert_before(i,new La(curBlock,t0,(GlobalReg)st.rs));
-                        st.rs = t0;
-                    }
-                    if (st.addr instanceof VirtualReg) {
-                        b.insert_before(i, loadVirtualReg((VirtualReg) st.addr, t1));
-                        st.addr = t1;
-                    }
-                    else if(st.addr instanceof GlobalReg){
-                        b.insert_before(i,new La(curBlock,t1,(GlobalReg)st.addr));
-                        st.addr = t1;
-                    }
-                }
-                else{
-                    assert (i instanceof Sz);
-                    Sz sz = (Sz) i;
-                    if (sz.rs1 instanceof VirtualReg) {
-                        b.insert_before(i, loadVirtualReg((VirtualReg) sz.rs1, t0));
-                        sz.rs1 = t0;
-                    }
-                    else if(sz.rs1 instanceof GlobalReg){
-                        b.insert_before(i,new La(curBlock,t0,(GlobalReg)sz.rs1));
-                        sz.rs1 = t0;
-                    }
-                    if (sz.rd instanceof VirtualReg){
-                        b.insert_after(i, storeVirtualReg((VirtualReg)sz.rd));
-                        sz.rd = t2;
-                    }
-                    else if(sz.rd instanceof GlobalReg){
-                        b.insert_after(i,new Lui(curBlock,t3,new Imm((GlobalReg)sz.rd,true)));
-                        i=i.next;
-                        b.insert_after(i,new St(curBlock, sw,t2,t3,new Imm((GlobalReg)sz.rd,false)));
-                        i=i.next;
-                        sz.rd = t2;
-                    }
+    public void build() {
+        for (var b : curFn.blocks) {
+            HashSet<Reg> live = new HashSet<>();
+            live.addAll(b.liveOut);
+            for (RISCVInst i = b.tailInst; i != null; i = i.prev) {
+                if (i instanceof Mv) {
+                    live.removeAll(i.uses);
+                    HashSet<Reg> nodeSet = new HashSet<>();
+                    nodeSet.addAll(i.defs);
+                    nodeSet.addAll(i.uses);
+                    for (var n : nodeSet)
+                        n.MvList.add((Mv) i);
+                    workListMvs.add((Mv) i);
+                    for (var d : i.defs)
+                        for (var l : live)
+                            addEdge(l, d);
+                    live.removeAll(i.defs);
+                    live.addAll(i.uses);
                 }
             }
         }
     }
 
+    public void addEdge(Reg u, Reg v) {
+        Edge e = new Edge(u, v);
+        if (v != u && !adjSet.contains(e)) {
+            adjSet.add(e);
+            adjSet.add(new Edge(v, u));
+            if (!precolored.contains(u)) {
+                u.adjList.add(v);
+                ++u.degree;
+            }
+            if (!precolored.contains(v)) {
+                v.adjList.add(v);
+                ++v.degree;
+            }
+        }
+    }
+
+    public void makeWorkList() {
+        for (var n : initial) {
+            initial.remove(n);
+            if (n.degree >= K)
+                spillWorkList.add(n);
+            else if (MvRelated(n))
+                freezeWorkList.add(n);
+            else
+                simplifyWorkList.add(n);
+        }
+    }
+
+    public HashSet<Reg> Adjacent(Reg n) {
+        HashSet<Reg> ret = new HashSet<>();
+        ret.addAll(n.adjList);
+        ret.removeAll(selectStack);
+        ret.removeAll(coalescedNodes);
+        return ret;
+    }
+
+    public HashSet<Mv> NodeMvs(Reg n) {
+        HashSet<Mv> ret = new HashSet<>();
+        ret.addAll(activeMvs);
+        ret.addAll(workListMvs);
+        ret.retainAll(n.MvList);
+        return ret;
+    }
+
+    public boolean MvRelated(Reg n) {
+        return !NodeMvs(n).isEmpty();
+    }
+
+    public void simplify() {
+        for (var n : simplifyWorkList) {
+            simplifyWorkList.remove(n);
+            selectStack.push(n);
+            for (var m : Adjacent(n)) {
+                decrementDegree(m);
+            }
+        }
+    }
+
+    public void decrementDegree(Reg m) {
+        int d = m.degree--;
+        if (d == K) {
+            HashSet<Reg> nodes = Adjacent(m);
+            nodes.add(m);
+            enableMvs(nodes);
+            spillWorkList.remove(m);
+            if (MvRelated(m))
+                freezeWorkList.add(m);
+            else
+                simplifyWorkList.add(m);
+        }
+    }
+
+    public void enableMvs(Reg n) {
+        for (var m : NodeMvs(n)) {
+            if (activeMvs.contains(m)) {
+                activeMvs.remove(m);
+                workListMvs.add(m);
+            }
+        }
+    }
+
+    public void enableMvs(HashSet<Reg> nodes) {
+        for (var n : nodes) {
+            enableMvs(n);
+        }
+    }
+
+    public void coalesce() {
+        Mv m = workListMvs.iterator().next();
+        Reg x = getAlias(m.rd), y = getAlias(m.rs1), u, v;
+        if (precolored.contains(y)) {
+            u = y;
+            v = x;
+        } else {
+            u = x;
+            v = y;
+        }
+        workListMvs.remove(m);
+        if (u == v) {
+            coalescedMvs.add(m);
+            addWorkList(u);
+        } else if (precolored.contains(v) || adjSet.contains(new Edge(u, v))) {
+            constrainedMvs.add(m);
+            addWorkList(u);
+            addWorkList(v);
+        } else {
+            HashSet<Reg> adjuv = Adjacent(u), adjv = Adjacent(v);
+            adjuv.addAll(adjv);
+            if (precolored.contains(u) && OK(adjv, u) || !precolored.contains(u) && Conservative(adjuv)) {
+                coalescedMvs.add(m);
+                combine(u, v);
+                addWorkList(u);
+            } else
+                activeMvs.add(m);
+        }
+
+    }
+
+    public void addWorkList(Reg u) {
+        if (!precolored.contains(u) && !MvRelated(u) && u.degree < K) {
+            freezeWorkList.remove(u);
+            simplifyWorkList.add(u);
+        }
+    }
+
+    public boolean OK(Reg t, Reg r) {
+        return t.degree < K || precolored.contains(t) || adjSet.contains(new Edge(t, r));
+    }
+
+    public boolean OK(HashSet<Reg> vs, Reg u) {
+        for (var v : vs) if (!OK(v, u)) return false;
+        return true;
+    }
+
+    public boolean Conservative(HashSet<Reg> nodes) {
+        int k = 0;
+        for (var n : nodes) if (n.degree >= K) ++k;
+        return k < K;
+    }
+
+    public boolean combine(Reg u, Reg v) {
+        if (freezeWorkList.contains(v))
+            freezeWorkList.remove(v);
+        else
+            spillWorkList.remove(v);
+        coalescedNodes.add(v);
+        v.alias = u;
+        u.MvList.addAll(v.MvList);
+        enableMvs(v);
+        for (var t : Adjacent(v)) {
+            addEdge(t, u);
+            decrementDegree(t);
+        }
+        if (u.degree >= K && freezeWorkList.contains(u)) {
+            freezeWorkList.remove(u);
+            spillWorkList.add(u);
+        }
+    }
+
+    public void freeze() {
+        Reg u = freezeWorkList.iterator().next();
+        freezeWorkList.remove(u);
+        simplifyWorkList.add(u);
+        freezeMoves(u);
+    }
+
+    public void freezeMoves(Reg u) {
+        for (var m : NodeMvs(u)) {
+            Reg x = m.rd, y = m.rs1;
+            Reg v = getAlias(y) == getAlias(u) ? getAlias(x) : getAlias(y);
+            activeMvs.remove(m);
+            frozenMvs.add(m);
+            if (NodeMvs(v).isEmpty() && v.degree < K) {
+                freezeWorkList.remove(v);
+                simplifyWorkList.add(v);
+            }
+        }
+    }
+
+    public void selectSpill() {
+        Reg m = spillWorkList.iterator().next();
+        spillWorkList.remove(m);
+        simplifyWorkList.add(m);
+        freezeMoves(m);
+    }
+
+    public void assignColors() {
+        while (!selectStack.isEmpty()) {
+            Reg n = selectStack.pop();
+            HashSet<PhyReg> okColors = new HashSet<>();
+            okColors.addAll(assignableRegs);
+            for (var w : n.adjList) {
+                HashSet<Reg> rhs = new HashSet<>();
+                rhs.addAll(precolored);
+                rhs.addAll(coloredNodes);
+                if (rhs.contains(getAlias(w))) {
+                    okColors.remove(getAlias(w).color);
+                }
+                if (okColors.isEmpty())
+                    spilledNodes.add(n);
+                else {
+                    coloredNodes.add(n);
+                    PhyReg c = okColors.iterator().next();
+                    n.color = c;
+                }
+            }
+        }
+        for (var n : coalescedNodes)
+            n.color = getAlias(n).color;
+    }
+
+    public void rewriteProgram(){
+        spilledNodes.clear();
+        initial.clear();
+        initial.addAll(coloredNodes);
+        initial.addAll(coalescedNodes);
+        initial.addAll(newTemps);
+        coloredNodes.clear();
+        coalescedNodes.clear();
+    }
+
+    public Reg getAlias(Reg n) {
+        if (coalescedNodes.contains(n))
+            return getAlias(n.alias);
+        return n;
+    }
+
+    public void visitFn(AsmFn fn) {
+        LivenessAnalysor analysor = new LivenessAnalysor(fn);
+        curFn = fn;
+        analysor.run();
+        build();
+        makeWorkList();
+        while(!(simplifyWorkList.isEmpty() && workListMvs.isEmpty() && freezeWorkList.isEmpty()&&spillWorkList.isEmpty())){
+            if(!simplifyWorkList.isEmpty())simplify();
+            else if(!workListMvs.isEmpty())coalesce();
+            else if(!freezeWorkList.isEmpty())freeze();
+            else if(!spillWorkList.isEmpty())selectSpill();
+        }
+        assignColors();
+        if(!spilledNodes.isEmpty()){
+            rewriteProgram();
+            visitFn(fn);
+        }
+    }
+
+    public void run() {
+        for (var entry : fnMap.entrySet()) {
+            visitFn(entry.getValue());
+        }
+    }
 }

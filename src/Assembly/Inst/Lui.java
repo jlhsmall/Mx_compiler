@@ -15,6 +15,7 @@ public class Lui extends RISCVInst {
         super(par);
         this.rd = rd;
         this.imm = imm;
+        defs.add(rd);
     }
     @Override
     public String toString(){

@@ -1,15 +1,17 @@
 package Assembly;
 
 import Assembly.Inst.RISCVInst;
+import Assembly.Operand.Reg;
 
 import java.util.HashSet;
 
 public class AsmBlock {
     public AsmFn parent;
     public RISCVInst headInst = null, tailInst = null;
-    public HashSet<AsmBlock> successors;
+    public HashSet<AsmBlock> successors, predecessors;
     public int index = -1;
     // prune-use: public AsmBlock precursor = null;
+    public HashSet<Reg> uses, defs, liveIn, liveOut;
 
     public AsmBlock(AsmFn par) {
         parent = par;
@@ -17,7 +19,10 @@ public class AsmBlock {
     }
 
     public void addSuccessor(AsmBlock b) {
-        if (b != null) successors.add(b);
+        if (b != null) {
+            successors.add(b);
+            b.predecessors.add(this);
+        }
     }
 
     public void push_back(RISCVInst i) {

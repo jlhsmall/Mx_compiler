@@ -1,9 +1,11 @@
 package Assembly;
 
 import Assembly.Operand.PhyReg;
+import Assembly.Operand.Reg;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 
 /**
  * @author Jlhsmall
@@ -16,7 +18,7 @@ public class AsmRoot {
             "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"));
     public static ArrayList<PhyReg> phyRegs, argRegs;
     public static PhyReg zero, ra, sp, t0, t1, t2,a0,t3;
-
+    public static HashSet<PhyReg> assignableRegs;
     static public void init() {
         phyRegs = new ArrayList<>();
         for (int i = 0; i < 32; ++i)

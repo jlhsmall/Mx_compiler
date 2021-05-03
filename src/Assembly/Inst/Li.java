@@ -12,6 +12,7 @@ public class Li extends RISCVInst {
         super(par);
         this.rd = rd;
         this.imm = imm;
+        defs.add(rd);
     }
 
     @Override

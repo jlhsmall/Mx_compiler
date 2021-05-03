@@ -139,11 +139,10 @@ public class InstSelector implements Pass {
         }
         for (int i = 0; i < irFunc.blocks.size(); ++i) {
             curBlock = blockMap.get(irFunc.blocks.get(i).getAsmBlockKey());
-            if (i != irFunc.blocks.size() - 1)
-                curBlock.addSuccessor(blockMap.get(irFunc.blocks.get(i + 1).getAsmBlockKey()));
             irFunc.blocks.get(i).accept(this);
             curFn.blocks.add(curBlock);
         }
+        curFn.exitBlock=curBlock;
         if (!(curBlock.tailInst instanceof Ret)) {
             curBlock.push_back(new Mv(curBlock, a0, zero));
             Ret tmp = new Ret(curBlock);
@@ -263,7 +262,6 @@ public class InstSelector implements Pass {
 
     @Override
     public void visit(brInst inst) {
-        curBlock.addSuccessor(blockMap.get(inst.ifEqual.getAsmBlockKey()));
         if (inst.cond == null)
             curBlock.push_back(new Jp(curBlock, blockMap.get(inst.ifEqual.getAsmBlockKey())));
         else {

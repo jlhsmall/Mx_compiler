@@ -16,6 +16,7 @@ public class La extends RISCVInst {
         super(par);
         this.rd = rd;
         this.symbol = symbol;
+        defs.add(rd);
     }
     @Override
     public String toString(){

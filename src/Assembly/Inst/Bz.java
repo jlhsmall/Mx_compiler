@@ -21,6 +21,8 @@ public class Bz extends RISCVInst {
         this.op = op;
         this.rs1 = rs1;
         this.dest = dest;
+        par.addSuccessor(dest);
+        uses.add(rs1);
     }
 
     @Override

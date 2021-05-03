@@ -19,6 +19,8 @@ public class IInst extends RISCVInst {
         this.rd = rd;
         this.rs1 = rs1;
         this.imm = imm;
+        uses.add(rs1);
+        defs.add(rd);
     }
 
     @Override

@@ -18,9 +18,9 @@ import java.io.PrintStream;
 public class Main {
     public static void main(String[] args) throws Exception{
 
-        String name = "testcases\\codegen\\t1.mx";
-        //InputStream input = new FileInputStream(name);
-        InputStream input = System.in;
+        String name = "testcases\\codegen\\t32.mx";
+        InputStream input = new FileInputStream(name);
+        //InputStream input = System.in;
 
         try {
             RootNode ASTRoot;
@@ -40,9 +40,9 @@ public class Main {
             new IRPrinter(new PrintStream("test.ll")).visit(builder.module);
             InstSelector selector = new InstSelector();
             selector.visit(builder.module);
-            new RegAlloc(selector).run();
-            //new AsmPrinter(selector,new PrintStream("test.s")).print();
-            new AsmPrinter(selector,new PrintStream("output.s")).print();
+            new RegAlloc0(selector).run();
+            new AsmPrinter(selector,new PrintStream("test.s")).print();
+            //new AsmPrinter(selector,new PrintStream("output.s")).print();
 
 
         } catch (error er) {

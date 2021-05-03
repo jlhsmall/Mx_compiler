@@ -10,6 +10,8 @@ public class Mv extends RISCVInst {
         super(par);
         this.rd = rd;
         this.rs1 = rs1;
+        uses.add(rs1);
+        defs.add(rd);
     }
 
     @Override

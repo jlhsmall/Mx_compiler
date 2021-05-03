@@ -24,6 +24,8 @@ public class St extends RISCVInst {
         this.rs = rs;
         this.addr = addr;
         this.offset = offset;
+        uses.add(rs);
+        uses.add(addr);
     }
     @Override
     public String toString() {

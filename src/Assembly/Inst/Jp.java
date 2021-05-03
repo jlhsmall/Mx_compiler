@@ -7,6 +7,7 @@ public class Jp extends RISCVInst {
     public Jp(AsmBlock par, AsmBlock dest) {
         super(par);
         this.dest = dest;
+        par.addSuccessor(dest);
     }
 
     @Override

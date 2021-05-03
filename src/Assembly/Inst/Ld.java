@@ -22,6 +22,8 @@ public class Ld extends RISCVInst {
         this.rd = rd;
         this.rs1 = rs1;
         this.offset = offset;
+        uses.add(rs1);
+        defs.add(rd);
     }
     @Override
     public String toString() {

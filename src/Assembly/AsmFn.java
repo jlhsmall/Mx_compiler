@@ -9,7 +9,7 @@ import java.util.*;
 public class AsmFn {
     public AsmRoot parent;
     public Set<AsmBlock> blocks = new HashSet<>();
-    public AsmBlock rootBlock = null;
+    public AsmBlock rootBlock = null, exitBlock;
     public String name;
     public int vRegIndex;
     public List<AsmBlock> printList = new LinkedList<>();
