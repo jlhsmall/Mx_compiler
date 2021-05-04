@@ -32,4 +32,14 @@ public class Br extends RISCVInst {
     public String toString() {
         return op + " " + rs1 + ", " + rs2 + ", " + dest;
     }
+    @Override
+    public void replaceUse(Reg u,Reg t){
+        if(rs1 == u)rs1=t;
+        else rs2=t;
+        uses.remove(u);
+        uses.add(t);
+    }
+    @Override
+    public void replaceDef(Reg t){
+    }
 }

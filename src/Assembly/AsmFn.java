@@ -15,6 +15,7 @@ public class AsmFn {
     public List<AsmBlock> printList = new LinkedList<>();
     public ArrayList<Ret> RetList= new ArrayList<>();
     public boolean hasCall = false;
+    public int stackLength=0;
     public AsmFn(AsmRoot par,String nm, int i) {
         parent = par;
         name = nm;

@@ -22,4 +22,13 @@ public class La extends RISCVInst {
     public String toString(){
         return "la " + rd + ", " + symbol;
     }
+    @Override
+    public void replaceUse(Reg u,Reg t){
+    }
+    @Override
+    public void replaceDef(Reg t){
+        rd=t;
+        defs.remove(rd);
+        defs.add(t);
+    }
 }

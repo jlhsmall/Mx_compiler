@@ -16,6 +16,7 @@ public class AsmBlock {
     public AsmBlock(AsmFn par) {
         parent = par;
         successors = new HashSet<>();
+        predecessors = new HashSet<>();
     }
 
     public void addSuccessor(AsmBlock b) {
@@ -57,6 +58,15 @@ public class AsmBlock {
         in.prev = i;
         in.next = i.next;
         i.next = in;
+    }
+
+    public void replace(RISCVInst old,RISCVInst cur) {
+        cur.prev=old.prev;
+        cur.next=old.next;
+        if (old != headInst) old.prev.next = cur;
+        else headInst = cur;
+        if (old != tailInst) old.next.prev = cur;
+        else tailInst = cur;
     }
 
     @Override

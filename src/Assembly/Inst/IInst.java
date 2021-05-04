@@ -27,4 +27,16 @@ public class IInst extends RISCVInst {
     public String toString() {
         return op + " " + rd + ", " + rs1 + ", " + imm;
     }
+    @Override
+    public void replaceUse(Reg u,Reg t){
+        rs1=t;
+        uses.remove(u);
+        uses.add(t);
+    }
+    @Override
+    public void replaceDef(Reg t){
+        rd=t;
+        defs.remove(rd);
+        defs.add(t);
+    }
 }

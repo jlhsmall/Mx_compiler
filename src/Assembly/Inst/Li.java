@@ -19,4 +19,13 @@ public class Li extends RISCVInst {
     public String toString() {
         return "li " + rd + ", " + imm;
     }
+    @Override
+    public void replaceUse(Reg u,Reg t){
+    }
+    @Override
+    public void replaceDef(Reg t){
+        rd=t;
+        defs.remove(rd);
+        defs.add(t);
+    }
 }

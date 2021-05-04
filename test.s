@@ -74,9 +74,162 @@ main:
 	j .LBB4
 .LBB4: 
 	lw t0, 16(sp)
-	bnez t0, .LBB5
-	j .LBB6
+	bnez t0, .LBB6
+	j .LBB5
 .LBB5: 
+	la t0, A
+	lw t2, 0(t0)
+	sw t2, 6112(sp)
+	lw t0, 6112(sp)
+	mv a0, t0
+	call toString
+	mv t2, a0
+	sw t2, 6116(sp)
+	li t2, 4
+	sw t2, 6120(sp)
+	lw t0, 6120(sp)
+	mv a0, t0
+	call malloc
+	mv t2, a0
+	sw t2, 6124(sp)
+	lw t0, 6124(sp)
+	mv t2, t0
+	sw t2, 6128(sp)
+	lw t0, 6116(sp)
+	lw t1, 6128(sp)
+	sw t0, 0(t1)
+	lw t0, 6116(sp)
+	mv a0, t0
+	la t0, .str.0
+	mv a1, t0
+	call stringAdd
+	mv t2, a0
+	sw t2, 6132(sp)
+	li t2, 4
+	sw t2, 6136(sp)
+	lw t0, 6136(sp)
+	mv a0, t0
+	call malloc
+	mv t2, a0
+	sw t2, 6140(sp)
+	lw t0, 6140(sp)
+	mv t2, t0
+	sw t2, 6144(sp)
+	lw t0, 6132(sp)
+	lw t1, 6144(sp)
+	sw t0, 0(t1)
+	la t0, B
+	lw t2, 0(t0)
+	sw t2, 6148(sp)
+	lw t0, 6148(sp)
+	mv a0, t0
+	call toString
+	mv t2, a0
+	sw t2, 6152(sp)
+	li t2, 4
+	sw t2, 6156(sp)
+	lw t0, 6156(sp)
+	mv a0, t0
+	call malloc
+	mv t2, a0
+	sw t2, 6160(sp)
+	lw t0, 6160(sp)
+	mv t2, t0
+	sw t2, 6164(sp)
+	lw t0, 6152(sp)
+	lw t1, 6164(sp)
+	sw t0, 0(t1)
+	lw t0, 6132(sp)
+	mv a0, t0
+	lw t0, 6152(sp)
+	mv a1, t0
+	call stringAdd
+	mv t2, a0
+	sw t2, 6168(sp)
+	li t2, 4
+	sw t2, 6172(sp)
+	lw t0, 6172(sp)
+	mv a0, t0
+	call malloc
+	mv t2, a0
+	sw t2, 6176(sp)
+	lw t0, 6176(sp)
+	mv t2, t0
+	sw t2, 6180(sp)
+	lw t0, 6168(sp)
+	lw t1, 6180(sp)
+	sw t0, 0(t1)
+	lw t0, 6168(sp)
+	mv a0, t0
+	la t0, .str.0
+	mv a1, t0
+	call stringAdd
+	mv t2, a0
+	sw t2, 6184(sp)
+	li t2, 4
+	sw t2, 6188(sp)
+	lw t0, 6188(sp)
+	mv a0, t0
+	call malloc
+	mv t2, a0
+	sw t2, 6192(sp)
+	lw t0, 6192(sp)
+	mv t2, t0
+	sw t2, 6196(sp)
+	lw t0, 6184(sp)
+	lw t1, 6196(sp)
+	sw t0, 0(t1)
+	la t0, C
+	lw t2, 0(t0)
+	sw t2, 6200(sp)
+	lw t0, 6200(sp)
+	mv a0, t0
+	call toString
+	mv t2, a0
+	sw t2, 6204(sp)
+	li t2, 4
+	sw t2, 6208(sp)
+	lw t0, 6208(sp)
+	mv a0, t0
+	call malloc
+	mv t2, a0
+	sw t2, 6212(sp)
+	lw t0, 6212(sp)
+	mv t2, t0
+	sw t2, 6216(sp)
+	lw t0, 6204(sp)
+	lw t1, 6216(sp)
+	sw t0, 0(t1)
+	lw t0, 6184(sp)
+	mv a0, t0
+	lw t0, 6204(sp)
+	mv a1, t0
+	call stringAdd
+	mv t2, a0
+	sw t2, 6220(sp)
+	li t2, 4
+	sw t2, 6224(sp)
+	lw t0, 6224(sp)
+	mv a0, t0
+	call malloc
+	mv t2, a0
+	sw t2, 6228(sp)
+	lw t0, 6228(sp)
+	mv t2, t0
+	sw t2, 6232(sp)
+	lw t0, 6220(sp)
+	lw t1, 6232(sp)
+	sw t0, 0(t1)
+	lw t0, 6220(sp)
+	mv a0, t0
+	call println
+	mv t2, a0
+	sw t2, 6236(sp)
+	mv a0, zero
+	lw ra, 6240(sp)
+	addi sp, sp, 6244
+	ret
+.LBB6: 
 	la t0, A
 	lw t2, 0(t0)
 	sw t2, 40(sp)
@@ -5397,159 +5550,6 @@ main:
 	la t1, C
 	sw t0, 0(t1)
 	j .LBB2
-.LBB6: 
-	la t0, A
-	lw t2, 0(t0)
-	sw t2, 6112(sp)
-	lw t0, 6112(sp)
-	mv a0, t0
-	call toString
-	mv t2, a0
-	sw t2, 6116(sp)
-	li t2, 4
-	sw t2, 6120(sp)
-	lw t0, 6120(sp)
-	mv a0, t0
-	call malloc
-	mv t2, a0
-	sw t2, 6124(sp)
-	lw t0, 6124(sp)
-	mv t2, t0
-	sw t2, 6128(sp)
-	lw t0, 6116(sp)
-	lw t1, 6128(sp)
-	sw t0, 0(t1)
-	lw t0, 6116(sp)
-	mv a0, t0
-	la t0, .str.0
-	mv a1, t0
-	call stringAdd
-	mv t2, a0
-	sw t2, 6132(sp)
-	li t2, 4
-	sw t2, 6136(sp)
-	lw t0, 6136(sp)
-	mv a0, t0
-	call malloc
-	mv t2, a0
-	sw t2, 6140(sp)
-	lw t0, 6140(sp)
-	mv t2, t0
-	sw t2, 6144(sp)
-	lw t0, 6132(sp)
-	lw t1, 6144(sp)
-	sw t0, 0(t1)
-	la t0, B
-	lw t2, 0(t0)
-	sw t2, 6148(sp)
-	lw t0, 6148(sp)
-	mv a0, t0
-	call toString
-	mv t2, a0
-	sw t2, 6152(sp)
-	li t2, 4
-	sw t2, 6156(sp)
-	lw t0, 6156(sp)
-	mv a0, t0
-	call malloc
-	mv t2, a0
-	sw t2, 6160(sp)
-	lw t0, 6160(sp)
-	mv t2, t0
-	sw t2, 6164(sp)
-	lw t0, 6152(sp)
-	lw t1, 6164(sp)
-	sw t0, 0(t1)
-	lw t0, 6132(sp)
-	mv a0, t0
-	lw t0, 6152(sp)
-	mv a1, t0
-	call stringAdd
-	mv t2, a0
-	sw t2, 6168(sp)
-	li t2, 4
-	sw t2, 6172(sp)
-	lw t0, 6172(sp)
-	mv a0, t0
-	call malloc
-	mv t2, a0
-	sw t2, 6176(sp)
-	lw t0, 6176(sp)
-	mv t2, t0
-	sw t2, 6180(sp)
-	lw t0, 6168(sp)
-	lw t1, 6180(sp)
-	sw t0, 0(t1)
-	lw t0, 6168(sp)
-	mv a0, t0
-	la t0, .str.0
-	mv a1, t0
-	call stringAdd
-	mv t2, a0
-	sw t2, 6184(sp)
-	li t2, 4
-	sw t2, 6188(sp)
-	lw t0, 6188(sp)
-	mv a0, t0
-	call malloc
-	mv t2, a0
-	sw t2, 6192(sp)
-	lw t0, 6192(sp)
-	mv t2, t0
-	sw t2, 6196(sp)
-	lw t0, 6184(sp)
-	lw t1, 6196(sp)
-	sw t0, 0(t1)
-	la t0, C
-	lw t2, 0(t0)
-	sw t2, 6200(sp)
-	lw t0, 6200(sp)
-	mv a0, t0
-	call toString
-	mv t2, a0
-	sw t2, 6204(sp)
-	li t2, 4
-	sw t2, 6208(sp)
-	lw t0, 6208(sp)
-	mv a0, t0
-	call malloc
-	mv t2, a0
-	sw t2, 6212(sp)
-	lw t0, 6212(sp)
-	mv t2, t0
-	sw t2, 6216(sp)
-	lw t0, 6204(sp)
-	lw t1, 6216(sp)
-	sw t0, 0(t1)
-	lw t0, 6184(sp)
-	mv a0, t0
-	lw t0, 6204(sp)
-	mv a1, t0
-	call stringAdd
-	mv t2, a0
-	sw t2, 6220(sp)
-	li t2, 4
-	sw t2, 6224(sp)
-	lw t0, 6224(sp)
-	mv a0, t0
-	call malloc
-	mv t2, a0
-	sw t2, 6228(sp)
-	lw t0, 6228(sp)
-	mv t2, t0
-	sw t2, 6232(sp)
-	lw t0, 6220(sp)
-	lw t1, 6232(sp)
-	sw t0, 0(t1)
-	lw t0, 6220(sp)
-	mv a0, t0
-	call println
-	mv t2, a0
-	sw t2, 6236(sp)
-	mv a0, zero
-	lw ra, 6240(sp)
-	addi sp, sp, 6244
-	ret
 
 
 	.section	.data

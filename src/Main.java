@@ -40,7 +40,7 @@ public class Main {
             new IRPrinter(new PrintStream("test.ll")).visit(builder.module);
             InstSelector selector = new InstSelector();
             selector.visit(builder.module);
-            new RegAlloc0(selector).run();
+            new RegAlloc(selector).run();
             new AsmPrinter(selector,new PrintStream("test.s")).print();
             //new AsmPrinter(selector,new PrintStream("output.s")).print();
 

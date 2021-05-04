@@ -21,4 +21,13 @@ public class Lui extends RISCVInst {
     public String toString(){
         return "lui " + rd + ", " + imm;
     }
+    @Override
+    public void replaceUse(Reg u,Reg t){
+    }
+    @Override
+    public void replaceDef(Reg t){
+        rd=t;
+        defs.remove(rd);
+        defs.add(t);
+    }
 }

@@ -18,6 +18,11 @@ public class St extends RISCVInst {
     public Reg rs, addr;
     public Imm offset;
 
+    static public Category getOp(int sz){
+        if(sz==4)return Category.sw;
+        if(sz==1)return Category.sb;
+        return Category.sh;
+    }
     public St(AsmBlock par, Category op,Reg rs, Reg addr, Imm offset) {
         super(par);
         this.op = op;
@@ -30,5 +35,15 @@ public class St extends RISCVInst {
     @Override
     public String toString() {
         return op + " " + rs + ", " + offset + "(" + addr + ")";
+    }
+    @Override
+    public void replaceUse(Reg u,Reg t){
+        if(rs == u)rs=t;
+        else addr=t;
+        uses.remove(u);
+        uses.add(t);
+    }
+    @Override
+    public void replaceDef(Reg t){
     }
 }

@@ -21,6 +21,8 @@ public class LivenessAnalysor {
 
     public LivenessAnalysor(AsmFn fn){
         curFn = fn;
+        q=new LinkedList<>();
+        visitedBlocks=new HashSet<>();
     }
     void init() {
         for (var b : curFn.blocks) {

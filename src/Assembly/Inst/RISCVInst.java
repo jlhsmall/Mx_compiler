@@ -16,4 +16,6 @@ public abstract class RISCVInst {
     }
     // below: for Asm Printer
     @Override abstract public String toString();
+    abstract public void replaceUse(Reg u,Reg t);
+    abstract public void replaceDef(Reg t);
 }

@@ -2,6 +2,7 @@ package Assembly.Inst;
 
 import Assembly.AsmBlock;
 import Assembly.AsmFn;
+import Assembly.Operand.Reg;
 
 /**
  * @author Jlhsmall
@@ -19,5 +20,14 @@ public class Call extends RISCVInst {
     @Override
     public String toString() {
         return "call " + callee;
+    }
+
+    @Override
+    public void replaceUse(Reg u, Reg t) {
+
+    }
+
+    @Override
+    public void replaceDef(Reg d) {
     }
 }

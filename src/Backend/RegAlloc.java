@@ -1,15 +1,18 @@
 package Backend;
 
 import Assembly.AsmFn;
+import Assembly.Inst.Ld;
 import Assembly.Inst.Mv;
 import Assembly.Inst.RISCVInst;
+import Assembly.Inst.St;
+import Assembly.Operand.Imm;
 import Assembly.Operand.PhyReg;
 import Assembly.Operand.Reg;
-import org.w3c.dom.Node;
+import Assembly.Operand.VirtualReg;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Stack;
+import static Assembly.AsmRoot.sp;
 
 import static Assembly.AsmRoot.assignableRegs;
 
@@ -207,7 +210,7 @@ public class RegAlloc extends AsmVisitor {
         return k < K;
     }
 
-    public boolean combine(Reg u, Reg v) {
+    public void combine(Reg u, Reg v) {
         if (freezeWorkList.contains(v))
             freezeWorkList.remove(v);
         else
@@ -278,7 +281,56 @@ public class RegAlloc extends AsmVisitor {
             n.color = getAlias(n).color;
     }
 
-    public void rewriteProgram(){
+    public void rewriteProgram() {
+        HashSet<Reg>newTemps = new HashSet<>();
+        for (var v : spilledNodes) {
+            v.stackOffset = curFn.stackLength;
+            curFn.stackLength += 4;
+        }
+        for (var b : curFn.blocks) {
+            for (RISCVInst i = b.headInst; i != null; i = i.next) {
+                for (Reg u : i.uses)
+                    if (u.stackOffset != -1) {
+                        int sz = ((VirtualReg)u).size;
+                        if(i.defs.contains(u)){
+                            VirtualReg reg = new VirtualReg(curFn,sz);
+                            newTemps.add(reg);
+                            b.insert_before(i,new Ld(b,Ld.getOp(sz),reg,sp,new Imm(u.stackOffset)));
+                            i.replaceUse(u,reg);
+                            b.insert_after(i,new St(b,St.getOp(sz),reg,sp,new Imm(u.stackOffset)));
+                            i.replaceDef(reg);
+                            i=i.next;
+                        }
+                        else if(i instanceof Mv){
+                            RISCVInst cur = new Ld(b,Ld.getOp(sz),((Mv)i).rd,sp,new Imm(u.stackOffset));
+                            b.replace(i,cur);
+                            i=cur;
+                        }
+                        else{
+                            VirtualReg reg = new VirtualReg(curFn,sz);
+                            newTemps.add(reg);
+                            b.insert_before(i,new Ld(b,Ld.getOp(sz),reg,sp,new Imm(u.stackOffset)));
+                            i.replaceUse(u,reg);
+                        }
+                    }
+                for (Reg d : i.defs)
+                    if(d.stackOffset != -1 && !i.uses.contains(d)){
+                        int sz = ((VirtualReg)d).size;
+                        if(i instanceof Mv){
+                            RISCVInst cur = new St(b,St.getOp(sz),((Mv)i).rs1,sp,new Imm(d.stackOffset));
+                            b.replace(i,cur);
+                            i=cur;
+                        }
+                        else{
+                            VirtualReg reg = new VirtualReg(curFn,sz);
+                            newTemps.add(reg);
+                            b.insert_after(i,new St(b,St.getOp(sz),reg,sp,new Imm(d.stackOffset)));
+                            i.replaceDef(reg);
+                            i=i.next;
+                        }
+                    }
+            }
+        }
         spilledNodes.clear();
         initial.clear();
         initial.addAll(coloredNodes);
@@ -300,14 +352,14 @@ public class RegAlloc extends AsmVisitor {
         analysor.run();
         build();
         makeWorkList();
-        while(!(simplifyWorkList.isEmpty() && workListMvs.isEmpty() && freezeWorkList.isEmpty()&&spillWorkList.isEmpty())){
-            if(!simplifyWorkList.isEmpty())simplify();
-            else if(!workListMvs.isEmpty())coalesce();
-            else if(!freezeWorkList.isEmpty())freeze();
-            else if(!spillWorkList.isEmpty())selectSpill();
+        while (!(simplifyWorkList.isEmpty() && workListMvs.isEmpty() && freezeWorkList.isEmpty() && spillWorkList.isEmpty())) {
+            if (!simplifyWorkList.isEmpty()) simplify();
+            else if (!workListMvs.isEmpty()) coalesce();
+            else if (!freezeWorkList.isEmpty()) freeze();
+            else if (!spillWorkList.isEmpty()) selectSpill();
         }
         assignColors();
-        if(!spilledNodes.isEmpty()){
+        if (!spilledNodes.isEmpty()) {
             rewriteProgram();
             visitFn(fn);
         }

@@ -29,4 +29,13 @@ public class Bz extends RISCVInst {
     public String toString() {
         return op + " " + rs1 + ", " + dest;
     }
+    @Override
+    public void replaceUse(Reg u,Reg t){
+        rs1=t;
+        uses.remove(u);
+        uses.add(t);
+    }
+    @Override
+    public void replaceDef(Reg t){
+    }
 }

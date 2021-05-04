@@ -1,6 +1,7 @@
 package Assembly.Inst;
 
 import Assembly.AsmBlock;
+import Assembly.Operand.Reg;
 
 public class Jp extends RISCVInst {
     public AsmBlock dest;
@@ -13,5 +14,11 @@ public class Jp extends RISCVInst {
     @Override
     public String toString() {
         return "j " + dest;
+    }
+    @Override
+    public void replaceUse(Reg u,Reg t){
+    }
+    @Override
+    public void replaceDef(Reg t){
     }
 }
