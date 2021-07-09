@@ -1,9 +1,7 @@
 package Assembly.Inst;
 
 import Assembly.AsmBlock;
-import Assembly.Operand.Imm;
-import Assembly.Operand.PhyReg;
-import Assembly.Operand.Reg;
+import Assembly.Operand.*;
 
 public class St extends RISCVInst {
 
@@ -14,7 +12,7 @@ public class St extends RISCVInst {
             size = sz;
         }
     }
-    Category op;
+    public Category op;
     public Reg rs, addr;
     public Imm offset;
 
@@ -29,8 +27,6 @@ public class St extends RISCVInst {
         this.rs = rs;
         this.addr = addr;
         this.offset = offset;
-        uses.add(rs);
-        uses.add(addr);
     }
     @Override
     public String toString() {
@@ -40,10 +36,14 @@ public class St extends RISCVInst {
     public void replaceUse(Reg u,Reg t){
         if(rs == u)rs=t;
         else addr=t;
-        uses.remove(u);
-        uses.add(t);
     }
     @Override
     public void replaceDef(Reg t){
+    }
+    @Override
+    public void initUseAndDef(){
+        uses.clear();
+        if (rs instanceof VirtualReg) uses.add((VirtualReg) rs);
+        if (addr instanceof VirtualReg) uses.add((VirtualReg) addr);
     }
 }

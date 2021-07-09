@@ -30,4 +30,7 @@ public class Call extends RISCVInst {
     @Override
     public void replaceDef(Reg d) {
     }
+    @Override
+    public void initUseAndDef(){
+    }
 }

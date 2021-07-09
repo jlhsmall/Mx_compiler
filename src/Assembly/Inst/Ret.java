@@ -17,4 +17,7 @@ public class Ret extends RISCVInst {
     @Override
     public void replaceDef(Reg t){
     }
+    @Override
+    public void initUseAndDef(){
+    }
 }

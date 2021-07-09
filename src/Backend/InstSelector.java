@@ -122,6 +122,12 @@ public class InstSelector implements Pass {
             blockMap.put(irFunc.blocks.get(i).getAsmBlockKey(), b);
         }
         curBlock = curFn.rootBlock;
+        ArrayList<Reg> calleeSaveDests = new ArrayList<>();
+        for (Reg r : calleeSaveRegs) {
+            VirtualReg dest = new VirtualReg(curFn, 4);
+            curBlock.push_back(new Mv(curBlock, dest, r));
+            calleeSaveDests.add(dest);
+        }
         ArrayList<VirtualReg> argVals = new ArrayList<>();
         for (int i = 0; i < Integer.min(8, irFunc.arguments.size()); ++i) {
             argVals.add(new VirtualReg(curFn, 4));
@@ -137,35 +143,28 @@ public class InstSelector implements Pass {
             } else
                 regMap.put(arg, new VirtualReg(curFn, 4));
         }
+        curFn.exitBlock=new AsmBlock(curFn);
         for (int i = 0; i < irFunc.blocks.size(); ++i) {
             curBlock = blockMap.get(irFunc.blocks.get(i).getAsmBlockKey());
             irFunc.blocks.get(i).accept(this);
             curFn.blocks.add(curBlock);
         }
-        curFn.exitBlock=curBlock;
-        if (!(curBlock.tailInst instanceof Ret)) {
+        if (!curBlock.successors.contains(curFn.exitBlock)) {
             curBlock.push_back(new Mv(curBlock, a0, zero));
-            Ret tmp = new Ret(curBlock);
-            curBlock.push_back(tmp);
-            curFn.RetList.add(tmp);
+            curBlock.push_back(new Jp(curBlock,curFn.exitBlock));
         }
-        int stackLength = (VirtualReg.cnt - curFn.vRegIndex + irFunc.arguments.size()) * 4 + 4;
+        curBlock=curFn.exitBlock;
+        curFn.blocks.add(curFn.exitBlock);
+        for (int i = 0; i < calleeSaveRegs.size(); ++i)
+            curBlock.push_back(new Mv(curBlock, calleeSaveRegs.get(i), calleeSaveDests.get(i)));
+        curFn.stackLength=Integer.max(0,irFunc.arguments.size()-8)*4;
         RISCVInst curHead = curFn.rootBlock.headInst;
-        if (curFn.hasCall) {
-            for (var ret : curFn.RetList)
-                ret.parent.insert_before(ret, new Ld(ret.parent, lw, ra, sp, new Imm(stackLength - 4)));
-        }
-        for (var ret : curFn.RetList)
-            ret.parent.insert_before(ret, new IInst(ret.parent, addi, sp, sp, new Imm(stackLength)));
-        for (int i = 8, offset = stackLength; i <= irFunc.arguments.size() - 1; ++i) {
-            //int sz = irFunc.arguments.get(i).type.getBytes();
+        for (int i = 8, offset = 0; i <= irFunc.arguments.size() - 1; ++i) {
+            int sz = irFunc.arguments.get(i).type.getBytes();
             curFn.rootBlock.insert_before(curHead, new IInst(curFn.rootBlock, addi,
                     getAsmReg(irFunc.arguments.get(i)), sp, new Imm(offset)));
-            offset += 4;//sz;
+            offset += sz;
         }
-        if (curFn.hasCall)
-            curFn.rootBlock.push_front(new St(curFn.rootBlock, sw, ra, sp, new Imm(stackLength - 4)));
-        curFn.rootBlock.push_front(new IInst(curFn.rootBlock, addi, sp, sp, new Imm(-stackLength)));
     }
 
     @Override
@@ -296,8 +295,13 @@ public class InstSelector implements Pass {
 
     @Override
     public void visit(callInst inst) {
+        ArrayList<Reg> callerSaveDests = new ArrayList<>();
+        for (Reg r : callerSaveRegs) {
+            VirtualReg dest = new VirtualReg(curFn, 4);
+            curBlock.push_back(new Mv(curBlock, dest, r));
+            callerSaveDests.add(dest);
+        }
         AsmFn callee = fnMap.get(inst.func.name);
-        //curBlock.addSuccessor(callee.rootBlock);
         ArrayList<Entity> paras = inst.func.paras;
         if (paras.size() <= 8) {
             for (int i = 0; i < paras.size(); ++i)
@@ -308,13 +312,15 @@ public class InstSelector implements Pass {
             int offset = 0, sz;
             for (int i = 8; i < paras.size(); ++i) {
                 sz = paras.get(i).type.getBytes();
-                curBlock.push_back(new St(curBlock, sz == 1 ? sb : sw, getAsmReg(paras.get(i)), sp, new Imm(offset)));
+                St st=new St(curBlock, sz == 1 ? sb : sw, getAsmReg(paras.get(i)), sp, new Imm(offset));
+                curBlock.push_back(st);
+                callee.stList.add(st);//for offset-=stackLength in RegAlloc
                 offset += sz;
             }
         }
         curBlock.push_back(new Call(curBlock, callee));
-        if (!(inst.func.type instanceof IRVoidType))
-            curBlock.push_back(new Mv(curBlock, getAsmReg(inst.result), AsmRoot.a0));
+        for (int i = 0; i < callerSaveRegs.size(); ++i)
+            curBlock.push_back(new Mv(curBlock, callerSaveRegs.get(i), callerSaveDests.get(i)));
     }
 
     @Override
@@ -408,10 +414,8 @@ public class InstSelector implements Pass {
     @Override
     public void visit(retInst inst) {
         if (inst.value != null)
-            curBlock.push_back(new Mv(curBlock, AsmRoot.a0, getAsmReg(inst.value)));
-        Ret ret = new Ret(curBlock);
-        curFn.RetList.add(ret);
-        curBlock.push_back(ret);
+            curBlock.push_back(new Mv(curBlock, a0, getAsmReg(inst.value)));
+        curBlock.push_back(new Jp(curBlock,curFn.exitBlock));
     }
 
     @Override

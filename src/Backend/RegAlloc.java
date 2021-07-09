@@ -1,20 +1,19 @@
 package Backend;
 
 import Assembly.AsmFn;
-import Assembly.Inst.Ld;
-import Assembly.Inst.Mv;
-import Assembly.Inst.RISCVInst;
-import Assembly.Inst.St;
-import Assembly.Operand.Imm;
-import Assembly.Operand.PhyReg;
-import Assembly.Operand.Reg;
-import Assembly.Operand.VirtualReg;
+import Assembly.Inst.*;
+import Assembly.Operand.*;
+import IR.entity.Entity;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Stack;
-import static Assembly.AsmRoot.sp;
 
-import static Assembly.AsmRoot.assignableRegs;
+import static Assembly.AsmRoot.*;
+import static Assembly.Inst.IInst.Category.addi;
+import static Assembly.Inst.Ld.Category.lw;
+import static Assembly.Inst.St.Category.sw;
 
 /**
  * @author Jlhsmall
@@ -22,10 +21,11 @@ import static Assembly.AsmRoot.assignableRegs;
  */
 public class RegAlloc extends AsmVisitor {
     AsmFn curFn;
-    HashSet<Reg> precolored = new HashSet<>(), initial = new HashSet<>(), simplifyWorkList = new HashSet<>(), freezeWorkList = new HashSet<>(), spillWorkList = new HashSet<>(), spilledNodes = new HashSet<>(), coalescedNodes = new HashSet<>(), coloredNodes = new HashSet<>();
+    HashSet<Reg> precolored = new LinkedHashSet<>(phyRegs), initial = new LinkedHashSet<>(), simplifyWorkList = new LinkedHashSet<>(), freezeWorkList = new LinkedHashSet<>(), spillWorkList = new LinkedHashSet<>(),
+            spilledNodes = new LinkedHashSet<>(), coalescedNodes = new LinkedHashSet<>(), coloredNodes = new LinkedHashSet<>();
     Stack<Reg> selectStack = new Stack<>();
-    HashSet<Mv> coalescedMvs = new HashSet<>(), constrainedMvs = new HashSet<>(), frozenMvs = new HashSet<>(), workListMvs = new HashSet<>(), activeMvs = new HashSet<>();
-    int K;
+    HashSet<Mv> coalescedMvs = new LinkedHashSet<>(), constrainedMvs = new LinkedHashSet<>(), frozenMvs = new LinkedHashSet<>(), workListMvs = new LinkedHashSet<>(), activeMvs = new LinkedHashSet<>();
+    int K = assignableRegs.size();
 
     static class Edge {
         Reg u, v;
@@ -41,31 +41,71 @@ public class RegAlloc extends AsmVisitor {
         }
     }
 
-    HashSet<Edge> adjSet = new HashSet<>();
+    HashSet<Edge> adjSet = new LinkedHashSet<>();
 
     public RegAlloc(InstSelector selector) {
         super(selector);
     }
 
+    public void reset() {
+        initial.clear();
+        simplifyWorkList.clear();
+        freezeWorkList.clear();
+        spillWorkList.clear();
+        spilledNodes.clear();
+        coalescedNodes.clear();
+        coloredNodes.clear();
+        selectStack.clear();
+        coalescedMvs.clear();
+        constrainedMvs.clear();
+        frozenMvs.clear();
+        workListMvs.clear();
+        activeMvs.clear();
+        adjSet.clear();
+        for (var b : curFn.blocks) {
+            for (RISCVInst i = b.headInst; i != null; i = i.next) {
+                i.initUseAndDef();
+                initial.addAll(i.uses);
+                initial.addAll(i.defs);
+            }
+        }
+        initial.removeAll(precolored);
+        for (var n : initial) {
+            n.degree = 0;
+            n.color = null;
+            n.alias = null;
+            n.adjList.clear();
+            n.MvList.clear();
+        }
+        for (var n : precolored){
+            n.degree = 0;
+            n.alias = null;
+            n.adjList.clear();
+            n.MvList.clear();
+        }
+    }
+
     public void build() {
         for (var b : curFn.blocks) {
-            HashSet<Reg> live = new HashSet<>();
+            HashSet<Reg> live = new LinkedHashSet<>();
             live.addAll(b.liveOut);
             for (RISCVInst i = b.tailInst; i != null; i = i.prev) {
                 if (i instanceof Mv) {
                     live.removeAll(i.uses);
-                    HashSet<Reg> nodeSet = new HashSet<>();
+                    HashSet<Reg> nodeSet = new LinkedHashSet<>();
                     nodeSet.addAll(i.defs);
                     nodeSet.addAll(i.uses);
                     for (var n : nodeSet)
                         n.MvList.add((Mv) i);
                     workListMvs.add((Mv) i);
-                    for (var d : i.defs)
-                        for (var l : live)
-                            addEdge(l, d);
-                    live.removeAll(i.defs);
-                    live.addAll(i.uses);
                 }
+                live.addAll(i.defs);
+                live.add(zero);
+                for (var d : i.defs)
+                    for (var l : live)
+                        addEdge(l, d);
+                live.removeAll(i.defs);
+                live.addAll(i.uses);
             }
         }
     }
@@ -80,7 +120,7 @@ public class RegAlloc extends AsmVisitor {
                 ++u.degree;
             }
             if (!precolored.contains(v)) {
-                v.adjList.add(v);
+                v.adjList.add(u);
                 ++v.degree;
             }
         }
@@ -88,7 +128,6 @@ public class RegAlloc extends AsmVisitor {
 
     public void makeWorkList() {
         for (var n : initial) {
-            initial.remove(n);
             if (n.degree >= K)
                 spillWorkList.add(n);
             else if (MvRelated(n))
@@ -96,10 +135,11 @@ public class RegAlloc extends AsmVisitor {
             else
                 simplifyWorkList.add(n);
         }
+        //initial.clear();
     }
 
     public HashSet<Reg> Adjacent(Reg n) {
-        HashSet<Reg> ret = new HashSet<>();
+        HashSet<Reg> ret = new LinkedHashSet<>();
         ret.addAll(n.adjList);
         ret.removeAll(selectStack);
         ret.removeAll(coalescedNodes);
@@ -107,7 +147,7 @@ public class RegAlloc extends AsmVisitor {
     }
 
     public HashSet<Mv> NodeMvs(Reg n) {
-        HashSet<Mv> ret = new HashSet<>();
+        HashSet<Mv> ret = new LinkedHashSet<>();
         ret.addAll(activeMvs);
         ret.addAll(workListMvs);
         ret.retainAll(n.MvList);
@@ -119,12 +159,11 @@ public class RegAlloc extends AsmVisitor {
     }
 
     public void simplify() {
-        for (var n : simplifyWorkList) {
-            simplifyWorkList.remove(n);
-            selectStack.push(n);
-            for (var m : Adjacent(n)) {
-                decrementDegree(m);
-            }
+        Reg n = simplifyWorkList.iterator().next();
+        simplifyWorkList.remove(n);
+        selectStack.push(n);
+        for (var m : Adjacent(n)) {
+            decrementDegree(m);
         }
     }
 
@@ -242,7 +281,7 @@ public class RegAlloc extends AsmVisitor {
             Reg v = getAlias(y) == getAlias(u) ? getAlias(x) : getAlias(y);
             activeMvs.remove(m);
             frozenMvs.add(m);
-            if (NodeMvs(v).isEmpty() && v.degree < K) {
+            if (NodeMvs(v).isEmpty() && freezeWorkList.contains(v)) {
                 freezeWorkList.remove(v);
                 simplifyWorkList.add(v);
             }
@@ -259,22 +298,22 @@ public class RegAlloc extends AsmVisitor {
     public void assignColors() {
         while (!selectStack.isEmpty()) {
             Reg n = selectStack.pop();
-            HashSet<PhyReg> okColors = new HashSet<>();
+            HashSet<PhyReg> okColors = new LinkedHashSet<>();
             okColors.addAll(assignableRegs);
             for (var w : n.adjList) {
-                HashSet<Reg> rhs = new HashSet<>();
+                HashSet<Reg> rhs = new LinkedHashSet<>();
                 rhs.addAll(precolored);
                 rhs.addAll(coloredNodes);
                 if (rhs.contains(getAlias(w))) {
                     okColors.remove(getAlias(w).color);
                 }
-                if (okColors.isEmpty())
-                    spilledNodes.add(n);
-                else {
-                    coloredNodes.add(n);
-                    PhyReg c = okColors.iterator().next();
-                    n.color = c;
-                }
+            }
+            if (okColors.isEmpty())
+                spilledNodes.add(n);
+            else {
+                coloredNodes.add(n);
+                PhyReg c = okColors.iterator().next();
+                n.color = c;
             }
         }
         for (var n : coalescedNodes)
@@ -282,7 +321,7 @@ public class RegAlloc extends AsmVisitor {
     }
 
     public void rewriteProgram() {
-        HashSet<Reg>newTemps = new HashSet<>();
+        HashSet<Reg> newTemps = new LinkedHashSet<>();//for spill use
         for (var v : spilledNodes) {
             v.stackOffset = curFn.stackLength;
             curFn.stackLength += 4;
@@ -291,83 +330,111 @@ public class RegAlloc extends AsmVisitor {
             for (RISCVInst i = b.headInst; i != null; i = i.next) {
                 for (Reg u : i.uses)
                     if (u.stackOffset != -1) {
-                        int sz = ((VirtualReg)u).size;
-                        if(i.defs.contains(u)){
-                            VirtualReg reg = new VirtualReg(curFn,sz);
+                        int sz = ((VirtualReg) u).size;
+                        if (i.defs.contains(u)) {
+                            VirtualReg reg = new VirtualReg(curFn, sz);
                             newTemps.add(reg);
-                            b.insert_before(i,new Ld(b,Ld.getOp(sz),reg,sp,new Imm(u.stackOffset)));
-                            i.replaceUse(u,reg);
-                            b.insert_after(i,new St(b,St.getOp(sz),reg,sp,new Imm(u.stackOffset)));
+                            b.insert_before(i, new Ld(b, Ld.getOp(sz), reg, sp, new Imm(u.stackOffset)));
+                            i.replaceUse(u, reg);
+                            b.insert_after(i, new St(b, St.getOp(sz), reg, sp, new Imm(u.stackOffset)));
                             i.replaceDef(reg);
-                            i=i.next;
-                        }
-                        else if(i instanceof Mv){
-                            RISCVInst cur = new Ld(b,Ld.getOp(sz),((Mv)i).rd,sp,new Imm(u.stackOffset));
-                            b.replace(i,cur);
-                            i=cur;
-                        }
-                        else{
-                            VirtualReg reg = new VirtualReg(curFn,sz);
+                            i = i.next;
+                        } else if (i instanceof Mv) {
+                            RISCVInst cur = new Ld(b, Ld.getOp(sz), ((Mv) i).rd, sp, new Imm(u.stackOffset));
+                            b.replace(i, cur);
+                            i = cur;
+                        } else {
+                            VirtualReg reg = new VirtualReg(curFn, sz);
                             newTemps.add(reg);
-                            b.insert_before(i,new Ld(b,Ld.getOp(sz),reg,sp,new Imm(u.stackOffset)));
-                            i.replaceUse(u,reg);
+                            b.insert_before(i, new Ld(b, Ld.getOp(sz), reg, sp, new Imm(u.stackOffset)));
+                            i.replaceUse(u, reg);
                         }
                     }
                 for (Reg d : i.defs)
-                    if(d.stackOffset != -1 && !i.uses.contains(d)){
-                        int sz = ((VirtualReg)d).size;
-                        if(i instanceof Mv){
-                            RISCVInst cur = new St(b,St.getOp(sz),((Mv)i).rs1,sp,new Imm(d.stackOffset));
-                            b.replace(i,cur);
-                            i=cur;
-                        }
-                        else{
-                            VirtualReg reg = new VirtualReg(curFn,sz);
+                    if (d.stackOffset != -1 && !i.uses.contains(d)) {
+                        int sz = ((VirtualReg) d).size;
+                        if (i instanceof Mv) {
+                            RISCVInst cur = new St(b, St.getOp(sz), ((Mv) i).rs1, sp, new Imm(d.stackOffset));
+                            b.replace(i, cur);
+                            i = cur;
+                        } else {
+                            VirtualReg reg = new VirtualReg(curFn, sz);
                             newTemps.add(reg);
-                            b.insert_after(i,new St(b,St.getOp(sz),reg,sp,new Imm(d.stackOffset)));
+                            b.insert_after(i, new St(b, St.getOp(sz), reg, sp, new Imm(d.stackOffset)));
                             i.replaceDef(reg);
-                            i=i.next;
+                            i = i.next;
                         }
                     }
             }
         }
-        spilledNodes.clear();
-        initial.clear();
-        initial.addAll(coloredNodes);
-        initial.addAll(coalescedNodes);
-        initial.addAll(newTemps);
-        coloredNodes.clear();
-        coalescedNodes.clear();
     }
 
     public Reg getAlias(Reg n) {
-        if (coalescedNodes.contains(n))
-            return getAlias(n.alias);
+        if (coalescedNodes.contains(n)) {
+            n.alias=getAlias(n.alias);
+            return n.alias;
+        }
         return n;
     }
-
-    public void visitFn(AsmFn fn) {
-        LivenessAnalysor analysor = new LivenessAnalysor(fn);
-        curFn = fn;
-        analysor.run();
-        build();
-        makeWorkList();
-        while (!(simplifyWorkList.isEmpty() && workListMvs.isEmpty() && freezeWorkList.isEmpty() && spillWorkList.isEmpty())) {
-            if (!simplifyWorkList.isEmpty()) simplify();
-            else if (!workListMvs.isEmpty()) coalesce();
-            else if (!freezeWorkList.isEmpty()) freeze();
-            else if (!spillWorkList.isEmpty()) selectSpill();
+    public void eraseRedundantMvs(){
+        for(var b : curFn.blocks){
+            for(RISCVInst i = b.headInst; i != null; i = i.next){
+                if(i instanceof Mv){
+                    Mv mv = (Mv)i;
+                    if(mv.rd.color == mv.rs1.color)b.erase(i);
+                }
+            }
         }
-        assignColors();
-        if (!spilledNodes.isEmpty()) {
-            rewriteProgram();
-            visitFn(fn);
+    }
+    public void visitFn(AsmFn fn) {
+        while (true) {
+            curFn = fn;
+            reset();
+            LivenessAnalysor analysor = new LivenessAnalysor(fn);
+            analysor.run();
+            build();
+            makeWorkList();
+            while (!(simplifyWorkList.isEmpty() && workListMvs.isEmpty() && freezeWorkList.isEmpty() && spillWorkList.isEmpty())) {
+                if (!simplifyWorkList.isEmpty()) simplify();
+                else if (!workListMvs.isEmpty()) coalesce();
+                else if (!freezeWorkList.isEmpty()) freeze();
+                else if (!spillWorkList.isEmpty()) selectSpill();
+            }
+            assignColors();
+            if (!spilledNodes.isEmpty())
+                rewriteProgram();
+            else break;
+        }
+
+    }
+
+    public void handleStackPointer(AsmFn fn){
+        curFn=fn;
+        if (curFn.hasCall) {
+            curFn.rootBlock.push_front(new St(curFn.rootBlock, sw, ra, sp, new Imm(fn.stackLength - 4)));
+            curFn.exitBlock.push_back(new Ld(curFn.exitBlock,lw,ra,sp,new Imm(fn.stackLength - 4)));
+        }
+        curFn.rootBlock.push_front(new IInst(curFn.rootBlock, addi, sp, sp, new Imm(-fn.stackLength)));
+        curFn.exitBlock.push_back(new IInst(curFn.exitBlock, addi, sp, sp, new Imm(fn.stackLength)));
+        curFn.exitBlock.push_back(new Ret(curFn.exitBlock));
+        for(var st : fn.stList){
+            st.offset=new Imm(st.offset.value-fn.stackLength);
         }
     }
 
     public void run() {
         for (var entry : fnMap.entrySet()) {
-            visitFn(entry.getValue());
+            AsmFn fn = entry.getValue();
+            if(fn.rootBlock != null) {
+                visitFn(fn);
+                eraseRedundantMvs();
+            }
+        }
+        for (var entry : fnMap.entrySet()) {
+            AsmFn fn = entry.getValue();
+            if(fn.rootBlock != null) {
+                handleStackPointer(fn);
+            }
         }
     }
 }

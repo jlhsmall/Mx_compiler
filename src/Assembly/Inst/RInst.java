@@ -2,6 +2,7 @@ package Assembly.Inst;
 
 import Assembly.AsmBlock;
 import Assembly.Operand.Reg;
+import Assembly.Operand.VirtualReg;
 import Util.error.internalError;
 import Util.position;
 
@@ -19,9 +20,6 @@ public class RInst extends RISCVInst {
         this.rd = rd;
         this.rs1 = rs1;
         this.rs2 = rs2;
-        uses.add(rs1);
-        uses.add(rs2);
-        defs.add(rd);
     }
 
     @Override
@@ -32,13 +30,17 @@ public class RInst extends RISCVInst {
     public void replaceUse(Reg u,Reg t){
         if(rs1 == u)rs1=t;
         else rs2=t;
-        uses.remove(u);
-        uses.add(t);
     }
     @Override
     public void replaceDef(Reg t){
         rd=t;
-        defs.remove(rd);
-        defs.add(t);
+    }
+    @Override
+    public void initUseAndDef(){
+        uses.clear();
+        defs.clear();
+        if (rs1 instanceof VirtualReg) uses.add((VirtualReg) rs1);
+        if (rs2 instanceof VirtualReg) uses.add((VirtualReg) rs2);
+        if(rd instanceof VirtualReg)defs.add((VirtualReg) rd);
     }
 }

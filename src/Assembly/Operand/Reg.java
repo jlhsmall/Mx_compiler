@@ -10,6 +10,7 @@ public abstract class Reg extends Operand {
     public int degree = 0;
     public Reg alias;
     public PhyReg color;
+    public double weight=0;
     public int stackOffset = -1;
     @Override abstract public String toString();
 }

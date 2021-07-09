@@ -1,8 +1,10 @@
 package Assembly;
 
+import Assembly.Inst.Call;
 import Assembly.Inst.RISCVInst;
 import Assembly.Operand.Reg;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 public class AsmBlock {
@@ -17,6 +19,10 @@ public class AsmBlock {
         parent = par;
         successors = new HashSet<>();
         predecessors = new HashSet<>();
+        uses=new HashSet<>();
+        defs=new HashSet<>();
+        liveIn=new HashSet<>();
+        liveOut=new HashSet<>();
     }
 
     public void addSuccessor(AsmBlock b) {
@@ -68,7 +74,12 @@ public class AsmBlock {
         if (old != tailInst) old.next.prev = cur;
         else tailInst = cur;
     }
-
+    public void erase(RISCVInst i){
+        if(i.prev == null)headInst = i.next;
+        else i.prev.next = i.next;
+        if(i.next == null)tailInst = i.prev;
+        else i.next.prev=i.prev;
+    }
     @Override
     public String toString() {
         return ".LBB" + index;

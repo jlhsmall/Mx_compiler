@@ -45,6 +45,8 @@ public class AsmPrinter extends AsmVisitor{
         out.println(b + ": ");
         for (RISCVInst i = b.headInst; i != null; i = i.next) {
             out.println("\t" + i.toString());
+            //out.println(i.defs);
+            //out.println(i.uses);
         }
     }
     public void print() {

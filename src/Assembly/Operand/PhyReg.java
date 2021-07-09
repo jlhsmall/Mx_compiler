@@ -4,6 +4,7 @@ public class PhyReg extends Reg {
     public String name;
     public PhyReg(String nm) {
         name = nm;
+        color= this;
     }
 
     @Override

@@ -2,6 +2,7 @@ package Assembly.Inst;
 
 import Assembly.AsmBlock;
 import Assembly.Operand.Reg;
+import Assembly.Operand.VirtualReg;
 
 /**
  * @author Jlhsmall
@@ -22,7 +23,6 @@ public class Bz extends RISCVInst {
         this.rs1 = rs1;
         this.dest = dest;
         par.addSuccessor(dest);
-        uses.add(rs1);
     }
 
     @Override
@@ -32,10 +32,14 @@ public class Bz extends RISCVInst {
     @Override
     public void replaceUse(Reg u,Reg t){
         rs1=t;
-        uses.remove(u);
-        uses.add(t);
     }
     @Override
     public void replaceDef(Reg t){
+    }
+
+    @Override
+    public void initUseAndDef(){
+        uses.clear();
+        if (rs1 instanceof VirtualReg) uses.add((VirtualReg) rs1);
     }
 }

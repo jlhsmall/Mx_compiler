@@ -21,4 +21,7 @@ public class Jp extends RISCVInst {
     @Override
     public void replaceDef(Reg t){
     }
+    @Override
+    public void initUseAndDef(){
+    }
 }

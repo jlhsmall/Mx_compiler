@@ -1,8 +1,8 @@
 package Assembly;
 
-import Assembly.Inst.Ret;
-import Assembly.Operand.PhyReg;
-import type.ArrayType;
+import Assembly.Inst.Call;
+import Assembly.Inst.RISCVInst;
+import Assembly.Inst.St;
 
 import java.util.*;
 
@@ -13,8 +13,8 @@ public class AsmFn {
     public String name;
     public int vRegIndex;
     public List<AsmBlock> printList = new LinkedList<>();
-    public ArrayList<Ret> RetList= new ArrayList<>();
     public boolean hasCall = false;
+    public ArrayList<St>stList=new ArrayList<>();
     public int stackLength=0;
     public AsmFn(AsmRoot par,String nm, int i) {
         parent = par;

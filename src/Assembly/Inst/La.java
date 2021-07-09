@@ -4,6 +4,7 @@ package Assembly.Inst;
 import Assembly.AsmBlock;
 import Assembly.Operand.GlobalReg;
 import Assembly.Operand.Reg;
+import Assembly.Operand.VirtualReg;
 
 /**
  * @author Jlhsmall
@@ -16,7 +17,6 @@ public class La extends RISCVInst {
         super(par);
         this.rd = rd;
         this.symbol = symbol;
-        defs.add(rd);
     }
     @Override
     public String toString(){
@@ -28,7 +28,10 @@ public class La extends RISCVInst {
     @Override
     public void replaceDef(Reg t){
         rd=t;
-        defs.remove(rd);
-        defs.add(t);
+    }
+    @Override
+    public void initUseAndDef(){
+        defs.clear();
+        if(rd instanceof VirtualReg)defs.add((VirtualReg) rd);
     }
 }

@@ -2,6 +2,7 @@ package Assembly.Inst;
 
 import Assembly.AsmBlock;
 import Assembly.Operand.Reg;
+import Assembly.Operand.VirtualReg;
 
 import java.util.HashSet;
 
@@ -17,6 +18,7 @@ public class Br extends RISCVInst {
     public Reg rs1, rs2;
     public AsmBlock dest;
     public Category op;
+
     public Br(AsmBlock par, Category op, Reg rs1, Reg rs2, AsmBlock dest) {
         super(par);
         this.op = op;
@@ -24,22 +26,27 @@ public class Br extends RISCVInst {
         this.rs2 = rs2;
         this.dest = dest;
         par.addSuccessor(dest);
-        uses.add(rs1);
-        uses.add(rs2);
     }
 
     @Override
     public String toString() {
         return op + " " + rs1 + ", " + rs2 + ", " + dest;
     }
+
     @Override
-    public void replaceUse(Reg u,Reg t){
-        if(rs1 == u)rs1=t;
-        else rs2=t;
-        uses.remove(u);
-        uses.add(t);
+    public void replaceUse(Reg u, Reg t) {
+        if (rs1 == u) rs1 = t;
+        else rs2 = t;
     }
+
     @Override
-    public void replaceDef(Reg t){
+    public void replaceDef(Reg t) {
+    }
+
+    @Override
+    public void initUseAndDef() {
+        uses.clear();
+        if (rs1 instanceof VirtualReg) uses.add((VirtualReg) rs1);
+        if (rs2 instanceof VirtualReg) uses.add((VirtualReg) rs2);
     }
 }
