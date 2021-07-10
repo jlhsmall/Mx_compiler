@@ -40,6 +40,6 @@ public class Bz extends RISCVInst {
     @Override
     public void initUseAndDef(){
         uses.clear();
-        if (rs1 instanceof VirtualReg) uses.add((VirtualReg) rs1);
+        uses.add(rs1);
     }
 }

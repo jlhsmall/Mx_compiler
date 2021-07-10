@@ -39,8 +39,8 @@ public class RInst extends RISCVInst {
     public void initUseAndDef(){
         uses.clear();
         defs.clear();
-        if (rs1 instanceof VirtualReg) uses.add((VirtualReg) rs1);
-        if (rs2 instanceof VirtualReg) uses.add((VirtualReg) rs2);
-        if(rd instanceof VirtualReg)defs.add((VirtualReg) rd);
+        uses.add(rs1);
+        uses.add(rs2);
+        defs.add(rd);
     }
 }

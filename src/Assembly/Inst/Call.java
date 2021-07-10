@@ -3,7 +3,7 @@ package Assembly.Inst;
 import Assembly.AsmBlock;
 import Assembly.AsmFn;
 import Assembly.Operand.Reg;
-
+import static Assembly.AsmRoot.callerSaveRegs;
 /**
  * @author Jlhsmall
  * @date 2021/4/12 16:22
@@ -32,5 +32,10 @@ public class Call extends RISCVInst {
     }
     @Override
     public void initUseAndDef(){
+        defs.clear();
+        uses.clear();
+        defs.addAll(callerSaveRegs);
+        int sz=Integer.min(callee.arguments.size(),8);
+        for(int i=0;i<sz;++i)uses.add(callerSaveRegs.get(i+4));
     }
 }

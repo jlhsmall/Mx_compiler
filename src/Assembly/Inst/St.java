@@ -43,7 +43,7 @@ public class St extends RISCVInst {
     @Override
     public void initUseAndDef(){
         uses.clear();
-        if (rs instanceof VirtualReg) uses.add((VirtualReg) rs);
-        if (addr instanceof VirtualReg) uses.add((VirtualReg) addr);
+        uses.add(rs);
+        if(!(addr instanceof GlobalReg))uses.add(addr);
     }
 }

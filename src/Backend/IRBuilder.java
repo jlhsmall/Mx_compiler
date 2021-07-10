@@ -854,9 +854,12 @@ public class IRBuilder implements ASTVisitor {
         } else if (it.type.isIntType()) {
             it.entity = new IntegerConstant(new IRI32Type(), Long.parseLong(it.value));
         } else if (it.type.isStringType()) {
-            GlobalVariable str = new GlobalVariable(new IRStringType(), initFunc.getNameForRegister(it.value), new StringConstant(it.value));
+            GlobalVariable str = new GlobalVariable(new IRPointerType(new IRStringType()), initFunc.getNameForRegister(it.value), new StringConstant(it.value));
             module.GlobalVariableMap.put(str.name, str);
-            it.entity = str;
+            it.lvalue = str;
+            Register loadReg = new Register(new IRStringType(), curFunction.getNameForRegister("loadReg"));
+            curBlock.addInst(new loadInst(curBlock, loadReg, loadReg.type, str));
+            it.entity=loadReg;
         } else {
             it.entity = new NullConstant();
         }

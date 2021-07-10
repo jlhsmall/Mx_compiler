@@ -411,6 +411,7 @@ public class RegAlloc extends AsmVisitor {
     public void handleStackPointer(AsmFn fn){
         curFn=fn;
         if (curFn.hasCall) {
+            fn.stackLength+=4;
             curFn.rootBlock.push_front(new St(curFn.rootBlock, sw, ra, sp, new Imm(fn.stackLength - 4)));
             curFn.exitBlock.push_back(new Ld(curFn.exitBlock,lw,ra,sp,new Imm(fn.stackLength - 4)));
         }

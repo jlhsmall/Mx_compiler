@@ -93,7 +93,7 @@ public class InstSelector implements Pass {
             }
         }
         for (var entry : module.FunctionMap.entrySet()) {
-            AsmFn fn = new AsmFn(root, entry.getKey(), VirtualReg.cnt);
+            AsmFn fn = new AsmFn(root, entry.getKey(), VirtualReg.cnt,entry.getValue().arguments);
             fnMap.put(entry.getKey(), fn);
             if (!entry.getValue().isExternal) fn.rootBlock = new AsmBlock(fn);
         }
@@ -102,7 +102,7 @@ public class InstSelector implements Pass {
             if (!func.isExternal) func.accept(this);
         }
 
-        mainFn = new AsmFn(root, "main", VirtualReg.cnt);
+        mainFn = new AsmFn(root, "main", VirtualReg.cnt,new ArrayList<>());
         fnMap.put("main", mainFn);
         mainFn.rootBlock = new AsmBlock(mainFn);
         module.mainFunc.accept(this);
@@ -319,6 +319,8 @@ public class InstSelector implements Pass {
             }
         }
         curBlock.push_back(new Call(curBlock, callee));
+        if (!(inst.func.type instanceof IRVoidType))
+            curBlock.push_back(new Mv(curBlock, getAsmReg(inst.result), AsmRoot.a0));
         for (int i = 0; i < callerSaveRegs.size(); ++i)
             curBlock.push_back(new Mv(curBlock, callerSaveRegs.get(i), callerSaveDests.get(i)));
     }
@@ -398,7 +400,11 @@ public class InstSelector implements Pass {
 
     @Override
     public void visit(loadInst inst) {
-        curBlock.push_back(new Ld(curBlock, inst.type.getBytes() == 1 ? lb : lw, getAsmReg(inst.result), getAsmReg(inst.ptr), new Imm(0)));
+        Reg rs=getAsmReg(inst.ptr);
+        if(rs instanceof GlobalReg)
+            curBlock.push_back(new La(curBlock,getAsmReg(inst.result),(GlobalReg)rs));
+        else
+            curBlock.push_back(new Ld(curBlock, inst.type.getBytes() == 1 ? lb : lw, getAsmReg(inst.result), rs, new Imm(0)));
     }
 
     @Override
@@ -420,9 +426,13 @@ public class InstSelector implements Pass {
 
     @Override
     public void visit(storeInst inst) {
-        //if(!(inst.ptr instanceof GlobalVariable)&&inst.ptr.isLvalue)
-        //   curBlock.push_back(new Mv(curBlock, getAsmReg(inst.ptr), getAsmReg(inst.data)));
-        //else
-        curBlock.push_back(new St(curBlock, inst.type.getBytes() == 1 ? sb : sw, getAsmReg(inst.data), getAsmReg(inst.ptr), new Imm(0)));
+        Reg addr=getAsmReg(inst.ptr);
+        if(addr instanceof GlobalReg) {
+            VirtualReg ha=new VirtualReg(curFn,4);
+            curBlock.push_back(new Lui(curBlock,ha,new Imm((GlobalReg)addr,true)));
+            curBlock.push_back(new St(curBlock, inst.type.getBytes() == 1 ? sb : sw, getAsmReg(inst.data), ha,new Imm((GlobalReg)addr,false)) );
+        }
+        else
+            curBlock.push_back(new St(curBlock, inst.type.getBytes() == 1 ? sb : sw, getAsmReg(inst.data), addr, new Imm(0)));
     }
 }

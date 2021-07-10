@@ -3,11 +3,11 @@
 %array = type { }
 
 @p = global i32*
-@<<  = global i8* c"<< "
-@  = global i8* c" "
-@>>  = global i8* c">> "
-@)  = global i8* c") "
-@( = global i8* c"("
+@<<  = global i8** c"<< "
+@  = global i8** c" "
+@>>  = global i8** c">> "
+@)  = global i8** c") "
+@( = global i8** c"("
 @i = global i32*
 @k = global i32*
 @n = global i32*
@@ -86,35 +86,36 @@ entry:
     br i1 %gtReg, label %ifTrue, label %ifEnd
 
 ifTrue:
-    %funcReg__3 = call void* print(i8* @<< )
+    %loadReg__5 = load i8* i8** @<< 
+    %funcReg__3 = call void* print(i8* %loadReg__5)
     br label %ifEnd
 
 ifEnd:
-    %loadReg__5 = load i32 i32* @i
-    %loadReg__6 = load i32 i32* @p
-    %loadReg__7 = load i32 i32* @k
-    %subReg__1 = sub i32 %loadReg__6 %loadReg__7
+    %loadReg__6 = load i32 i32* @i
+    %loadReg__7 = load i32 i32* @p
+    %loadReg__8 = load i32 i32* @k
+    %subReg__1 = sub i32 %loadReg__7 %loadReg__8
     store i32 %subReg__1 i32* @i
     br label %forCond
 
 forCond:
-    %loadReg__8 = load i32 i32* @i
-    %loadReg__9 = load i32 i32* @p
-    %loadReg__10 = load i32 i32* @k
-    %addReg = add i32 %loadReg__9 %loadReg__10
-    %leReg = icmp sle i32 %loadReg__8 %addReg
+    %loadReg__9 = load i32 i32* @i
+    %loadReg__10 = load i32 i32* @p
+    %loadReg__11 = load i32 i32* @k
+    %addReg = add i32 %loadReg__10 %loadReg__11
+    %leReg = icmp sle i32 %loadReg__9 %addReg
     br i1 %leReg, label %forBody, label %forEnd
 
 forBody:
-    %loadReg__11 = load i32 i32* @i
-    %leReg__1 = icmp sle i32 1 %loadReg__11
+    %loadReg__12 = load i32 i32* @i
+    %leReg__1 = icmp sle i32 1 %loadReg__12
     move %LogicAndReg %leReg__1
     br i1 %leReg__1, label %andRhs, label %andEnd
 
 andRhs:
-    %loadReg__12 = load i32 i32* @i
-    %loadReg__13 = load i32 i32* @n
-    %leReg__2 = icmp sle i32 %loadReg__12 %loadReg__13
+    %loadReg__13 = load i32 i32* @i
+    %loadReg__14 = load i32 i32* @n
+    %leReg__2 = icmp sle i32 %loadReg__13 %loadReg__14
     move %LogicAndReg %leReg__2
     br label %andEnd
 
@@ -122,26 +123,29 @@ andEnd:
     br i1 %LogicAndReg, label %ifTrue1, label %ifEnd1
 
 ifTrue1:
-    %loadReg__14 = load i32 i32* @i
-    %loadReg__15 = load i32 i32* @p
-    %eqReg = icmp eq i32 %loadReg__14 %loadReg__15
+    %loadReg__15 = load i32 i32* @i
+    %loadReg__16 = load i32 i32* @p
+    %eqReg = icmp eq i32 %loadReg__15 %loadReg__16
     br i1 %eqReg, label %ifTrue2, label %ifFalse2
 
 ifTrue2:
-    %funcReg__4 = call void* print(i8* @()
-    %loadReg__16 = load i32 i32* @i
-    %funcReg__5 = call i8* toString(i32 %loadReg__16)
+    %loadReg__17 = load i8* i8** @(
+    %funcReg__4 = call void* print(i8* %loadReg__17)
+    %loadReg__18 = load i32 i32* @i
+    %funcReg__5 = call i8* toString(i32 %loadReg__18)
     %mallocReg__3 = call i8* malloc(i32 4)
     %castReg__3 = bitcast i8* %mallocReg__3 to i8**
     store i8* %funcReg__5 i8** %castReg__3
     %funcReg__6 = call void* print(i8* %funcReg__5)
-    %funcReg__7 = call void* print(i8* @) )
+    %loadReg__19 = load i8* i8** @) 
+    %funcReg__7 = call void* print(i8* %loadReg__19)
     br label %ifEnd2
 
 ifFalse2:
-    %loadReg__17 = load i32 i32* @i
-    %funcReg__8 = call void* printInt(i32 %loadReg__17)
-    %funcReg__9 = call void* print(i8* @ )
+    %loadReg__20 = load i32 i32* @i
+    %funcReg__8 = call void* printInt(i32 %loadReg__20)
+    %loadReg__21 = load i8* i8** @ 
+    %funcReg__9 = call void* print(i8* %loadReg__21)
     br label %ifEnd2
 
 ifEnd2:
@@ -151,21 +155,22 @@ ifEnd1:
     br label %forIncr
 
 forIncr:
-    %loadReg__18 = load i32 i32* @i
-    %addReg__1 = add i32 %loadReg__18 1
+    %loadReg__22 = load i32 i32* @i
+    %addReg__1 = add i32 %loadReg__22 1
     store i32 %addReg__1 i32* @i
     br label %forCond
 
 forEnd:
-    %loadReg__19 = load i32 i32* @p
-    %loadReg__20 = load i32 i32* @k
-    %addReg__2 = add i32 %loadReg__19 %loadReg__20
-    %loadReg__21 = load i32 i32* @n
-    %ltReg = icmp slt i32 %addReg__2 %loadReg__21
+    %loadReg__23 = load i32 i32* @p
+    %loadReg__24 = load i32 i32* @k
+    %addReg__2 = add i32 %loadReg__23 %loadReg__24
+    %loadReg__25 = load i32 i32* @n
+    %ltReg = icmp slt i32 %addReg__2 %loadReg__25
     br i1 %ltReg, label %ifTrue3, label %ifEnd3
 
 ifTrue3:
-    %funcReg__10 = call void* print(i8* @>> )
+    %loadReg__26 = load i8* i8** @>> 
+    %funcReg__10 = call void* print(i8* %loadReg__26)
     br label %ifEnd3
 
 ifEnd3:

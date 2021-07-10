@@ -30,8 +30,8 @@ public class Mv extends RISCVInst {
     public void initUseAndDef(){
         uses.clear();
         defs.clear();
-        if (rs1 instanceof VirtualReg) uses.add((VirtualReg) rs1);
-        if(rd instanceof VirtualReg)defs.add((VirtualReg) rd);
+        uses.add(rs1);
+        defs.add(rd);
     }
 }
 

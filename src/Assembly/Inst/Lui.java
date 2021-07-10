@@ -31,6 +31,6 @@ public class Lui extends RISCVInst {
     @Override
     public void initUseAndDef(){
         defs.clear();
-        if(rd instanceof VirtualReg)defs.add((VirtualReg) rd);
+        defs.add(rd);
     }
 }

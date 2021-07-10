@@ -14,6 +14,6 @@ public class VirtualReg extends Reg {
     }
     @Override
     public String toString() {
-        return color.toString();
+        return "%"+index;//color.toString();
     }
 }

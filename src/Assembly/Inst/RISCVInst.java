@@ -10,7 +10,7 @@ import java.util.LinkedHashSet;
 public abstract class RISCVInst {
     public RISCVInst prev = null, next = null;
     public AsmBlock parent;
-    public HashSet<VirtualReg> uses,defs;
+    public HashSet<Reg> uses,defs;
     public RISCVInst(AsmBlock par){
         parent = par;
         uses = new LinkedHashSet<>();
