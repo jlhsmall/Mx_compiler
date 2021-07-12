@@ -10,7 +10,7 @@ import java.util.*;
 
 public class AsmFn {
     public AsmRoot parent;
-    public Set<AsmBlock> blocks = new HashSet<>();
+    public Set<AsmBlock> blocks = new LinkedHashSet<>();
     public AsmBlock rootBlock = null, exitBlock;
     public String name;
     public ArrayList<Argument> arguments;

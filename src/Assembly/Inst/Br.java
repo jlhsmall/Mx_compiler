@@ -4,7 +4,8 @@ import Assembly.AsmBlock;
 import Assembly.Operand.Reg;
 import Assembly.Operand.VirtualReg;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
+
 
 /**
  * @author Jlhsmall
@@ -36,17 +37,22 @@ public class Br extends RISCVInst {
     @Override
     public void replaceUse(Reg u, Reg t) {
         if (rs1 == u) rs1 = t;
-        else rs2 = t;
+        if (rs2 == u) rs2 = t;
     }
 
     @Override
-    public void replaceDef(Reg t) {
+    public void replaceDef(Reg u,Reg t) {
     }
 
     @Override
-    public void initUseAndDef() {
-        uses.clear();
-        uses.add(rs1);
-        uses.add(rs2);
+    public LinkedHashSet<Reg>uses(){
+        LinkedHashSet<Reg>ret=new LinkedHashSet<>();
+        ret.add(rs1);
+        ret.add(rs2);
+        return ret;
+    }
+    @Override
+    public LinkedHashSet<Reg>defs(){
+        return new LinkedHashSet<>();
     }
 }

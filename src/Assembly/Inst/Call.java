@@ -3,6 +3,9 @@ package Assembly.Inst;
 import Assembly.AsmBlock;
 import Assembly.AsmFn;
 import Assembly.Operand.Reg;
+
+import java.util.LinkedHashSet;
+
 import static Assembly.AsmRoot.callerSaveRegs;
 /**
  * @author Jlhsmall
@@ -24,18 +27,20 @@ public class Call extends RISCVInst {
 
     @Override
     public void replaceUse(Reg u, Reg t) {
-
     }
 
     @Override
-    public void replaceDef(Reg d) {
+    public void replaceDef(Reg u,Reg d) {
     }
     @Override
-    public void initUseAndDef(){
-        defs.clear();
-        uses.clear();
-        defs.addAll(callerSaveRegs);
+    public LinkedHashSet<Reg> uses(){
+        LinkedHashSet<Reg>ret=new LinkedHashSet<>();
         int sz=Integer.min(callee.arguments.size(),8);
-        for(int i=0;i<sz;++i)uses.add(callerSaveRegs.get(i+4));
+        for(int i=0;i<sz;++i)ret.add(callerSaveRegs.get(i+4));
+        return ret;
+    }
+    @Override
+    public LinkedHashSet<Reg>defs(){
+        return new LinkedHashSet<>(callerSaveRegs);
     }
 }

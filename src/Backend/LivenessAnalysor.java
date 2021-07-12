@@ -5,7 +5,6 @@ import Assembly.AsmFn;
 import Assembly.Inst.RISCVInst;
 import Assembly.Operand.Reg;
 
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -18,7 +17,7 @@ public class LivenessAnalysor {
 
     Queue<AsmBlock> q;
     AsmFn curFn;
-    HashSet<AsmBlock> visitedBlocks;
+    LinkedHashSet<AsmBlock> visitedBlocks;
 
     public LivenessAnalysor(AsmFn fn){
         curFn = fn;
@@ -32,16 +31,16 @@ public class LivenessAnalysor {
             b.liveOut.clear();
             b.liveIn.clear();
             for (RISCVInst i = b.headInst; i != null; i = i.next) {
-                b.uses.removeAll(i.uses);
-                b.uses.addAll(i.uses);
-                b.defs.removeAll(i.defs);
-                b.defs.addAll(i.defs);
+                b.uses.removeAll(i.uses());
+                b.uses.addAll(i.uses());
+                b.defs.removeAll(i.defs());
+                b.defs.addAll(i.defs());
             }
         }
     }
 
     void analyse(AsmBlock b) {
-        HashSet<Reg> newIn = new HashSet<>();
+        LinkedHashSet<Reg> newIn = new LinkedHashSet<>();
         for (var suc : b.successors)
             b.liveOut.addAll(suc.liveIn);
         newIn.addAll(b.liveOut);
@@ -64,6 +63,7 @@ public class LivenessAnalysor {
         q.offer(curFn.exitBlock);
         visitedBlocks.add(curFn.exitBlock);
         while(!q.isEmpty()){
+            //System.out.println(q.peek());
             analyse(q.poll());
         }
     }

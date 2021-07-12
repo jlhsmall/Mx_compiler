@@ -3,6 +3,8 @@ package Assembly.Inst;
 import Assembly.AsmBlock;
 import Assembly.Operand.*;
 
+import java.util.LinkedHashSet;
+
 public class St extends RISCVInst {
 
     public enum Category{
@@ -30,20 +32,27 @@ public class St extends RISCVInst {
     }
     @Override
     public String toString() {
+        if(addr instanceof GlobalReg)
+            return op + " " + rs + ", " + addr;
         return op + " " + rs + ", " + offset + "(" + addr + ")";
     }
     @Override
     public void replaceUse(Reg u,Reg t){
         if(rs == u)rs=t;
-        else addr=t;
+        if(addr==u) addr=t;
     }
     @Override
-    public void replaceDef(Reg t){
+    public void replaceDef(Reg u,Reg t){
     }
     @Override
-    public void initUseAndDef(){
-        uses.clear();
-        uses.add(rs);
-        if(!(addr instanceof GlobalReg))uses.add(addr);
+    public LinkedHashSet<Reg> uses(){
+        LinkedHashSet<Reg>ret=new LinkedHashSet<>();
+        ret.add(rs);
+        if(!(addr instanceof GlobalReg))ret.add(addr);
+        return ret;
+    }
+    @Override
+    public LinkedHashSet<Reg>defs(){
+        return new LinkedHashSet<>();
     }
 }

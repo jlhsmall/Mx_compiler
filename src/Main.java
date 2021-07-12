@@ -40,8 +40,8 @@ public class Main {
             new IRPrinter(new PrintStream("test.ll")).visit(builder.module);
             InstSelector selector = new InstSelector();
             selector.visit(builder.module);
-            //new GlobalRegAlloc(selector).run();
-            //new RegAlloc(selector).run();
+            new RegAlloc(selector).run();
+            Assembly.Operand.VirtualReg.allocing=true;
             new AsmPrinter(selector,new PrintStream("test.s")).print();
             //new AsmPrinter(selector,new PrintStream("output.s")).print();
 

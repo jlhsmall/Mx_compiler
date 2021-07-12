@@ -5,6 +5,8 @@ import Assembly.Operand.Imm;
 import Assembly.Operand.Reg;
 import Assembly.Operand.VirtualReg;
 
+import java.util.LinkedHashSet;
+
 public class Li extends RISCVInst {
     public Reg rd;
     public Imm imm;
@@ -23,12 +25,17 @@ public class Li extends RISCVInst {
     public void replaceUse(Reg u,Reg t){
     }
     @Override
-    public void replaceDef(Reg t){
-        rd=t;
+    public void replaceDef(Reg u,Reg t){
+        if(t==u)rd=t;
     }
     @Override
-    public void initUseAndDef(){
-        defs.clear();
-        defs.add(rd);
+    public LinkedHashSet<Reg> uses(){
+        return new LinkedHashSet<>();
+    }
+    @Override
+    public LinkedHashSet<Reg>defs(){
+        LinkedHashSet ret= new LinkedHashSet<>();
+        ret.add(rd);
+        return ret;
     }
 }

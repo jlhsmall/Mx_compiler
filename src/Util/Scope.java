@@ -5,19 +5,19 @@ import IR.entity.Register;
 import Util.error.semanticError;
 import Util.item.varItem;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class Scope {
 
-    public HashMap<String, varItem> members;
+    public LinkedHashMap<String, varItem> members;
     public Scope parentScope;
-    public HashMap<String, Entity> varEntities;
+    public LinkedHashMap<String, Entity> varEntities;
     public Scope(Scope parentScope) {
-        members = new HashMap<>();
+        members = new LinkedHashMap<>();
         if(parentScope != null){
             this.parentScope = parentScope;
         }
-        varEntities = new HashMap<>();
+        varEntities = new LinkedHashMap<>();
     }
 
     public void defineVariable(String name, varItem item, position pos) {

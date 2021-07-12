@@ -5,7 +5,7 @@ import IR.IRType.IRType;
 import IR.entity.Argument;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 /**
  * @author Jlhsmall
@@ -16,16 +16,16 @@ public class IRFunction {
     public String name;
     public ArrayList<Argument> arguments;
     public IRType retType;
-    public HashMap<String, Integer> registerNameMap;
-    public HashMap<String, Integer> blockNameMap;
+    public LinkedHashMap<String, Integer> registerNameMap;
+    public LinkedHashMap<String, Integer> blockNameMap;
     public ArrayList<IRBasicBlock> blocks;
     public boolean isExternal;
 
     public IRFunction(IRModule mod) {
         parent = mod;
         arguments = new ArrayList<>();
-        registerNameMap = new HashMap<>();
-        blockNameMap = new HashMap<>();
+        registerNameMap = new LinkedHashMap<>();
+        blockNameMap = new LinkedHashMap<>();
         blocks = new ArrayList<>();
         isExternal = false;
     }

@@ -2,11 +2,11 @@ package Assembly.Operand;
 
 import Assembly.Inst.Mv;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 public abstract class Reg extends Operand {
-    public HashSet<Mv>MvList = new HashSet<>();
-    public HashSet<Reg>adjList = new HashSet<>();
+    public LinkedHashSet<Mv>MvList = new LinkedHashSet<>();
+    public LinkedHashSet<Reg>adjList = new LinkedHashSet<>();
     public int degree = 0;
     public Reg alias;
     public PhyReg color;

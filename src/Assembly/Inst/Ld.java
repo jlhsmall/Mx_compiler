@@ -6,6 +6,8 @@ import Assembly.Operand.Imm;
 import Assembly.Operand.Reg;
 import Assembly.Operand.VirtualReg;
 
+import java.util.LinkedHashSet;
+
 public class Ld extends RISCVInst {
     public enum Category{
         lb(1),lh(2),lw(4);
@@ -31,21 +33,28 @@ public class Ld extends RISCVInst {
     }
     @Override
     public String toString() {
+        if(rs1 instanceof GlobalReg)
+            return op + " " + rd + ", " + rs1;
         return op + " " + rd + ", " + offset + "(" + rs1 + ")";
     }
     @Override
     public void replaceUse(Reg u,Reg t){
-        rs1=t;
+        if(rs1==u)rs1=t;
     }
     @Override
-    public void replaceDef(Reg t){
-        rd=t;
+    public void replaceDef(Reg u,Reg t){
+        if(t==u)rd=t;
     }
     @Override
-    public void initUseAndDef(){
-        uses.clear();
-        defs.clear();
-        if(!(rs1 instanceof GlobalReg))uses.add(rs1);
-        defs.add(rd);
+    public LinkedHashSet<Reg> uses(){
+        LinkedHashSet<Reg>ret=new LinkedHashSet<>();
+        if(!(rs1 instanceof GlobalReg))ret.add(rs1);
+        return ret;
+    }
+    @Override
+    public LinkedHashSet<Reg>defs(){
+        LinkedHashSet ret= new LinkedHashSet<>();
+        ret.add(rd);
+        return ret;
     }
 }

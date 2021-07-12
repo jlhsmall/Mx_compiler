@@ -3,6 +3,8 @@ package Assembly.Inst;
 import Assembly.AsmBlock;
 import Assembly.Operand.Reg;
 
+import java.util.LinkedHashSet;
+
 public class Jp extends RISCVInst {
     public AsmBlock dest;
     public Jp(AsmBlock par, AsmBlock dest) {
@@ -19,9 +21,14 @@ public class Jp extends RISCVInst {
     public void replaceUse(Reg u,Reg t){
     }
     @Override
-    public void replaceDef(Reg t){
+    public void replaceDef(Reg u,Reg t){
     }
     @Override
-    public void initUseAndDef(){
+    public LinkedHashSet<Reg> uses(){
+        return new LinkedHashSet<>();
+    }
+    @Override
+    public LinkedHashSet<Reg>defs(){
+        return new LinkedHashSet<>();
     }
 }

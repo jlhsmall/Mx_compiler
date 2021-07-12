@@ -2,9 +2,10 @@
 Tutorial.md
 Mx_compiler.iml
 /.idea
+/src/Backend/RegAlloc1.java
 /tools
 /out
-src/Main.java
+/src/Main.java
 /ravel
 test.s
 test.in

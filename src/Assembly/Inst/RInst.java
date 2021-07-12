@@ -6,7 +6,8 @@ import Assembly.Operand.VirtualReg;
 import Util.error.internalError;
 import Util.position;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
+
 
 public class RInst extends RISCVInst {
     public enum Category{
@@ -29,18 +30,23 @@ public class RInst extends RISCVInst {
     @Override
     public void replaceUse(Reg u,Reg t){
         if(rs1 == u)rs1=t;
-        else rs2=t;
+        if(rs2==u)rs2=t;
     }
     @Override
-    public void replaceDef(Reg t){
-        rd=t;
+    public void replaceDef(Reg u,Reg t){
+        if(t==u)rd=t;
     }
     @Override
-    public void initUseAndDef(){
-        uses.clear();
-        defs.clear();
-        uses.add(rs1);
-        uses.add(rs2);
-        defs.add(rd);
+    public LinkedHashSet<Reg> uses(){
+        LinkedHashSet<Reg>ret=new LinkedHashSet<>();
+        ret.add(rs1);
+        ret.add(rs2);
+        return ret;
+    }
+    @Override
+    public LinkedHashSet<Reg>defs(){
+        LinkedHashSet ret= new LinkedHashSet<>();
+        ret.add(rd);
+        return ret;
     }
 }

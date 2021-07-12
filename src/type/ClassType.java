@@ -4,7 +4,6 @@ import Frontend.SemanticChecker;
 import IR.IRType.IRStructurePtrType;
 import IR.IRType.IRType;
 
-import java.util.HashSet;
 
 /**
  * @author Jlhsmall

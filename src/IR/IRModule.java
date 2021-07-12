@@ -5,22 +5,22 @@ import IR.IRType.*;
 import IR.entity.Argument;
 import IR.entity.GlobalVariable;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 /**
  * @author Jlhsmall
  * @date 2021/3/7 19:42
  */
 public class IRModule {
-    public HashMap<String, GlobalVariable> GlobalVariableMap;
-    public HashMap<String, IRFunction> FunctionMap;
-    public HashMap<String, IRStructure> StructureMap;
+    public LinkedHashMap<String, GlobalVariable> GlobalVariableMap;
+    public LinkedHashMap<String, IRFunction> FunctionMap;
+    public LinkedHashMap<String, IRStructure> StructureMap;
     public IRFunction mainFunc;
     public IRModule() {
         IRStructureType.mod = this;
-        GlobalVariableMap = new HashMap<>();
-        FunctionMap = new HashMap<>();
-        StructureMap = new HashMap<>();
+        GlobalVariableMap = new LinkedHashMap<>();
+        FunctionMap = new LinkedHashMap<>();
+        StructureMap = new LinkedHashMap<>();
 
         IRStructure StringStruct = new IRStructure(this);
         StringStruct.name = "string";

@@ -5,7 +5,7 @@ import Assembly.AsmFn;
 import Assembly.AsmRoot;
 import Assembly.Operand.GlobalReg;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 /**
  * @author Jlhsmall
@@ -13,8 +13,8 @@ import java.util.HashMap;
  */
 abstract public class AsmVisitor {
     public AsmRoot root;
-    public HashMap<String, AsmFn> fnMap;
-    public HashMap<String, GlobalReg> GlobalRegMap;
+    public LinkedHashMap<String, AsmFn> fnMap;
+    public LinkedHashMap<String, GlobalReg> GlobalRegMap;
 
     public AsmVisitor(InstSelector selector) {
         root = selector.root;

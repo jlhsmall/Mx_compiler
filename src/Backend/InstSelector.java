@@ -22,7 +22,7 @@ import IR.instruction.*;
 import type.NullType;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import static Assembly.AsmRoot.*;
 import static Assembly.Inst.Br.Category.*;
@@ -36,11 +36,11 @@ import static Assembly.Inst.Sz.Category.*;
 
 public class InstSelector implements Pass {
     public AsmRoot root;
-    public HashMap<String, AsmFn> fnMap = new HashMap<>();
-    public HashMap<String, AsmBlock> blockMap = new HashMap<>();
-    public HashMap<Register, Reg> regMap = new HashMap<>();
-    public HashMap<String, GlobalReg> GlobalRegMap = new HashMap<>();
-    //public HashMap<Integer, Reg> LiRegMap = new HashMap<>();
+    static public LinkedHashMap<String, AsmFn> fnMap = new LinkedHashMap<>();
+    static public LinkedHashMap<String, AsmBlock> blockMap = new LinkedHashMap<>();
+    static public LinkedHashMap<Register, Reg> regMap = new LinkedHashMap<>();
+    static public LinkedHashMap<String, GlobalReg> GlobalRegMap = new LinkedHashMap<>();
+    //public LinkedHashMap<Integer, Reg> LiRegMap = new LinkedHashMap<>();
     public AsmFn mainFn;
     public AsmFn curFn;
     public AsmBlock curBlock;
@@ -128,6 +128,8 @@ public class InstSelector implements Pass {
             curBlock.push_back(new Mv(curBlock, dest, r));
             calleeSaveDests.add(dest);
         }
+        VirtualReg vra=new VirtualReg(curFn,4);
+        curBlock.push_back(new Mv(curBlock,vra,ra));
         ArrayList<VirtualReg> argVals = new ArrayList<>();
         for (int i = 0; i < Integer.min(8, irFunc.arguments.size()); ++i) {
             argVals.add(new VirtualReg(curFn, 4));
@@ -157,6 +159,8 @@ public class InstSelector implements Pass {
         curFn.blocks.add(curFn.exitBlock);
         for (int i = 0; i < calleeSaveRegs.size(); ++i)
             curBlock.push_back(new Mv(curBlock, calleeSaveRegs.get(i), calleeSaveDests.get(i)));
+        curBlock.push_back(new Mv(curBlock,ra,vra));
+        curFn.exitBlock.push_back(new Ret(curFn.exitBlock));
         curFn.stackLength=Integer.max(0,irFunc.arguments.size()-8)*4;
         RISCVInst curHead = curFn.rootBlock.headInst;
         for (int i = 8, offset = 0; i <= irFunc.arguments.size() - 1; ++i) {
@@ -295,12 +299,12 @@ public class InstSelector implements Pass {
 
     @Override
     public void visit(callInst inst) {
-        ArrayList<Reg> callerSaveDests = new ArrayList<>();
+        /*ArrayList<Reg> callerSaveDests = new ArrayList<>();
         for (Reg r : callerSaveRegs) {
             VirtualReg dest = new VirtualReg(curFn, 4);
             curBlock.push_back(new Mv(curBlock, dest, r));
             callerSaveDests.add(dest);
-        }
+        }*/
         AsmFn callee = fnMap.get(inst.func.name);
         ArrayList<Entity> paras = inst.func.paras;
         if (paras.size() <= 8) {
@@ -321,8 +325,8 @@ public class InstSelector implements Pass {
         curBlock.push_back(new Call(curBlock, callee));
         if (!(inst.func.type instanceof IRVoidType))
             curBlock.push_back(new Mv(curBlock, getAsmReg(inst.result), AsmRoot.a0));
-        for (int i = 0; i < callerSaveRegs.size(); ++i)
-            curBlock.push_back(new Mv(curBlock, callerSaveRegs.get(i), callerSaveDests.get(i)));
+        /*for (int i = 0; i < callerSaveRegs.size(); ++i)
+            curBlock.push_back(new Mv(curBlock, callerSaveRegs.get(i), callerSaveDests.get(i)));*/
     }
 
     @Override
@@ -401,7 +405,7 @@ public class InstSelector implements Pass {
     @Override
     public void visit(loadInst inst) {
         Reg rs=getAsmReg(inst.ptr);
-        if(rs instanceof GlobalReg)
+        if(rs instanceof GlobalReg && ((GlobalReg)rs).isString)
             curBlock.push_back(new La(curBlock,getAsmReg(inst.result),(GlobalReg)rs));
         else
             curBlock.push_back(new Ld(curBlock, inst.type.getBytes() == 1 ? lb : lw, getAsmReg(inst.result), rs, new Imm(0)));
@@ -427,7 +431,7 @@ public class InstSelector implements Pass {
     @Override
     public void visit(storeInst inst) {
         Reg addr=getAsmReg(inst.ptr);
-        if(addr instanceof GlobalReg) {
+        if(addr instanceof GlobalReg/* && ((GlobalReg)addr).isString*/) {
             VirtualReg ha=new VirtualReg(curFn,4);
             curBlock.push_back(new Lui(curBlock,ha,new Imm((GlobalReg)addr,true)));
             curBlock.push_back(new St(curBlock, inst.type.getBytes() == 1 ? sb : sw, getAsmReg(inst.data), ha,new Imm((GlobalReg)addr,false)) );

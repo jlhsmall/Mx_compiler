@@ -6,7 +6,6 @@ import Assembly.Operand.*;
 import IR.entity.Entity;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Stack;
 
@@ -14,6 +13,7 @@ import static Assembly.AsmRoot.*;
 import static Assembly.Inst.IInst.Category.addi;
 import static Assembly.Inst.Ld.Category.lw;
 import static Assembly.Inst.St.Category.sw;
+import static Assembly.Operand.VirtualReg.allocing;
 
 /**
  * @author Jlhsmall
@@ -21,10 +21,10 @@ import static Assembly.Inst.St.Category.sw;
  */
 public class RegAlloc extends AsmVisitor {
     AsmFn curFn;
-    HashSet<Reg> precolored = new LinkedHashSet<>(phyRegs), initial = new LinkedHashSet<>(), simplifyWorkList = new LinkedHashSet<>(), freezeWorkList = new LinkedHashSet<>(), spillWorkList = new LinkedHashSet<>(),
+    LinkedHashSet<Reg> precolored = new LinkedHashSet<>(phyRegs), initial = new LinkedHashSet<>(), simplifyWorkList = new LinkedHashSet<>(), freezeWorkList = new LinkedHashSet<>(), spillWorkList = new LinkedHashSet<>(),
             spilledNodes = new LinkedHashSet<>(), coalescedNodes = new LinkedHashSet<>(), coloredNodes = new LinkedHashSet<>();
     Stack<Reg> selectStack = new Stack<>();
-    HashSet<Mv> coalescedMvs = new LinkedHashSet<>(), constrainedMvs = new LinkedHashSet<>(), frozenMvs = new LinkedHashSet<>(), workListMvs = new LinkedHashSet<>(), activeMvs = new LinkedHashSet<>();
+    LinkedHashSet<Mv> coalescedMvs = new LinkedHashSet<>(), constrainedMvs = new LinkedHashSet<>(), frozenMvs = new LinkedHashSet<>(), workListMvs = new LinkedHashSet<>(), activeMvs = new LinkedHashSet<>();
     int K = assignableRegs.size();
 
     static class Edge {
@@ -39,9 +39,17 @@ public class RegAlloc extends AsmVisitor {
         public boolean equals(Object o) {
             return (o instanceof Edge) && ((Edge) o).u == u && ((Edge) o).v == v;
         }
+        @Override
+        public int hashCode() {
+            return toString().hashCode();
+        }
+        @Override
+        public String toString() {
+            return "(" + u.toString() + ", " + v.toString() + ")";
+        }
     }
 
-    HashSet<Edge> adjSet = new LinkedHashSet<>();
+    LinkedHashSet<Edge> adjSet = new LinkedHashSet<>();
 
     public RegAlloc(InstSelector selector) {
         super(selector);
@@ -64,9 +72,8 @@ public class RegAlloc extends AsmVisitor {
         adjSet.clear();
         for (var b : curFn.blocks) {
             for (RISCVInst i = b.headInst; i != null; i = i.next) {
-                i.initUseAndDef();
-                initial.addAll(i.uses);
-                initial.addAll(i.defs);
+                initial.addAll(i.uses());
+                initial.addAll(i.defs());
             }
         }
         initial.removeAll(precolored);
@@ -80,6 +87,7 @@ public class RegAlloc extends AsmVisitor {
         for (var n : precolored){
             n.degree = 0;
             n.alias = null;
+            n.color=(PhyReg) n;
             n.adjList.clear();
             n.MvList.clear();
         }
@@ -87,25 +95,25 @@ public class RegAlloc extends AsmVisitor {
 
     public void build() {
         for (var b : curFn.blocks) {
-            HashSet<Reg> live = new LinkedHashSet<>();
+            LinkedHashSet<Reg> live = new LinkedHashSet<>();
             live.addAll(b.liveOut);
             for (RISCVInst i = b.tailInst; i != null; i = i.prev) {
                 if (i instanceof Mv) {
-                    live.removeAll(i.uses);
-                    HashSet<Reg> nodeSet = new LinkedHashSet<>();
-                    nodeSet.addAll(i.defs);
-                    nodeSet.addAll(i.uses);
+                    live.removeAll(i.uses());
+                    LinkedHashSet<Reg> nodeSet = new LinkedHashSet<>();
+                    nodeSet.addAll(i.defs());
+                    nodeSet.addAll(i.uses());
                     for (var n : nodeSet)
                         n.MvList.add((Mv) i);
                     workListMvs.add((Mv) i);
                 }
-                live.addAll(i.defs);
+                live.addAll(i.defs());
                 live.add(zero);
-                for (var d : i.defs)
+                for (var d : i.defs())
                     for (var l : live)
                         addEdge(l, d);
-                live.removeAll(i.defs);
-                live.addAll(i.uses);
+                live.removeAll(i.defs());
+                live.addAll(i.uses());
             }
         }
     }
@@ -138,16 +146,16 @@ public class RegAlloc extends AsmVisitor {
         //initial.clear();
     }
 
-    public HashSet<Reg> Adjacent(Reg n) {
-        HashSet<Reg> ret = new LinkedHashSet<>();
+    public LinkedHashSet<Reg> Adjacent(Reg n) {
+        LinkedHashSet<Reg> ret = new LinkedHashSet<>();
         ret.addAll(n.adjList);
         ret.removeAll(selectStack);
         ret.removeAll(coalescedNodes);
         return ret;
     }
 
-    public HashSet<Mv> NodeMvs(Reg n) {
-        HashSet<Mv> ret = new LinkedHashSet<>();
+    public LinkedHashSet<Mv> NodeMvs(Reg n) {
+        LinkedHashSet<Mv> ret = new LinkedHashSet<>();
         ret.addAll(activeMvs);
         ret.addAll(workListMvs);
         ret.retainAll(n.MvList);
@@ -170,7 +178,7 @@ public class RegAlloc extends AsmVisitor {
     public void decrementDegree(Reg m) {
         int d = m.degree--;
         if (d == K) {
-            HashSet<Reg> nodes = Adjacent(m);
+            LinkedHashSet<Reg> nodes = Adjacent(m);
             nodes.add(m);
             enableMvs(nodes);
             spillWorkList.remove(m);
@@ -190,7 +198,7 @@ public class RegAlloc extends AsmVisitor {
         }
     }
 
-    public void enableMvs(HashSet<Reg> nodes) {
+    public void enableMvs(LinkedHashSet<Reg> nodes) {
         for (var n : nodes) {
             enableMvs(n);
         }
@@ -215,7 +223,7 @@ public class RegAlloc extends AsmVisitor {
             addWorkList(u);
             addWorkList(v);
         } else {
-            HashSet<Reg> adjuv = Adjacent(u), adjv = Adjacent(v);
+            LinkedHashSet<Reg> adjuv = Adjacent(u), adjv = Adjacent(v);
             adjuv.addAll(adjv);
             if (precolored.contains(u) && OK(adjv, u) || !precolored.contains(u) && Conservative(adjuv)) {
                 coalescedMvs.add(m);
@@ -238,12 +246,12 @@ public class RegAlloc extends AsmVisitor {
         return t.degree < K || precolored.contains(t) || adjSet.contains(new Edge(t, r));
     }
 
-    public boolean OK(HashSet<Reg> vs, Reg u) {
+    public boolean OK(LinkedHashSet<Reg> vs, Reg u) {
         for (var v : vs) if (!OK(v, u)) return false;
         return true;
     }
 
-    public boolean Conservative(HashSet<Reg> nodes) {
+    public boolean Conservative(LinkedHashSet<Reg> nodes) {
         int k = 0;
         for (var n : nodes) if (n.degree >= K) ++k;
         return k < K;
@@ -298,13 +306,13 @@ public class RegAlloc extends AsmVisitor {
     public void assignColors() {
         while (!selectStack.isEmpty()) {
             Reg n = selectStack.pop();
-            HashSet<PhyReg> okColors = new LinkedHashSet<>();
+            LinkedHashSet<PhyReg> okColors = new LinkedHashSet<>();
             okColors.addAll(assignableRegs);
             for (var w : n.adjList) {
-                HashSet<Reg> rhs = new LinkedHashSet<>();
+                LinkedHashSet<Reg> rhs = new LinkedHashSet<>();
                 rhs.addAll(precolored);
                 rhs.addAll(coloredNodes);
-                if (rhs.contains(getAlias(w))) {
+                 if (rhs.contains(getAlias(w))) {
                     okColors.remove(getAlias(w).color);
                 }
             }
@@ -321,23 +329,23 @@ public class RegAlloc extends AsmVisitor {
     }
 
     public void rewriteProgram() {
-        HashSet<Reg> newTemps = new LinkedHashSet<>();//for spill use
+        LinkedHashSet<Reg> newTemps = new LinkedHashSet<>();//for spill use
         for (var v : spilledNodes) {
             v.stackOffset = curFn.stackLength;
             curFn.stackLength += 4;
         }
         for (var b : curFn.blocks) {
             for (RISCVInst i = b.headInst; i != null; i = i.next) {
-                for (Reg u : i.uses)
-                    if (u.stackOffset != -1) {
+                for (Reg u : i.uses())
+                    if (spilledNodes.contains(u)) {
                         int sz = ((VirtualReg) u).size;
-                        if (i.defs.contains(u)) {
+                        if (i.defs().contains(u)) {
                             VirtualReg reg = new VirtualReg(curFn, sz);
                             newTemps.add(reg);
                             b.insert_before(i, new Ld(b, Ld.getOp(sz), reg, sp, new Imm(u.stackOffset)));
                             i.replaceUse(u, reg);
                             b.insert_after(i, new St(b, St.getOp(sz), reg, sp, new Imm(u.stackOffset)));
-                            i.replaceDef(reg);
+                            i.replaceDef(u,reg);
                             i = i.next;
                         } else if (i instanceof Mv) {
                             RISCVInst cur = new Ld(b, Ld.getOp(sz), ((Mv) i).rd, sp, new Imm(u.stackOffset));
@@ -350,8 +358,8 @@ public class RegAlloc extends AsmVisitor {
                             i.replaceUse(u, reg);
                         }
                     }
-                for (Reg d : i.defs)
-                    if (d.stackOffset != -1 && !i.uses.contains(d)) {
+                for (Reg d : i.defs())
+                    if (spilledNodes.contains(d) && !i.uses().contains(d)) {
                         int sz = ((VirtualReg) d).size;
                         if (i instanceof Mv) {
                             RISCVInst cur = new St(b, St.getOp(sz), ((Mv) i).rs1, sp, new Imm(d.stackOffset));
@@ -361,7 +369,7 @@ public class RegAlloc extends AsmVisitor {
                             VirtualReg reg = new VirtualReg(curFn, sz);
                             newTemps.add(reg);
                             b.insert_after(i, new St(b, St.getOp(sz), reg, sp, new Imm(d.stackOffset)));
-                            i.replaceDef(reg);
+                            i.replaceDef(d,reg);
                             i = i.next;
                         }
                     }
@@ -410,20 +418,20 @@ public class RegAlloc extends AsmVisitor {
 
     public void handleStackPointer(AsmFn fn){
         curFn=fn;
-        if (curFn.hasCall) {
+        /*if (curFn.hasCall) {
             fn.stackLength+=4;
             curFn.rootBlock.push_front(new St(curFn.rootBlock, sw, ra, sp, new Imm(fn.stackLength - 4)));
             curFn.exitBlock.push_back(new Ld(curFn.exitBlock,lw,ra,sp,new Imm(fn.stackLength - 4)));
-        }
+        }*/
         curFn.rootBlock.push_front(new IInst(curFn.rootBlock, addi, sp, sp, new Imm(-fn.stackLength)));
-        curFn.exitBlock.push_back(new IInst(curFn.exitBlock, addi, sp, sp, new Imm(fn.stackLength)));
-        curFn.exitBlock.push_back(new Ret(curFn.exitBlock));
+        curFn.exitBlock.insert_before(curFn.exitBlock.tailInst,new IInst(curFn.exitBlock, addi, sp, sp, new Imm(fn.stackLength)));//before ret
         for(var st : fn.stList){
             st.offset=new Imm(st.offset.value-fn.stackLength);
         }
     }
 
     public void run() {
+        allocing=true;
         for (var entry : fnMap.entrySet()) {
             AsmFn fn = entry.getValue();
             if(fn.rootBlock != null) {
@@ -437,5 +445,6 @@ public class RegAlloc extends AsmVisitor {
                 handleStackPointer(fn);
             }
         }
+        allocing=false;
     }
 }

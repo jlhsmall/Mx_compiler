@@ -5,24 +5,24 @@ import Assembly.Inst.RISCVInst;
 import Assembly.Operand.Reg;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 public class AsmBlock {
     public AsmFn parent;
     public RISCVInst headInst = null, tailInst = null;
-    public HashSet<AsmBlock> successors, predecessors;
+    public LinkedHashSet<AsmBlock> successors, predecessors;
     public int index = -1;
     // prune-use: public AsmBlock precursor = null;
-    public HashSet<Reg> uses, defs, liveIn, liveOut;
+    public LinkedHashSet<Reg> uses, defs, liveIn, liveOut;
 
     public AsmBlock(AsmFn par) {
         parent = par;
-        successors = new HashSet<>();
-        predecessors = new HashSet<>();
-        uses=new HashSet<>();
-        defs=new HashSet<>();
-        liveIn=new HashSet<>();
-        liveOut=new HashSet<>();
+        successors = new LinkedHashSet<>();
+        predecessors = new LinkedHashSet<>();
+        uses=new LinkedHashSet<>();
+        defs=new LinkedHashSet<>();
+        liveIn=new LinkedHashSet<>();
+        liveOut=new LinkedHashSet<>();
     }
 
     public void addSuccessor(AsmBlock b) {

@@ -7,6 +7,7 @@ public class VirtualReg extends Reg {
     public int index;
     public int size;
     public AsmFn fn;
+    static public boolean allocing=false;
     public VirtualReg(AsmFn fn, int sz) {
         index = cnt++;
         this.fn = fn;
@@ -14,6 +15,7 @@ public class VirtualReg extends Reg {
     }
     @Override
     public String toString() {
-        return "%"+index;//color.toString();
+        if(allocing)return "%"+index;
+        else return color.toString();
     }
 }

@@ -8,13 +8,13 @@ import Util.error.semanticError;
 import Util.item.varItem;
 import type.*;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Stack;
 
 public class SemanticChecker implements ASTVisitor {
     public Stack<Scope> scopes;
-    public HashMap<String, funcItem> funcMap;
-    public HashMap<String, classItem> classMap;
+    public LinkedHashMap<String, funcItem> funcMap;
+    public LinkedHashMap<String, classItem> classMap;
     public ClassType currentClass;
     public classItem currentInst, arrayItem;
     public int loopCnt = 0;
@@ -23,8 +23,8 @@ public class SemanticChecker implements ASTVisitor {
     @Override
     public void visit(RootNode it) {
         scopes = new Stack<>();
-        funcMap = new HashMap<>();
-        classMap = new HashMap<>();
+        funcMap = new LinkedHashMap<>();
+        classMap = new LinkedHashMap<>();
         funcItem funcPrint = new funcItem(),
                 funcPrintln = new funcItem(),
                 funcPrintInt = new funcItem(),
