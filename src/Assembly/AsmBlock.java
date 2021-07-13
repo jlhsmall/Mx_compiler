@@ -14,8 +14,8 @@ public class AsmBlock {
     public int index = -1;
     // prune-use: public AsmBlock precursor = null;
     public LinkedHashSet<Reg> uses, defs, liveIn, liveOut;
-
-    public AsmBlock(AsmFn par) {
+    public int loopDepth;
+    public AsmBlock(AsmFn par,int depth) {
         parent = par;
         successors = new LinkedHashSet<>();
         predecessors = new LinkedHashSet<>();
@@ -23,6 +23,7 @@ public class AsmBlock {
         defs=new LinkedHashSet<>();
         liveIn=new LinkedHashSet<>();
         liveOut=new LinkedHashSet<>();
+        loopDepth=depth;
     }
 
     public void addSuccessor(AsmBlock b) {

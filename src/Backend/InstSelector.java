@@ -95,7 +95,7 @@ public class InstSelector implements Pass {
         for (var entry : module.FunctionMap.entrySet()) {
             AsmFn fn = new AsmFn(root, entry.getKey(), VirtualReg.cnt,entry.getValue().arguments);
             fnMap.put(entry.getKey(), fn);
-            if (!entry.getValue().isExternal) fn.rootBlock = new AsmBlock(fn);
+            if (!entry.getValue().isExternal) fn.rootBlock = new AsmBlock(fn,0);
         }
         for (var entry : module.FunctionMap.entrySet()) {
             IRFunction func = entry.getValue();
@@ -104,7 +104,7 @@ public class InstSelector implements Pass {
 
         mainFn = new AsmFn(root, "main", VirtualReg.cnt,new ArrayList<>());
         fnMap.put("main", mainFn);
-        mainFn.rootBlock = new AsmBlock(mainFn);
+        mainFn.rootBlock = new AsmBlock(mainFn,0);
         module.mainFunc.accept(this);
     }
 
@@ -118,8 +118,9 @@ public class InstSelector implements Pass {
         curFn = fnMap.get(irFunc.name);
         curFn.vRegIndex = VirtualReg.cnt;
         for (int i = 0; i < irFunc.blocks.size(); ++i) {
-            AsmBlock b = i == 0 ? curFn.rootBlock : new AsmBlock(curFn);
-            blockMap.put(irFunc.blocks.get(i).getAsmBlockKey(), b);
+            IRBasicBlock irb=irFunc.blocks.get(i);
+            AsmBlock b = i == 0 ? curFn.rootBlock : new AsmBlock(curFn,irb.loopDepth);
+            blockMap.put(irb.getAsmBlockKey(), b);
         }
         curBlock = curFn.rootBlock;
         ArrayList<Reg> calleeSaveDests = new ArrayList<>();
@@ -145,7 +146,7 @@ public class InstSelector implements Pass {
             } else
                 regMap.put(arg, new VirtualReg(curFn, 4));
         }
-        curFn.exitBlock=new AsmBlock(curFn);
+        curFn.exitBlock=new AsmBlock(curFn,0);
         for (int i = 0; i < irFunc.blocks.size(); ++i) {
             curBlock = blockMap.get(irFunc.blocks.get(i).getAsmBlockKey());
             irFunc.blocks.get(i).accept(this);

@@ -31,14 +31,13 @@ public class LivenessAnalysor {
             b.liveOut.clear();
             b.liveIn.clear();
             for (RISCVInst i = b.headInst; i != null; i = i.next) {
-                b.uses.removeAll(i.uses());
-                b.uses.addAll(i.uses());
-                b.defs.removeAll(i.defs());
+                LinkedHashSet<Reg>uses=i.uses();
+                uses.removeAll(b.defs);
+                b.uses.addAll(uses);
                 b.defs.addAll(i.defs());
             }
         }
     }
-
     void analyse(AsmBlock b) {
         LinkedHashSet<Reg> newIn = new LinkedHashSet<>();
         for (var suc : b.successors)
@@ -47,9 +46,10 @@ public class LivenessAnalysor {
         newIn.removeAll(b.defs);
         newIn.addAll(b.uses);
         newIn.removeAll(b.liveIn);
-        if(newIn.isEmpty())return;
-        b.liveIn.addAll(newIn);
-        visitedBlocks.removeAll(b.predecessors);
+        if(!newIn.isEmpty()) {
+            b.liveIn.addAll(newIn);
+            visitedBlocks.removeAll(b.predecessors);
+        }
         for (var pre : b.predecessors){
             if(!visitedBlocks.contains(pre)){
                 visitedBlocks.add(pre);

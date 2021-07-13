@@ -6,6 +6,7 @@ import Assembly.Operand.*;
 import IR.entity.Entity;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Stack;
 
@@ -26,7 +27,7 @@ public class RegAlloc extends AsmVisitor {
     Stack<Reg> selectStack = new Stack<>();
     LinkedHashSet<Mv> coalescedMvs = new LinkedHashSet<>(), constrainedMvs = new LinkedHashSet<>(), frozenMvs = new LinkedHashSet<>(), workListMvs = new LinkedHashSet<>(), activeMvs = new LinkedHashSet<>();
     int K = assignableRegs.size();
-
+    LinkedHashSet<Reg> newTemps = new LinkedHashSet<>();
     static class Edge {
         Reg u, v;
 
@@ -55,6 +56,15 @@ public class RegAlloc extends AsmVisitor {
         super(selector);
     }
 
+    public void calculateWeight(){
+        for(var b : curFn.blocks){
+            double plus=Math.pow(10,b.loopDepth);
+            for(RISCVInst i=b.headInst;i!=null;i=i.next){
+                for(Reg r:i.uses())r.weight+=plus;
+                for(Reg r:i.defs())r.weight+=plus;
+            }
+        }
+    }
     public void reset() {
         initial.clear();
         simplifyWorkList.clear();
@@ -83,6 +93,7 @@ public class RegAlloc extends AsmVisitor {
             n.alias = null;
             n.adjList.clear();
             n.MvList.clear();
+            n.weight=0;
         }
         for (var n : precolored){
             n.degree = 0;
@@ -91,6 +102,7 @@ public class RegAlloc extends AsmVisitor {
             n.adjList.clear();
             n.MvList.clear();
         }
+        calculateWeight();
     }
 
     public void build() {
@@ -136,8 +148,11 @@ public class RegAlloc extends AsmVisitor {
 
     public void makeWorkList() {
         for (var n : initial) {
-            if (n.degree >= K)
+            if (n.degree >= K) {
+                if(newTemps.contains(n))
+                    System.out.println("gan");
                 spillWorkList.add(n);
+            }
             else if (MvRelated(n))
                 freezeWorkList.add(n);
             else
@@ -272,6 +287,8 @@ public class RegAlloc extends AsmVisitor {
         }
         if (u.degree >= K && freezeWorkList.contains(u)) {
             freezeWorkList.remove(u);
+            if(newTemps.contains(u))
+                System.out.println("gan");
             spillWorkList.add(u);
         }
     }
@@ -297,10 +314,24 @@ public class RegAlloc extends AsmVisitor {
     }
 
     public void selectSpill() {
-        Reg m = spillWorkList.iterator().next();
-        spillWorkList.remove(m);
-        simplifyWorkList.add(m);
-        freezeMoves(m);
+        Reg reg = null;
+        double Min=Double.POSITIVE_INFINITY;
+        var it=spillWorkList.iterator();
+        while(it.hasNext()) {
+            Reg r=it.next();
+            if (!newTemps.contains(r)) {
+                double val = r.weight / r.degree;
+                if (val < Min) {
+                    reg = r;
+                    Min = val;
+                }
+            }
+        }
+        if(reg==null)
+            System.out.println("gan");
+        spillWorkList.remove(reg);
+        simplifyWorkList.add(reg);
+        freezeMoves(reg);
     }
 
     public void assignColors() {
@@ -329,7 +360,7 @@ public class RegAlloc extends AsmVisitor {
     }
 
     public void rewriteProgram() {
-        LinkedHashSet<Reg> newTemps = new LinkedHashSet<>();//for spill use
+        //for spill use
         for (var v : spilledNodes) {
             v.stackOffset = curFn.stackLength;
             curFn.stackLength += 4;
@@ -411,7 +442,7 @@ public class RegAlloc extends AsmVisitor {
             assignColors();
             if (!spilledNodes.isEmpty())
                 rewriteProgram();
-            else break;
+            /*else*/ break;
         }
 
     }

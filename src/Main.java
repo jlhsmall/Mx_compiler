@@ -13,14 +13,14 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
-
+import static Assembly.Operand.VirtualReg.allocing;
 
 public class Main {
     public static void main(String[] args) throws Exception{
 
         String name = "testcases\\codegen\\e1.mx";
-        InputStream input = new FileInputStream(name);
-        //InputStream input = System.in;
+        //InputStream input = new FileInputStream(name);
+        InputStream input = System.in;
 
         try {
             RootNode ASTRoot;
@@ -41,9 +41,9 @@ public class Main {
             InstSelector selector = new InstSelector();
             selector.visit(builder.module);
             new RegAlloc(selector).run();
-            Assembly.Operand.VirtualReg.allocing=true;
-            new AsmPrinter(selector,new PrintStream("test.s")).print();
-            //new AsmPrinter(selector,new PrintStream("output.s")).print();
+            //allocing=true;
+            //new AsmPrinter(selector,new PrintStream("test.s")).print();
+            new AsmPrinter(selector,new PrintStream("output.s")).print();
 
 
         } catch (error er) {
