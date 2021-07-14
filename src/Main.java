@@ -18,7 +18,7 @@ import static Assembly.Operand.VirtualReg.allocing;
 public class Main {
     public static void main(String[] args) throws Exception{
 
-        String name = "testcases\\codegen\\e1.mx";
+        String name = "testcases\\sema\\basic-package\\basic-71.mx";
         //InputStream input = new FileInputStream(name);
         InputStream input = System.in;
 

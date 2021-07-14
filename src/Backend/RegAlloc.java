@@ -149,8 +149,6 @@ public class RegAlloc extends AsmVisitor {
     public void makeWorkList() {
         for (var n : initial) {
             if (n.degree >= K) {
-                if(newTemps.contains(n))
-                    System.out.println("gan");
                 spillWorkList.add(n);
             }
             else if (MvRelated(n))
@@ -287,8 +285,6 @@ public class RegAlloc extends AsmVisitor {
         }
         if (u.degree >= K && freezeWorkList.contains(u)) {
             freezeWorkList.remove(u);
-            if(newTemps.contains(u))
-                System.out.println("gan");
             spillWorkList.add(u);
         }
     }
@@ -327,8 +323,6 @@ public class RegAlloc extends AsmVisitor {
                 }
             }
         }
-        if(reg==null)
-            System.out.println("gan");
         spillWorkList.remove(reg);
         simplifyWorkList.add(reg);
         freezeMoves(reg);
@@ -442,7 +436,7 @@ public class RegAlloc extends AsmVisitor {
             assignColors();
             if (!spilledNodes.isEmpty())
                 rewriteProgram();
-            /*else*/ break;
+            else break;
         }
 
     }

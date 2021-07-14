@@ -29,7 +29,7 @@ public class La extends RISCVInst {
     }
     @Override
     public void replaceDef(Reg u,Reg t){
-        if(t==u)rd=t;
+        if(rd==u)rd=t;
     }
     @Override
     public LinkedHashSet<Reg> uses(){
